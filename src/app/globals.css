@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 250 248;
+    --foreground: 136 19 55;
+  }
+
+  .dark {
+    --background: 76 5 25;
+    --foreground: 254 226 226;
+  }
+
+  * {
+    @apply border-rose-200;
+  }
+
+  body {
+    @apply bg-cream-50 text-rose-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  ::selection {
+    @apply bg-rose-300 text-rose-900;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cream-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-rose-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-rose-400;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-rose-500 text-white hover:bg-rose-600 focus:ring-rose-500 shadow-lg shadow-rose-500/25;
+  }
+
+  .btn-secondary {
+    @apply btn bg-cream-200 text-rose-700 hover:bg-cream-300 focus:ring-rose-300 border border-rose-200;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-rose-600 hover:bg-rose-50 focus:ring-rose-300;
+  }
+
+  .btn-danger {
+    @apply btn bg-rose-500 text-white hover:bg-rose-600 focus:ring-rose-500;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-rose-200 bg-white text-rose-900 placeholder-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-200;
+  }
+
+  .textarea {
+    @apply input min-h-[120px] resize-y;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-rose-700 mb-2;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg shadow-rose-100/50 border border-rose-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-rose-200/50;
+  }
+
+  .card-hover {
+    @apply card hover:-translate-y-1;
+  }
+
+  .polaroid {
+    @apply relative bg-white rounded-t-xl shadow-polaroid transition-all duration-300;
+  }
+
+  .polaroid-frame {
+    @apply p-4 pb-12 bg-white;
+  }
+
+  .envelope {
+    @apply relative bg-gradient-to-br from-rose-100 to-blush-100 rounded-xl shadow-envelope border border-rose-200 overflow-hidden;
+  }
+
+  .cassette {
+    @apply relative bg-gray-800 rounded-lg shadow-cassette border border-gray-700;
+  }
+
+  .flower-stem {
+    @apply absolute bottom-0 w-1 h-32 bg-gradient-to-t from-sage-600 to-sage-400 rounded-t transform origin-bottom;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-rose-500 via-rose-600 to-lavender-600 bg-clip-text text-transparent;
+  }
+
+  .gradient-border {
+    @apply relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-rose-300 before:to-lavender-400 before:p-[1px] before:-z-10;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-in {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-in-delay-1 {
+    animation: fadeInUp 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-2 {
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-3 {
+    animation: fadeInUp 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-4 {
+    animation: fadeInUp 0.6s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+
+  .animate-in-delay-5 {
+    animation: fadeInUp 0.6s ease-out 0.5s forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Print styles for letters */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}
