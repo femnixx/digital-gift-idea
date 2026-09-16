@@ -109,11 +109,11 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-sky-500 via-sky-600 to-lavender-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 bg-clip-text text-transparent;
   }
 
   .gradient-border {
-    @apply relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-sky-300 before:to-lavender-400 before:p-[1px] before:-z-10;
+    @apply relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-sky-300 before:to-indigo-400 before:p-[1px] before:-z-10;
   }
 }
 
