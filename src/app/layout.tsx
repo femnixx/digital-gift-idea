@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Playfair_Display, Dancing_Script, Great_Vibes } from 'next/font/google'
+import { Inter, Playfair_Display, Dancing_Script } from 'next/font/google'
+import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
+import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import './globals.css'
 
 export const inter = Inter({
@@ -21,18 +23,12 @@ export const dancing = Dancing_Script({
   weight: ['400', '500', '600', '700'],
 })
 
-export const greatVibes = Great_Vibes({
-  subsets: ['latin'],
-  variable: '--font-great-vibes',
-  display: 'swap',
-})
-
 export const metadata: Metadata = {
   title: {
-    default: 'Digital Love Letters 💕',
+    default: 'Digital Love Letters',
     template: '%s | Digital Love Letters',
   },
-  description: 'A romantic digital space for long-distance love. Share letters, bouquets, polaroids, and memories across the miles.',
+  description: 'A romantic digital space for long-distance love.',
   keywords: ['long-distance relationship', 'love letters', 'digital gifts', 'romantic', 'couples'],
   authors: [{ name: 'You' }],
   creator: 'You',
@@ -43,7 +39,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://your-domain.com',
     siteName: 'Digital Love Letters',
-    title: 'Digital Love Letters 💕',
+    title: 'Digital Love Letters',
     description: 'A romantic digital space for long-distance love',
     images: [
       {
@@ -56,7 +52,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Digital Love Letters 💕',
+    title: 'Digital Love Letters',
     description: 'A romantic digital space for long-distance love',
     images: ['/images/og-image.png'],
   },
@@ -81,13 +77,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable} ${greatVibes.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans antialiased bg-cream-50 text-rose-900">
+        <DemoInitializer />
         {children}
+        <DemoModeBanner />
       </body>
     </html>
   )

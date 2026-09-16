@@ -87,7 +87,7 @@ module.exports = {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-playfair)', 'Georgia', 'serif'],
         handwriting: ['var(--font-dancing)', 'cursive'],
-        script: ['var(--font-great-vibes)', 'cursive'],
+        script: ['Great Vibes', 'cursive'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
