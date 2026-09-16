@@ -9,6 +9,7 @@ import { LoveLetterEditor } from './LoveLetterEditor'
 import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
+import { BouquetEditor } from '@/components/features/BouquetEditor'
 
 const ENTRY_TYPES: { type: EntryType; label: string; icon: string; description: string }[] = [
   { type: 'letter', label: 'Love Letter', icon: '💌', description: 'A heartfelt message' },
@@ -25,6 +26,7 @@ export default function NewEntryPage() {
   const [selectedType, setSelectedType] = useState<EntryType | null>(null)
   const [showScratchEditor, setShowScratchEditor] = useState(false)
   const [showCoffeeDateEditor, setShowCoffeeDateEditor] = useState(false)
+  const [showBouquetEditor, setShowBouquetEditor] = useState(false)
 
   const handleScratchSave = (card: any) => {
     console.log('Scratch card saved:', card)
@@ -33,6 +35,11 @@ export default function NewEntryPage() {
 
   const handleCoffeeDateSave = (dates: any[]) => {
     console.log('Coffee dates saved:', dates)
+    router.push('/admin')
+  }
+
+  const handleBouquetSave = (flowers: any[]) => {
+    console.log('Bouquet saved:', flowers)
     router.push('/admin')
   }
 
@@ -171,6 +178,64 @@ export default function NewEntryPage() {
             onCancel={() => setSelectedType(null)}
             mode="create"
           />
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedType === 'bouquet') {
+    if (showBouquetEditor) {
+      return (
+        <div className='min-h-screen bg-cream-50'>
+          <div className='max-w-4xl mx-auto px-6 py-12'>
+            <button onClick={() => setShowBouquetEditor(false)} className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'>
+              <ArrowLeft className='w-4 h-4' /> Back to types
+            </button>
+            <div className='mb-8'>
+              <div className='flex items-center gap-3 mb-2'>
+                <span className='text-3xl'>💐</span>
+                <div>
+                  <h1 className='font-script text-3xl gradient-text'>Digital Bouquet</h1>
+                  <p className='text-rose-500 text-sm'>Create a beautiful flower arrangement</p>
+                </div>
+              </div>
+            </div>
+            <BouquetEditor
+              entryId={'new-entry'}
+              onSave={handleBouquetSave}
+              onCancel={() => setShowBouquetEditor(false)}
+            />
+          </div>
+        </div>
+      )
+    }
+    return (
+      <div className='min-h-screen bg-cream-50'>
+        <div className='max-w-4xl mx-auto px-6 py-12'>
+          <button onClick={() => setSelectedType(null)} className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'>
+            <ArrowLeft className='w-4 h-4' /> Back to types
+          </button>
+          <div className='mb-8'>
+            <div className='flex items-center gap-3 mb-2'>
+              <span className='text-3xl'>💐</span>
+              <div>
+                <h1 className='font-script text-3xl gradient-text'>Digital Bouquet</h1>
+                <p className='text-rose-500 text-sm'>Create a beautiful flower arrangement with procedural generation</p>
+              </div>
+            </div>
+          </div>
+          <div className='card p-8 text-center'>
+            <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
+            <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Your Bouquet</h2>
+            <p className='text-slate-500 mb-6'>
+              Choose flower types, colors, and arrangement patterns.
+              Your bouquet will be generated with beautiful procedural flowers.
+            </p>
+            <button onClick={() => setShowBouquetEditor(true)} className='btn-primary inline-flex items-center gap-2'>
+              <Sparkles className='w-4 h-4' />
+              Create Bouquet
+            </button>
+          </div>
         </div>
       </div>
     )

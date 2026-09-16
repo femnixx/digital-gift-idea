@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TYPE entry_type AS ENUM ('letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note');
 CREATE TYPE media_type AS ENUM ('image', 'audio', 'video');
 CREATE TYPE flower_type AS ENUM ('rose', 'sunflower', 'tulip', 'lily', 'orchid', 'peony', 'daisy', 'lavender');
-CREATE TYPE drink_type AS ENUM ('coffee', 'tea', 'hot_chocolate', 'latte', 'matcha', 'chai');
+CREATE TYPE drink_type AS ENUM ('coffee', 'tea', 'hot_chocolate', 'latte', 'matcha', 'chai', 'cappuccino', 'espresso', 'americano', 'mocha', 'cold_brew');
 
 -- =============================================
 -- PROFILES TABLE (extends auth.users)
@@ -35,13 +35,13 @@ CREATE TABLE profiles (
 -- =============================================
 CREATE TABLE entries (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    slug TEXT UNIQUE NOT NULL, -- e.g., '2026-09-15', 'sep-15-surprise', 'open-when-miss-me'
+    slug TEXT UNIQUE NOT NULL,
     title TEXT NOT NULL,
     type entry_type NOT NULL DEFAULT 'letter',
-    content JSONB NOT NULL DEFAULT '{}', -- Flexible content based on type
+    content JSONB NOT NULL DEFAULT '{}',
     publish_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    unlock_at TIMESTAMPTZ, -- For "Open When" letters
-    unlock_condition TEXT, -- 'date', 'manual', 'location', 'mood'
+    unlock_at TIMESTAMPTZ,
+    unlock_condition TEXT,
     is_published BOOLEAN DEFAULT FALSE,
     is_featured BOOLEAN DEFAULT FALSE,
     view_count INTEGER DEFAULT 0,
@@ -57,14 +57,14 @@ CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
     type media_type NOT NULL,
-    storage_path TEXT NOT NULL, -- Path in Supabase Storage
+    storage_path TEXT NOT NULL,
     public_url TEXT,
     filename TEXT,
     mime_type TEXT,
     size_bytes BIGINT,
     width INTEGER,
     height INTEGER,
-    duration_seconds INTEGER, -- For audio/video
+    duration_seconds INTEGER,
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -76,13 +76,14 @@ CREATE TABLE bouquet_flowers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
     flower_type flower_type NOT NULL,
-    color TEXT NOT NULL, -- Hex color code
-    note TEXT, -- Love note attached to this stem
-    position_x DECIMAL(5, 2) DEFAULT 50, -- Percentage position
+    color TEXT NOT NULL,
+    note TEXT,
+    position_x DECIMAL(5, 2) DEFAULT 50,
     position_y DECIMAL(5, 2) DEFAULT 50,
     rotation DECIMAL(5, 2) DEFAULT 0,
     scale DECIMAL(3, 2) DEFAULT 1.0,
     sort_order INTEGER DEFAULT 0,
+    generation_seed INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -94,11 +95,18 @@ CREATE TABLE polaroid_cards (
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
     caption TEXT,
-    date_tag DATE,
-    back_note TEXT, -- Handwritten note on the back
-    hidden_message TEXT, -- Revealed on shake/drag
-    tilt_degrees DECIMAL(4, 1) DEFAULT 0,
+    date_tag TEXT,
+    back_note TEXT,
+    hidden_message TEXT,
+    tilt_degrees DECIMAL(5, 2) DEFAULT 0,
     sort_order INTEGER DEFAULT 0,
+    template TEXT DEFAULT 'classic_white',
+    orientation TEXT DEFAULT 'portrait',
+    font_family TEXT DEFAULT 'sans-serif',
+    font_size TEXT DEFAULT '16px',
+    font_color TEXT DEFAULT '#000000',
+    text_alignment TEXT DEFAULT 'center',
+    stickers TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -108,10 +116,10 @@ CREATE TABLE polaroid_cards (
 CREATE TABLE scratch_cards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
-    cover_color TEXT DEFAULT '#E8B4B8', -- Scratch-off surface color
-    cover_image_url TEXT, -- Optional image as cover
-    reveal_content JSONB NOT NULL, -- { type: 'text'|'image', content: '...' }
-    scratch_threshold DECIMAL(3, 2) DEFAULT 0.6, -- Percentage to fully reveal
+    cover_color TEXT DEFAULT '#E8B4B8',
+    cover_image_url TEXT,
+    reveal_content JSONB NOT NULL,
+    scratch_threshold DECIMAL(3, 2) DEFAULT 0.6,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -121,12 +129,12 @@ CREATE TABLE scratch_cards (
 CREATE TABLE open_when_letters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
-    trigger_label TEXT NOT NULL, -- "Open when you miss me"
-    trigger_type TEXT NOT NULL, -- 'date', 'manual', 'mood', 'location'
-    trigger_value TEXT, -- Date string, mood value, location name
+    trigger_label TEXT NOT NULL,
+    trigger_type TEXT NOT NULL,
+    trigger_value TEXT,
     envelope_color TEXT DEFAULT '#F5E6E8',
     seal_emoji TEXT DEFAULT '💌',
-    content JSONB NOT NULL, -- Full letter content
+    content JSONB NOT NULL,
     is_unlocked BOOLEAN DEFAULT FALSE,
     unlocked_at TIMESTAMPTZ,
     sort_order INTEGER DEFAULT 0,
@@ -139,10 +147,10 @@ CREATE TABLE open_when_letters (
 CREATE TABLE coffee_dates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
-    drink_type drink_type NOT NULL,
-    custom_name TEXT, -- "Carmen's Cozy Caramel Latte"
-    message TEXT, -- Note with the drink
-    gift_card_url TEXT, -- Optional delivery link
+    drink_types drink_type[] DEFAULT '{}',
+    custom_name TEXT,
+    message TEXT,
+    gift_card_url TEXT,
     local_cafe_suggestion TEXT,
     animation_triggered BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -150,26 +158,26 @@ CREATE TABLE coffee_dates (
 
 -- =============================================
 -- VOICE NOTES TABLE
--- ==parameter=content>
+-- =============================================
 CREATE TABLE voice_notes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
     media_id UUID REFERENCES media(id) ON DELETE SET NULL,
     title TEXT,
-    transcript TEXT, -- Optional speech-to-text
-    waveform_data JSONB, -- For visualization
+    transcript TEXT,
+    waveform_data JSONB,
     duration_seconds INTEGER,
-    cassette_side TEXT DEFAULT 'A', -- 'A' or 'B' for vintage feel
+    cassette_side TEXT DEFAULT 'A',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- =============================================
--- PARTNER INTERACTIONS TABLE (Analytics/Engagement)
+-- PARTNER INTERACTIONS TABLE
 -- =============================================
 CREATE TABLE partner_interactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     entry_id UUID REFERENCES entries(id) ON DELETE CASCADE,
-    interaction_type TEXT NOT NULL, -- 'view', 'flower_click', 'polaroid_flip', 'scratch_reveal', 'envelope_open', 'drink_select', 'audio_play'
+    interaction_type TEXT NOT NULL,
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -223,6 +231,19 @@ ALTER TABLE coffee_dates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE voice_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partner_interactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE relationship_settings ENABLE ROW LEVEL SECURITY;
+
+-- Service role bypass for API routes / server-side operations
+CREATE POLICY "Service role can manage profiles" ON profiles FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage entries" ON entries FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage media" ON media FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage bouquet_flowers" ON bouquet_flowers FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage polaroid_cards" ON polaroid_cards FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage scratch_cards" ON scratch_cards FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage open_when_letters" ON open_when_letters FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage coffee_dates" ON coffee_dates FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage voice_notes" ON voice_notes FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage partner_interactions" ON partner_interactions FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Service role can manage relationship_settings" ON relationship_settings FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 -- Profiles: Users can read all, update own
 CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
@@ -296,7 +317,7 @@ CREATE POLICY "Creators can view interactions" ON partner_interactions FOR SELEC
     EXISTS (SELECT 1 FROM entries WHERE entries.id = partner_interactions.entry_id AND entries.created_by = auth.uid())
 );
 
--- Relationship settings: Only the two partners can view
+-- Relationship settings: Only the two partners can view/update
 CREATE POLICY "Partners can view relationship settings" ON relationship_settings FOR SELECT USING (
     auth.uid() = partner_one_id OR auth.uid() = partner_two_id
 );
@@ -308,7 +329,6 @@ CREATE POLICY "Partners can update relationship settings" ON relationship_settin
 -- HELPER FUNCTIONS
 -- =============================================
 
--- Auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -321,7 +341,6 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW
 CREATE TRIGGER update_entries_updated_at BEFORE UPDATE ON entries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_relationship_settings_updated_at BEFORE UPDATE ON relationship_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Generate slug from date or custom string
 CREATE OR REPLACE FUNCTION generate_slug(base_text TEXT, entry_type entry_type)
 RETURNS TEXT AS $$
 DECLARE
@@ -330,22 +349,18 @@ DECLARE
 BEGIN
     slug := lower(regexp_replace(base_text, '[^a-z0-9]+', '-', 'g'));
     slug := regexp_replace(slug, '^-+|-+$', '', 'g');
-    
-    -- Ensure uniqueness
     WHILE EXISTS (SELECT 1 FROM entries WHERE entries.slug = slug) LOOP
         counter := counter + 1;
         slug := slug || '-' || counter;
     END LOOP;
-    
     RETURN slug;
 END;
 $$ LANGUAGE plpgsql;
 
--- Calculate distance between two lat/lng points (Haversine formula)
 CREATE OR REPLACE FUNCTION calculate_distance(lat1 DECIMAL, lon1 DECIMAL, lat2 DECIMAL, lon2 DECIMAL)
 RETURNS DECIMAL AS $$
 DECLARE
-    R DECIMAL := 6371; -- Earth radius in km
+    R DECIMAL := 6371;
     dLat DECIMAL := radians(lat2 - lat1);
     dLon DECIMAL := radians(lon2 - lon1);
     a DECIMAL;

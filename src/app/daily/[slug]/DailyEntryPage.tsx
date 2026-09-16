@@ -31,6 +31,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
   const [editingOpenWhenLetters, setEditingOpenWhenLetters] = useState(false)
   const [editingCoffeeDates, setEditingCoffeeDates] = useState(false)
   const [editingCoffeeDateId, setEditingCoffeeDateId] = useState<string | null>(null)
+  const [editingBouquet, setEditingBouquet] = useState(false)
 
   const handleCardsChange = (cards: any[]) => {
     Object.assign(entry, { polaroid_cards: cards, updated_at: new Date().toISOString() })
@@ -58,6 +59,12 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
     Object.assign(entry, updated)
     setEditingCoffeeDates(false)
     setEditingCoffeeDateId(null)
+  }
+
+  const handleBouquetSave = (flowers: any[]) => {
+    const updated = { ...entry, bouquet_flowers: flowers, updated_at: new Date().toISOString() } as Entry
+    Object.assign(entry, updated)
+    setEditingBouquet(false)
   }
 
   const renderContent = () => {
