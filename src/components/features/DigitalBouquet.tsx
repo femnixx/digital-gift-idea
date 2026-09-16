@@ -9,7 +9,7 @@ interface BouquetFlower {
   id: string
   flower_type: FlowerType
   color: string
-  note: string
+  note: string | null
   position_x: number
   position_y: number
   rotation: number
@@ -69,7 +69,7 @@ export function DigitalBouquet({
     onFlowerClick?.(flower)
   }
 
-  const handleDrag = (flower: BouquetFlower, e: React.DragEvent) => {
+  const handleDrag = (flower: BouquetFlower, e: any) => {
     if (!isEditing) return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return

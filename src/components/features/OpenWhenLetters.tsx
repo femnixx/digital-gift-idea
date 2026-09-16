@@ -1,8 +1,8 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
-import { Mail, Lock, Unlock, Heart, Sparkles, Calendar, MapPin, Smile, Star, Eye, EyeOff } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Mail, Lock, Unlock, Heart, Sparkles, Calendar, MapPin, Smile, Star, Eye, EyeOff, Play, Pause } from 'lucide-react'
 
 interface OpenWhenLetter {
   id: string
@@ -43,25 +43,18 @@ const triggerLabels = {
 
 export function OpenWhenLetters({ letters, onUnlock, className = '' }: OpenWhenLettersProps) {
   const [expandedLetter, setExpandedLetter] = useState<string | null>(null)
-  const [showContent, setShowContent] = useState<Set<string>>(new Set())
+  const [showContent, setShowContent] = useState<string[]>([])
+  const showContentRef = useRef<string[]>([])
+  useEffect(() => { showContentRef.current = showContent }, [showContent])
 
   const handleUnlock = (letter: OpenWhenLetter) => {
     if (letter.is_unlocked) {
-      setShowContent(prev => {
-        const next = new Set(prev)
-        if (next.has(letter.id)) {
-          next.delete(letter.id)
-        } else {
-          next.add(letter.id)
-        }
-        return next
-      })
+      setShowContent(prev => prev.includes(letter.id) ? prev.filter(id => id !== letter.id) : [...prev, letter.id])
     } else {
-      // Trigger unlock animation
       setExpandedLetter(letter.id)
       setTimeout(() => {
         onUnlock?.(letter)
-        setShowContent(prev => new Set(prev).add(letter.id))
+        setShowContent(prev => [...prev, letter.id])
         setExpandedLetter(null)
       }, 1500)
     }
@@ -87,10 +80,11 @@ export function OpenWhenLetters({ letters, onUnlock, className = '' }: OpenWhenL
             <EnvelopeCard
               letter={letter}
               isExpanded={expandedLetter === letter.id}
-              isUnlocked={showContent.has(letter.id)}
+              isUnlocked={showContent.includes(letter.id)}
               onClick={() => handleUnlock(letter)}
               triggerIcon={getTriggerIcon(letter.trigger_type)}
               triggerLabel={triggerLabels[letter.trigger_type]}
+              onCloseContent={(id) => setShowContent(prev => prev.filter(lid => lid !== id))}
             />
           </motion.div>
         ))}
@@ -123,9 +117,10 @@ interface EnvelopeCardProps {
   onClick: () => void
   triggerIcon: React.ComponentType<{ className?: string }>
   triggerLabel: string
+  onCloseContent?: (letterId: string) => void
 }
 
-function EnvelopeCard({ letter, isExpanded, isUnlocked, onClick, triggerIcon: TriggerIcon, triggerLabel }: EnvelopeCardProps) {
+function EnvelopeCard({ letter, isExpanded, isUnlocked, onClick, triggerIcon: TriggerIcon, triggerLabel, onCloseContent }: EnvelopeCardProps) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -248,11 +243,7 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, onClick, triggerIcon: Tr
             exit={{ opacity: 0, scale: 0.9, rotateX: 30 }}
             transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
           >
-            <LetterContent letter={letter} onClose={() => setShowContent(prev => {
-              const next = new Set(prev)
-              next.delete(letter.id)
-              return next
-            })} />
+            <LetterContent letter={letter} onClose={() => onCloseContent?.(letter.id)} />
           </motion.div>
         )}
       </AnimatePresence>

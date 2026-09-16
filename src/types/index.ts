@@ -29,7 +29,7 @@ export interface Entry {
   slug: string
   title: string
   type: EntryType
-  content: Record<string, unknown>
+  content: { title?: string; message: string; image_url?: string; audio_url?: string }
   publish_at: string
   unlock_at: string | null
   unlock_condition: UnlockCondition | null
@@ -109,11 +109,11 @@ export interface OpenWhenLetter {
   id: string
   entry_id: string
   trigger_label: string
-  trigger_type: string
+  trigger_type: "date" | "manual" | "location" | "mood"
   trigger_value: string | null
   envelope_color: string
   seal_emoji: string
-  content: Record<string, unknown>
+  content: { title?: string; message: string; image_url?: string; audio_url?: string }
   is_unlocked: boolean
   unlocked_at: string | null
   sort_order: number
@@ -133,6 +133,7 @@ export interface CoffeeDate {
 }
 
 export interface VoiceNote {
+  media?: Media
   id: string
   entry_id: string
   media_id: string | null
@@ -171,7 +172,7 @@ export interface CreateEntryForm {
   title: string
   type: EntryType
   slug: string
-  content: Record<string, unknown>
+  content: { title?: string; message: string; image_url?: string; audio_url?: string }
   publish_at: string
   unlock_at?: string
   unlock_condition?: UnlockCondition
@@ -214,11 +215,11 @@ export interface ScratchCardFormData {
 export interface OpenWhenFormData {
   letters: {
     trigger_label: string
-    trigger_type: string
+    trigger_type: "date" | "manual" | "location" | "mood"
     trigger_value: string
     envelope_color: string
     seal_emoji: string
-    content: Record<string, unknown>
+    content: { title?: string; message: string; image_url?: string; audio_url?: string }
   }[]
 }
 

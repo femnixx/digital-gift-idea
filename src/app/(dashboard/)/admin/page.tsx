@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
                   <p className="text-rose-500 text-sm uppercase tracking-wider">{stat.label}</p>
                   <p className="font-serif text-3xl font-bold text-rose-900 mt-1">{stat.value}</p>
                 </div>
-                <div className={w-12 h-12 rounded-xl bg--100 flex items-center justify-center}>
+                <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
                   <stat.icon className="w-6 h-6" />
                 </div>
               </div>
@@ -131,13 +131,13 @@ export default function AdminDashboardPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg--100 text--700}>
-                            {typeIcons[entry.type as EntryType] && <typeIcons[entry.type as EntryType] className="w-3 h-3" />}
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
+                            {(() => { const EntryIcon = typeIcons[entry.type as EntryType]; return EntryIcon ? <EntryIcon className="w-3 h-3" /> : null; })()}
                             {entry.type.replace('_', ' ')}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium }>
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium">
                             {entry.is_published ? 'Published' : 'Draft'}
                           </span>
                         </td>
@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
                         <td className="px-6 py-4 text-rose-600 font-mono">{entry.view_count}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={/daily/} className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors" aria-label="View entry"><Eye className="w-4 h-4" /></Link>
+                            <Link href={`/daily/${entry.slug}`} className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors" aria-label="View entry"><Eye className="w-4 h-4" /></Link>
                             <button className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors" aria-label="More options"><MoreVertical className="w-4 h-4" /></button>
                           </div>
                         </td>
@@ -163,3 +163,4 @@ export default function AdminDashboardPage() {
     </AdminLayout>
   )
 }
+

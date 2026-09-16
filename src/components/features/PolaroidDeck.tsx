@@ -56,7 +56,7 @@ export function PolaroidDeck({ cards, onCardFlip, isEditing = false }: PolaroidD
     }, 1000)
   }
 
-  const handleDragStart = (card: PolaroidCard, e: React.DragEvent) => {
+  const handleDragStart = (card: PolaroidCard, e: any) => {
     if (!card.hidden_message || isEditing) return
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
@@ -155,7 +155,7 @@ interface PolaroidCardComponentProps {
   isShaken: boolean
   onFlip: () => void
   onShake: () => void
-  onDragStart: (e: React.DragEvent) => void
+  onDragStart: (e: any) => void
   isEditing: boolean
 }
 
@@ -186,17 +186,9 @@ function PolaroidCardComponent({
       className="relative"
       style={{ zIndex: total - index }}
       initial={{ opacity: 0, y: 50, rotate: baseRotation + 180 }}
-      animate={{ opacity: 1, y: 0, rotate: isShaken ? undefined : baseRotation }}
       exit={{ opacity: 0, y: -50, rotate: baseRotation - 180 }}
-      transition={{
-        delay: staggerDelay,
-        duration: 0.6,
-        type: 'spring',
-        stiffness: 100,
-        damping: 15,
-      }}
       animate={shakeAnimation}
-      transition={{ duration: 0.5 }}
+      transition={{ delay: staggerDelay, duration: 0.5, type: 'spring', stiffness: 100, damping: 15 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       whileHover={!isEditing && !isFlipped ? { y: -10, rotate: baseRotation, scale: 1.02, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' } : {}}

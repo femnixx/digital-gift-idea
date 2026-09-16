@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Clock, MapPin, Heart, Globe, ArrowLeftRight, Sun, Moon } from 'lucide-react'
 import { format } from 'date-fns'
-import { utcToZonedTime, format as formatTz } from 'date-fns-tz'
+import { toZonedTime, format as formatTz } from 'date-fns-tz'
 
 interface TimezoneClockProps {
   partnerOne: {
@@ -57,7 +57,7 @@ export function TimezoneClock({
 
   const getTimeInZone = (timezone: string) => {
     try {
-      return utcToZonedTime(currentTime, timezone)
+      return toZonedTime(currentTime, timezone)
     } catch {
       return currentTime
     }
@@ -81,7 +81,7 @@ export function TimezoneClock({
 
   const isDaytime = (timezone: string) => {
     try {
-      const zoned = utcToZonedTime(currentTime, timezone)
+      const zoned = toZonedTime(currentTime, timezone)
       const hours = zoned.getHours()
       return hours >= 6 && hours < 18
     } catch {

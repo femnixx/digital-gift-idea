@@ -1,4 +1,4 @@
-'use client'
+// 'use client' removed - server component for generateMetadata
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'

@@ -98,7 +98,7 @@ export default function NewEntryPage() {
             <p className='text-rose-600 mb-8'>Choose what kind of surprise you want to create</p>
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
               {ENTRY_TYPES.map((type, index) => (
-                <button key={type.type} onClick={() => setSelectedType(type.type)} className='card p-6 text-left group hover:border-rose-300'>
+                <button key={type.type} onClick={() => setSelectedType(type.type as EntryType)} className='card p-6 text-left group hover:border-rose-300'>
                   <div className='text-4xl mb-4'>{type.icon}</div>
                   <h3 className='font-serif text-lg font-semibold text-rose-900 mb-1'>{type.label}</h3>
                   <p className='text-rose-500 text-sm'>{type.description}</p>

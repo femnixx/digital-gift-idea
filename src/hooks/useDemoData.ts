@@ -31,7 +31,7 @@ export function useDemoEntries() {
       }
       
       // Real Supabase fetch
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('entries')
         .select('*')
         .eq('is_published', true)
@@ -97,7 +97,7 @@ export function useDemoEntry(slug: string) {
         return
       }
       
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('entries')
         .select(`
           *,

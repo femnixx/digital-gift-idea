@@ -11,7 +11,7 @@ interface VoiceNote {
   duration: number
   waveformData?: number[]
   cassetteSide: 'A' | 'B'
-  transcript?: string
+  transcript?: string | null
 }
 
 interface CassettePlayerProps {
@@ -126,7 +126,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
       
       animationRef.current = requestAnimationFrame(draw)
       
-      analyser.getByteFrequencyData(dataArray)
+      analyser.getByteFrequencyData(dataArray as Uint8Array<ArrayBuffer>)
       
       ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr)
       
@@ -501,17 +501,17 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
 }
 
 // Mini cassette player for inline use
-export function MiniCassettePlayer({ note }: { note: VoiceNote }) {
+export function MiniCassettePlayer({ audioUrl, title, duration: durationProp }: { audioUrl: string; title?: string; duration?: number }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(note.duration)
+  const [duration, setDuration] = useState(durationProp || 0)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.src = note.audioUrl
+      audioRef.current.src = audioUrl
     }
-  }, [note.audioUrl])
+  }, [audioUrl])
 
   const togglePlay = () => {
     if (!audioRef.current) return
@@ -539,7 +539,7 @@ export function MiniCassettePlayer({ note }: { note: VoiceNote }) {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [note.audioUrl])
+  }, [audioUrl])
 
   const formatTime = (time: number) => {
     const mins = Math.floor(time / 60)
@@ -565,7 +565,7 @@ export function MiniCassettePlayer({ note }: { note: VoiceNote }) {
       </motion.div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-rose-900 truncate">{note.title || 'Voice Note'}</p>
+        <p className="font-medium text-rose-900 truncate">{title || 'Voice Note'}</p>
         <div className="flex items-center gap-2 mt-1">
           <div className="flex-1 h-1.5 bg-rose-100 rounded-full relative" onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect()

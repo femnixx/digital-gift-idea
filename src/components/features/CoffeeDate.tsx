@@ -37,7 +37,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
         spread: 60,
         origin: { y: 0.5 },
         colors: [drink.color, '#f43f5e', '#fb7185', '#fda4af', '#ffffff'],
-        shapes: ['heart', 'circle'],
+        shapes: ['heart', 'circle'] as any,
         scalar: 1.5,
       })
     })
@@ -181,8 +181,8 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
                 <Check className="w-5 h-5" aria-hidden="true" />
                 <span>Enjoy your treat! 🎉</span>
               </motion.div>
-            ) : null
-          }
+            ) : null}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -237,3 +237,5 @@ export function CoffeeDateGrid({ dates, onRedeem }: { dates: CoffeeDate[]; onRed
     </div>
   )
 }
+
+

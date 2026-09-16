@@ -6,7 +6,7 @@ import { Heart, Sparkles, Eye, EyeOff } from 'lucide-react'
 
 interface ScratchCardProps {
   coverColor: string
-  coverImageUrl?: string
+  coverImageUrl?: string | null
   revealContent: {
     type: 'text' | 'image'
     content: string
@@ -197,7 +197,7 @@ export function ScratchCard({
             spread: 70,
             origin: { y: 0.6 },
             colors: ['#f43f5e', '#fb7185', '#fda4af', '#fce7f3', '#ffffff'],
-            shapes: ['heart'],
+            shapes: ['heart'] as any,
             scalar: 1.2,
           })
         })
