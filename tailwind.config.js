@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       colors: {
         // Romantic color palette
-        rose: {
+        sky: {
           50: '#fff1f2',
           100: '#ffe4e6',
           200: '#fecdd3',
@@ -22,7 +22,7 @@ module.exports = {
           900: '#881337',
           950: '#4c0519',
         },
-        blush: {
+        blue: {
           50: '#fdf8f8',
           100: '#fcecec',
           200: '#f8d9d9',
@@ -34,7 +34,7 @@ module.exports = {
           800: '#962b2b',
           900: '#7a2727',
         },
-        lavender: {
+        indigo: {
           50: '#faf5ff',
           100: '#f3e8ff',
           200: '#e9d5ff',
@@ -58,7 +58,7 @@ module.exports = {
           800: '#315331',
           900: '#2c442c',
         },
-        cream: {
+        slate: {
           50: '#fefef8',
           100: '#fdfcef',
           200: '#faf7df',
