@@ -30,7 +30,7 @@ export interface Entry {
   slug: string
   title: string
   type: EntryType
-  content: { title?: string; message: string; image_url?: string; audio_url?: string }
+  content: Record<string, any>
   publish_at: string
   unlock_at: string | null
   unlock_condition: UnlockCondition | null
@@ -55,7 +55,7 @@ export interface Media {
   entry_id: string
   type: MediaType
   storage_path: string
-  public_url: string | null
+  public_url: string | null | null
   filename: string | null
   mime_type: string | null
   size_bytes: number | null
@@ -122,7 +122,7 @@ export interface OpenWhenLetter {
   trigger_value: string | null
   envelope_color: string
   seal_emoji: string
-  content: { title?: string; message: string; image_url?: string; audio_url?: string }
+  content: Record<string, any>
   is_unlocked: boolean
   unlocked_at: string | null
   sort_order: number
@@ -181,7 +181,7 @@ export interface CreateEntryForm {
   title: string
   type: EntryType
   slug: string
-  content: { title?: string; message: string; image_url?: string; audio_url?: string }
+  content: Record<string, any>
   publish_at: string
   unlock_at?: string
   unlock_condition?: UnlockCondition
@@ -228,7 +228,7 @@ export interface OpenWhenFormData {
     trigger_value: string
     envelope_color: string
     seal_emoji: string
-    content: { title?: string; message: string; image_url?: string; audio_url?: string }
+    content: Record<string, any>
   }[]
 }
 

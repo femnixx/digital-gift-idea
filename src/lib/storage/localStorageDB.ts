@@ -25,7 +25,7 @@ export type Media = {
   entry_id: string
   type: 'image' | 'audio' | 'video'
   storage_path: string
-  public_url: string
+  public_url: string | null
   filename: string | null
   mime_type: string | null
   size_bytes: number | null
