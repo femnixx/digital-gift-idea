@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { gsap } from 'gsap'
-import { Coffee, Heart, Gift, Sparkles, Check } from 'lucide-react'
+import { Coffee, Heart, Gift, Sparkles, Check, Box } from 'lucide-react'
 import { DRINK_CONFIG, type DrinkType, type CoffeeDate as AppCoffeeDate, type CoffeeDateFormData } from '@/types'
 import { db } from '@/lib/storage/localStorageDB'
 import type { Entry } from '@/types'
+import { Coffee3DPreview } from '@/components/features/Coffee3DPreview'
 
 interface CoffeeDateSelectorProps {
   entryId?: string
@@ -207,6 +208,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
   const [cafeSuggestion, setCafeSuggestion] = useState('')
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [is3D, setIs3D] = useState(false)
   
   const previewRef = useRef<HTMLDivElement>(null)
   const cupRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -437,62 +439,83 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
               <Sparkles className="w-6 h-6 text-rose-500" />
               <h2 className="font-serif text-xl font-semibold text-slate-800">Preview</h2>
             </div>
-            <button
-              onClick={runPreviewAnimation}
-              className="btn-secondary text-sm"
-            >
-              <Sparkles className="w-4 h-4" />
-              Animate
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIs3D(false)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors`}
+              >
+                2D
+              </button>
+              <button
+                onClick={() => setIs3D(true)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1`}
+              >
+                <Box className="w-3 h-3" />
+                3D
+              </button>
+              <button
+                onClick={runPreviewAnimation}
+                className="btn-secondary text-sm"
+              >
+                <Sparkles className="w-4 h-4" />
+                Animate
+              </button>
+            </div>
           </div>
 
           <div ref={previewRef} className="relative py-8">
-            {isPreviewing && (
-              <div className="flex flex-wrap justify-center gap-6">
-                {selectedDrinks.map((drink, i) => (
-                  <div key={drink} className="relative">
-                    <div
-                      ref={el => { cupRefs.current[i] = el; return undefined }}
-                      className="relative w-24 h-28"
-                    >
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
-                      {[...Array(3)].map((_, j) => (
+            {is3D && selectedDrinks.length > 0 ? (
+              <Coffee3DPreview drinkType={selectedDrinks[0]} />
+            ) : (
+              <>
+                {isPreviewing && (
+                  <div className="flex flex-wrap justify-center gap-6">
+                    {selectedDrinks.map((drink, i) => (
+                      <div key={drink} className="relative">
                         <div
-                          key={j}
-                          ref={el => { if (i === 0 && j === 0) steamRefs.current[0] = el; if (i === 1 && j === 0) steamRefs.current[3] = el }}
-                          className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                          style={{ backgroundColor: DRINK_CONFIG[drink].steamColor }}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
+                          ref={el => { cupRefs.current[i] = el; return undefined }}
+                          className="relative w-24 h-28"
+                        >
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
+                          {[...Array(3)].map((_, j) => (
+                            <div
+                              key={j}
+                              ref={el => { if (i === 0 && j === 0) steamRefs.current[0] = el; if (i === 1 && j === 0) steamRefs.current[3] = el }}
+                              className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                              style={{ backgroundColor: DRINK_CONFIG[drink].steamColor }}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-            {!isPreviewing && (
-              <div className="flex flex-wrap justify-center gap-6">
-                {selectedDrinks.map((drink, i) => (
-                  <motion.div
-                    key={drink}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="relative"
-                  >
-                    <div className="relative w-24 h-28">
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
-                    </div>
-                    <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
-                  </motion.div>
-                ))}
-              </div>
+                )}
+                {!isPreviewing && (
+                  <div className="flex flex-wrap justify-center gap-6">
+                    {selectedDrinks.map((drink, i) => (
+                      <motion.div
+                        key={drink}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="relative"
+                      >
+                        <div className="relative w-24 h-28">
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
+                        </div>
+                        <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </motion.div>
