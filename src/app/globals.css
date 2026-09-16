@@ -31,7 +31,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-cream-100;
+    @apply bg-sky-100;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -53,7 +53,7 @@
   }
 
   .btn-secondary {
-    @apply btn bg-cream-200 text-sky-700 hover:bg-cream-300 focus:ring-sky-300 border border-sky-200;
+    @apply btn bg-sky-100 text-sky-700 hover:bg-cream-300 focus:ring-sky-300 border border-sky-200;
   }
 
   .btn-ghost {
