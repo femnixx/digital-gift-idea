@@ -1,25 +1,64 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { Heart, Sparkles, ArrowLeft, Calendar, Share2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Heart, Sparkles, ArrowLeft, Calendar, Share2, Edit3, X, EyeOff } from 'lucide-react'
 import Link from 'next/link'
+import { useNav } from '@/hooks/useNav'
 import { format } from 'date-fns'
 import { DigitalBouquet } from '@/components/features/DigitalBouquet'
 import { PolaroidDeck } from '@/components/features/PolaroidDeck'
 import { ScratchCard } from '@/components/features/ScratchCard'
-import { OpenWhenLetters } from '@/components/features/OpenWhenLetters'
+import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
+import { OpenWhenLetters, OpenWhenEditor } from '@/components/features/OpenWhenLetters'
 import { CassettePlayer, MiniCassettePlayer } from '@/components/features/CassettePlayer'
-import { CoffeeDateWidget } from '@/components/features/CoffeeDate'
+import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDate'
+import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
-import type { Entry } from '@/types'
+import { LetterEditor } from '@/components/features/LetterEditor'
+import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate } from '@/types'
 
 interface DailyEntryPageProps {
   entry: Entry
 }
 
 export function DailyEntryPage({ entry }: DailyEntryPageProps) {
+  const { back } = useNav()
+  const [isEditing, setIsEditing] = useState(false)
   const [showBack, setShowBack] = useState(false)
+  const [showScratchCustomizer, setShowScratchCustomizer] = useState(false)
+  const [editingScratchCard, setEditingScratchCard] = useState<ScratchCardType | null>(null)
+  const [editingOpenWhenLetters, setEditingOpenWhenLetters] = useState(false)
+  const [editingCoffeeDates, setEditingCoffeeDates] = useState(false)
+  const [editingCoffeeDateId, setEditingCoffeeDateId] = useState<string | null>(null)
+
+  const handleCardsChange = (cards: any[]) => {
+    Object.assign(entry, { polaroid_cards: cards, updated_at: new Date().toISOString() })
+  }
+
+  const handleScratchCardsChange = (cards: ScratchCardType[]) => {
+    Object.assign(entry, { scratch_cards: cards, updated_at: new Date().toISOString() })
+  }
+
+  const handleLetterSave = (content: { message: string }, extra?: Record<string, any>) => {
+    const merged = { ...(entry.content as Record<string, any>), ...content, ...extra }
+    const updated = { ...entry, content: merged, updated_at: new Date().toISOString() } as Entry
+    Object.assign(entry, updated)
+    setIsEditing(false)
+  }
+
+  const handleOpenWhenLettersSave = (letters: any[]) => {
+    const updated = { ...entry, open_when_letters: letters, updated_at: new Date().toISOString() } as Entry
+    Object.assign(entry, updated)
+    setEditingOpenWhenLetters(false)
+  }
+
+  const handleCoffeeDatesSave = (dates: AppCoffeeDate[]) => {
+    const updated = { ...entry, coffee_dates: dates, updated_at: new Date().toISOString() } as Entry
+    Object.assign(entry, updated)
+    setEditingCoffeeDates(false)
+    setEditingCoffeeDateId(null)
+  }
 
   const renderContent = () => {
     switch (entry.type) {
@@ -31,15 +70,60 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         )
 
       case 'polaroid':
-        return entry.polaroid_cards && entry.polaroid_cards.length > 0 ? (
-          <PolaroidDeck cards={entry.polaroid_cards} />
-        ) : (
-          <p className="text-center text-rose-500 py-12">No polaroids yet 📸</p>
+        return (
+          <PolaroidDeck
+            cards={entry.polaroid_cards || []}
+            entryId={entry.id}
+            isEditing={isEditing}
+            onCardsChange={handleCardsChange}
+          />
         )
 
       case 'scratch_card':
+        if (showScratchCustomizer) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-2xl mx-auto"
+            >
+              <ScratchCardCustomizer
+                entryId={entry.id}
+                card={editingScratchCard}
+                  onSave={(saved: ScratchCardType) => {
+                    handleScratchCardsChange(
+                      editingScratchCard
+                        ? (entry.scratch_cards || []).map(c => c.id === saved.id ? saved : c)
+                        : [...(entry.scratch_cards || []), saved]
+                    )
+                    setShowScratchCustomizer(false)
+                    setEditingScratchCard(null)
+                  }}
+                onCancel={() => {
+                  setShowScratchCustomizer(false)
+                  setEditingScratchCard(null)
+                }}
+              />
+            </motion.div>
+          )
+        }
         return entry.scratch_cards && entry.scratch_cards.length > 0 ? (
           <div className="space-y-8">
+            {isEditing && (
+              <div className="flex flex-wrap items-center gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingScratchCard(null)
+                    setShowScratchCustomizer(true)
+                  }}
+                  className="btn-primary flex items-center gap-2 text-sm"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Add Scratch Card
+                </button>
+              </div>
+            )}
             {entry.scratch_cards.map((card, i) => (
               <motion.div
                 key={card.id}
@@ -47,25 +131,94 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
+                className="relative"
               >
                 <ScratchCard
                   coverColor={card.cover_color}
                   coverImageUrl={card.cover_image_url}
                   revealContent={card.reveal_content as any}
                   scratchThreshold={card.scratch_threshold}
+                  isEditing={isEditing}
+                  onEdit={() => {
+                    setEditingScratchCard(card)
+                    setShowScratchCustomizer(true)
+                  }}
                 />
+                {isEditing && (
+                  <div className="absolute -top-3 -right-3 flex gap-1 z-20">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingScratchCard(card)
+                        setShowScratchCustomizer(true)
+                      }}
+                      className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors shadow-sm"
+                      title="Edit"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
         ) : (
-          <p className="text-center text-rose-500 py-12">No scratch cards yet 🎮</p>
+          <div className="text-center py-12">
+            <p className="text-slate-500 font-handwriting text-lg mb-4">No scratch cards yet 🎮</p>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingScratchCard(null)
+                  setShowScratchCustomizer(true)
+                }}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <Edit3 className="w-4 h-4" />
+                Add Your First Scratch Card
+              </button>
+            )}
+          </div>
         )
 
       case 'open_when':
-        return entry.open_when_letters && entry.open_when_letters.length > 0 ? (
-          <OpenWhenLetters letters={entry.open_when_letters} />
-        ) : (
-          <p className="text-center text-rose-500 py-12">No sealed letters yet 💌</p>
+        return (
+          <div>
+            {isEditing && (
+              <motion.div
+                className="mb-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setEditingOpenWhenLetters(prev => !prev)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors ${
+                    editingOpenWhenLetters
+                      ? 'bg-rose-100 text-rose-600 border border-rose-200'
+                      : 'bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100'
+                  }`}
+                >
+                  {editingOpenWhenLetters ? <EyeOff className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                  {editingOpenWhenLetters ? 'Done Editing' : 'Edit Letters'}
+                </button>
+              </motion.div>
+            )}
+            {entry.open_when_letters && entry.open_when_letters.length > 0 ? (
+              <OpenWhenLetters
+                letters={entry.open_when_letters}
+                isEditing={isEditing && editingOpenWhenLetters}
+                onSave={handleOpenWhenLettersSave}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-slate-500 font-handwriting text-lg mb-4">No sealed letters yet 💌</p>
+                {isEditing && editingOpenWhenLetters && (
+                  <p className="text-rose-400 text-sm">Click "Add New Letter" to create your first letter</p>
+                )}
+              </div>
+            )}
+          </div>
         )
 
       case 'voice_note':
@@ -84,26 +237,80 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         )
 
       case 'coffee_date':
+        if (editingCoffeeDates) {
+          return (
+            <CoffeeDateSelector
+              entryId={entry.id}
+              existingDates={entry.coffee_dates || []}
+              onSave={handleCoffeeDatesSave}
+              onCancel={() => {
+                setEditingCoffeeDates(false)
+                setEditingCoffeeDateId(null)
+              }}
+              mode="edit"
+            />
+          )
+        }
         return entry.coffee_dates && entry.coffee_dates.length > 0 ? (
           <div className="space-y-6">
-            {entry.coffee_dates.map((date, i) => (
-              <motion.div
-                key={date.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <CoffeeDateWidget date={date} />
-              </motion.div>
-            ))}
+            {isEditing && (
+              <div className="flex flex-wrap items-center gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => setEditingCoffeeDates(true)}
+                  className="btn-primary flex items-center gap-2 text-sm"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Coffee Dates
+                </button>
+              </div>
+            )}
+            <CoffeeDateGrid dates={entry.coffee_dates} />
           </div>
         ) : (
-          <p className="text-center text-rose-500 py-12">No coffee dates yet ☕</p>
+          <div className="text-center py-12">
+            <p className="text-slate-500 font-handwriting text-lg mb-4">No coffee dates yet ☕</p>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setEditingCoffeeDates(true)}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <Edit3 className="w-4 h-4" />
+                Add Your First Coffee Date
+              </button>
+            )}
+          </div>
         )
 
       case 'letter':
       default:
+        if (isEditing) {
+          return (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-script text-xl gradient-text">Edit Letter</h3>
+                <motion.button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="p-2 rounded-xl bg-white/80 backdrop-blur border border-sky-200 text-slate-600 hover:text-rose-500 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="w-4 h-4" />
+                </motion.button>
+              </div>
+              <LetterEditor
+                entry={entry}
+                onSave={handleLetterSave}
+                onCancel={() => setIsEditing(false)}
+                mode="edit"
+                showActions={false}
+                initialContent={entry.content as any}
+              />
+            </motion.div>
+          )
+        }
         return (
           <motion.div
             className="prose prose-rose max-w-none"
@@ -115,7 +322,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 ? String(entry.content.message)
                 : 'A love letter from my heart to yours 💕'}
             </div>
-            
+
             {entry.media && entry.media.length > 0 && (
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
                 {entry.media.map((media, i) => (
@@ -194,13 +401,13 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Link
-              href="/"
+            <button
+              onClick={() => back('/')}
               className="p-2 rounded-xl bg-white/80 backdrop-blur hover:bg-white transition-colors"
-              aria-label="Back home"
+              aria-label="Back"
             >
               <ArrowLeft className="w-5 h-5 text-rose-500" />
-            </Link>
+            </button>
             
             <div className="flex items-center gap-4">
               <span className="font-handwriting text-lg text-rose-600">
@@ -256,11 +463,96 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 <h1 className="font-script text-3xl md:text-4xl lg:text-5xl gradient-text mb-4">
                   {entry.title}
                 </h1>
-                <div className="flex items-center justify-center gap-4 text-rose-400">
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
-                  <Heart className="w-6 h-6 animate-heartbeat" />
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
-                </div>
+            <div className="flex items-center justify-center gap-4 text-rose-400">
+              <span className="w-16 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+              <Heart className="w-6 h-6 animate-heartbeat" />
+              <span className="w-16 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+            </div>
+            {entry.type === 'letter' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Letter
+                </button>
+              </motion.div>
+            )}
+            {entry.type === 'polaroid' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Polaroids
+                </button>
+              </motion.div>
+            )}
+            {entry.type === 'scratch_card' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Scratch Cards
+                </button>
+              </motion.div>
+            )}
+            {entry.type === 'open_when' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Open When Letters
+                </button>
+              </motion.div>
+            )}
+            {entry.type === 'coffee_date' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setEditingCoffeeDates(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Coffee Date
+                </button>
+              </motion.div>
+            )}
               </motion.header>
 
               {/* Timezone Clock (if relationship settings exist) */}

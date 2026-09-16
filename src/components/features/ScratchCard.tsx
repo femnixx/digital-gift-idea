@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, Sparkles, Eye, EyeOff } from 'lucide-react'
+import { Heart, Sparkles, Eye, EyeOff, Edit3 } from 'lucide-react'
 
 interface ScratchCardProps {
   coverColor: string
@@ -12,8 +12,11 @@ interface ScratchCardProps {
     content: string
   }
   scratchThreshold?: number
+  brushSize?: number
   onReveal?: () => void
   className?: string
+  onEdit?: () => void
+  isEditing?: boolean
 }
 
 export function ScratchCard({
@@ -21,8 +24,11 @@ export function ScratchCard({
   coverImageUrl,
   revealContent,
   scratchThreshold = 0.6,
+  brushSize = 30,
   onReveal,
   className = '',
+  onEdit,
+  isEditing = false,
 }: ScratchCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -104,13 +110,13 @@ export function ScratchCard({
     // Scratch effect - clear with destination-out
     ctx.globalCompositeOperation = 'destination-out'
     ctx.beginPath()
-    ctx.arc(canvasX, canvasY, 30 * dpr, 0, Math.PI * 2)
+    ctx.arc(canvasX, canvasY, brushSize * dpr, 0, Math.PI * 2)
     ctx.fill()
     ctx.globalCompositeOperation = 'source-over'
 
     // Calculate progress
     calculateProgress()
-  }, [])
+  }, [brushSize])
 
   const calculateProgress = useCallback(() => {
     const canvas = canvasRef.current
@@ -380,6 +386,22 @@ export function ScratchCard({
             </motion.div>
           </div>
         </motion.div>
+      )}
+
+      {/* Edit button */}
+      {isEditing && onEdit && !isRevealed && (
+        <motion.button
+          type="button"
+          onClick={onEdit}
+          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur shadow-lg text-rose-500 hover:text-rose-600 hover:bg-white transition-colors z-10"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="Edit scratch card"
+        >
+          <Edit3 className="w-4 h-4" aria-hidden="true" />
+        </motion.button>
       )}
     </div>
   )

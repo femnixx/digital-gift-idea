@@ -9,7 +9,8 @@ export type EntryType =
 
 export type MediaType = 'image' | 'audio' | 'video'
 export type FlowerType = 'rose' | 'sunflower' | 'tulip' | 'lily' | 'orchid' | 'peony' | 'daisy' | 'lavender'
-export type DrinkType = 'coffee' | 'tea' | 'hot_chocolate' | 'latte' | 'matcha' | 'chai'
+export type ArrangementType = 'random' | 'circular' | 'vase' | 'heart'
+export type DrinkType = 'coffee' | 'tea' | 'hot_chocolate' | 'latte' | 'matcha' | 'chai' | 'cappuccino' | 'espresso' | 'americano' | 'mocha' | 'cold_brew'
 export type UnlockCondition = 'date' | 'manual' | 'location' | 'mood'
 
 export interface Profile {
@@ -77,6 +78,7 @@ export interface BouquetFlower {
   scale: number
   sort_order: number
   created_at: string
+  generation_seed?: number
 }
 
 export interface PolaroidCard {
@@ -89,6 +91,13 @@ export interface PolaroidCard {
   hidden_message: string | null
   tilt_degrees: number
   sort_order: number
+  template: 'classic_white' | 'vintage' | 'black_white' | 'colorful_border'
+  orientation: 'portrait' | 'landscape'
+  font_family: string
+  font_size: string
+  font_color: string
+  text_alignment: 'left' | 'center' | 'right'
+  stickers: string[]
   created_at: string
 }
 
@@ -123,7 +132,7 @@ export interface OpenWhenLetter {
 export interface CoffeeDate {
   id: string
   entry_id: string
-  drink_type: DrinkType
+  drink_types: DrinkType[]
   custom_name: string | null
   message: string | null
   gift_card_url: string | null
@@ -224,7 +233,7 @@ export interface OpenWhenFormData {
 }
 
 export interface CoffeeDateFormData {
-  drink_type: DrinkType
+  drink_types: DrinkType[]
   custom_name: string
   message: string
   gift_card_url: string
@@ -259,13 +268,20 @@ export const DRINK_CONFIG: Record<DrinkType, {
   emoji: string
   color: string
   steamColor: string
+  description: string
+  priceSuggestion: string
 }> = {
-  coffee: { name: 'Coffee', emoji: '☕', color: '#4B3621', steamColor: '#E8E8E8' },
-  tea: { name: 'Tea', emoji: '🍵', color: '#D4A574', steamColor: '#F0F0F0' },
-  hot_chocolate: { name: 'Hot Chocolate', emoji: '🍫', color: '#3D2314', steamColor: '#E8E8E8' },
-  latte: { name: 'Latte', emoji: '🥛', color: '#C9B896', steamColor: '#F5F5F5' },
-  matcha: { name: 'Matcha', emoji: '🍵', color: '#7CB342', steamColor: '#E8F5E9' },
-  chai: { name: 'Chai', emoji: '🫖', color: '#8D6E63', steamColor: '#F5F5F5' },
+  coffee: { name: 'Coffee', emoji: '☕', color: '#4B3621', steamColor: '#E8E8E8', description: 'Classic bold coffee', priceSuggestion: '$4-6' },
+  tea: { name: 'Tea', emoji: '🍵', color: '#D4A574', steamColor: '#F0F0F0', description: 'Soothing warm tea', priceSuggestion: '$3-5' },
+  hot_chocolate: { name: 'Hot Chocolate', emoji: '🍫', color: '#3D2314', steamColor: '#E8E8E8', description: 'Rich creamy cocoa', priceSuggestion: '$5-7' },
+  latte: { name: 'Latte', emoji: '🥛', color: '#C9B896', steamColor: '#F5F5F5', description: 'Smooth espresso with steamed milk', priceSuggestion: '$5-7' },
+  matcha: { name: 'Matcha', emoji: '🍵', color: '#7CB342', steamColor: '#E8F5E9', description: 'Vibrant green tea latte', priceSuggestion: '$6-8' },
+  chai: { name: 'Chai', emoji: '🫖', color: '#8D6E63', steamColor: '#F5F5F5', description: 'Spiced tea with warmth', priceSuggestion: '$5-7' },
+  cappuccino: { name: 'Cappuccino', emoji: '☕', color: '#D7CCC8', steamColor: '#F5F5F5', description: 'Foamy espresso perfection', priceSuggestion: '$5-7' },
+  espresso: { name: 'Espresso', emoji: '🥃', color: '#3E2723', steamColor: '#E8E8E8', description: 'Bold concentrated shot', priceSuggestion: '$3-5' },
+  americano: { name: 'Americano', emoji: '☕', color: '#5D4037', steamColor: '#E8E8E8', description: 'Smooth diluted espresso', priceSuggestion: '$4-6' },
+  mocha: { name: 'Mocha', emoji: '🍫', color: '#4E342E', steamColor: '#E8E8E8', description: 'Chocolate coffee bliss', priceSuggestion: '$6-8' },
+  cold_brew: { name: 'Cold Brew', emoji: '🧊', color: '#3E2723', steamColor: '#E8E8E8', description: 'Slow-steeped smooth cold coffee', priceSuggestion: '$5-7' },
 }
 
 export const UNLOCK_CONDITIONS: Record<UnlockCondition, { label: string; description: string }> = {

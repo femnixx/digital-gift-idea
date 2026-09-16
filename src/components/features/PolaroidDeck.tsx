@@ -2,31 +2,39 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useEffect } from 'react'
-import { Heart, RotateCcw, MessageSquare, Sparkles } from 'lucide-react'
+import { Heart, RotateCcw, MessageSquare, Sparkles, Edit3, Plus, Shuffle, ChevronUp, ChevronDown, Trash2, X, Eye } from 'lucide-react'
+import { PolaroidCustomizer } from './PolaroidCustomizer'
+import type { PolaroidCard as PolaroidCardType } from '@/types'
 
-interface PolaroidCard {
-  id: string
-  image_url: string
-  caption: string | null
-  date_tag: string | null
-  back_note: string | null
-  hidden_message: string | null
-  tilt_degrees: number
+function getFontClass(fontFamily: string) {
+  const map: Record<string, string> = {
+    'font-handwriting': 'font-handwriting',
+    'font-serif': 'font-serif',
+    'font-script': 'font-script',
+    'font-sans': 'font-sans',
+  }
+  return map[fontFamily] || 'font-handwriting'
 }
 
 interface PolaroidDeckProps {
-  cards: PolaroidCard[]
-  onCardFlip?: (card: PolaroidCard) => void
+  cards: PolaroidCardType[]
+  entryId: string
+  onCardsChange?: (cards: PolaroidCardType[]) => void
   isEditing?: boolean
 }
 
-export function PolaroidDeck({ cards, onCardFlip, isEditing = false }: PolaroidDeckProps) {
+export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false }: PolaroidDeckProps) {
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set())
   const [shakenCards, setShakenCards] = useState<Set<string>>(new Set())
-  const [dragState, setDragState] = useState<{ cardId: string; x: number; y: number; rotation: number } | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [showCustomizer, setShowCustomizer] = useState(false)
+  const [editingCard, setEditingCard] = useState<PolaroidCardType | null>(null)
+  const [localCards, setLocalCards] = useState<PolaroidCardType[]>(cards)
 
-  const handleFlip = (card: PolaroidCard) => {
+  useEffect(() => {
+    setLocalCards(cards)
+  }, [cards])
+
+  const handleFlip = (card: PolaroidCardType) => {
     if (isEditing) return
     setFlippedCards(prev => {
       const next = new Set(prev)
@@ -37,10 +45,9 @@ export function PolaroidDeck({ cards, onCardFlip, isEditing = false }: PolaroidD
       }
       return next
     })
-    onCardFlip?.(card)
   }
 
-  const handleShake = (card: PolaroidCard) => {
+  const handleShake = (card: PolaroidCardType) => {
     if (!card.hidden_message) return
     setShakenCards(prev => {
       const next = new Set(prev)
@@ -56,72 +63,279 @@ export function PolaroidDeck({ cards, onCardFlip, isEditing = false }: PolaroidD
     }, 1000)
   }
 
-  const handleDragStart = (card: PolaroidCard, e: any) => {
+  const handleDragStart = (card: PolaroidCardType, e: React.DragEvent<HTMLDivElement>) => {
     if (!card.hidden_message || isEditing) return
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    
-    setDragState({
-      cardId: card.id,
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-      rotation: card.tilt_degrees,
+    e.dataTransfer.setData('text/plain', card.id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    const draggedId = e.dataTransfer.getData('text/plain')
+    if (!draggedId || draggedId === targetId) return
+
+    setLocalCards(prev => {
+      const updated = [...prev]
+      const draggedIndex = updated.findIndex(c => c.id === draggedId)
+      const targetIndex = updated.findIndex(c => c.id === targetId)
+      if (draggedIndex === -1 || targetIndex === -1) return prev
+
+      const [dragged] = updated.splice(draggedIndex, 1)
+      updated.splice(targetIndex, 0, dragged)
+      onCardsChange?.(updated)
+      return updated
     })
   }
 
-  const handleDrag = (e: React.DragEvent) => {
-    if (!dragState || isEditing) return
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
+  const handleDragEnd = () => {
+    // State updated in handleDrop
+  }
 
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const deltaX = x - dragState.x
-    const deltaY = y - dragState.y
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+  const handleSaveCard = (savedCard: PolaroidCardType) => {
+    setLocalCards(prev => {
+      const existing = prev.findIndex(c => c.id === savedCard.id)
+      let updated: PolaroidCardType[]
+      if (existing >= 0) {
+        updated = prev.map(c => c.id === savedCard.id ? savedCard : c)
+      } else {
+        updated = [...prev, savedCard]
+      }
+      onCardsChange?.(updated)
+      return updated
+    })
+    setShowCustomizer(false)
+    setEditingCard(null)
+  }
 
-    if (distance > 50) {
-      setShakenCards(prev => {
-        const next = new Set(prev)
-        next.add(dragState.cardId)
-        return next
-      })
-      setDragState(null)
+  const handleEditCard = (card: PolaroidCardType) => {
+    setEditingCard(card)
+    setShowCustomizer(true)
+  }
+
+  const handleAddCard = () => {
+    setEditingCard(null)
+    setShowCustomizer(true)
+  }
+
+  const handleDeleteCard = (cardId: string) => {
+    setLocalCards(prev => {
+      const updated = prev.filter(c => c.id !== cardId)
+      onCardsChange?.(updated)
+      return updated
+    })
+  }
+
+  const handleMoveCard = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= localCards.length) return
+    setLocalCards(prev => {
+      const updated = [...prev]
+      const [moved] = updated.splice(index, 1)
+      updated.splice(newIndex, 0, moved)
+      onCardsChange?.(updated)
+      return updated
+    })
+  }
+
+  const handleShuffle = () => {
+    setLocalCards(prev => {
+      const updated = [...prev]
+      for (let i = updated.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[updated[i], updated[j]] = [updated[j], updated[i]]
+      }
+      onCardsChange?.(updated)
+      return updated
+    })
+  }
+
+  const getTemplateStyles = (template: PolaroidCardType['template']) => {
+    switch (template) {
+      case 'vintage':
+        return 'bg-amber-50 border-4 border-amber-200 shadow-polaroid sepia-[.15]'
+      case 'black_white':
+        return 'bg-gray-100 border-4 border-gray-700 shadow-polaroid grayscale'
+      case 'colorful_border':
+        return 'bg-white shadow-polaroid'
+      default:
+        return 'bg-white border-4 border-gray-100 shadow-polaroid'
     }
   }
 
-  const handleDragEnd = () => {
-    setDragState(null)
+  if (showCustomizer) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <PolaroidCustomizer
+          entryId={entryId}
+          card={editingCard}
+          onSave={handleSaveCard}
+          onCancel={() => { setShowCustomizer(false); setEditingCard(null) }}
+        />
+      </div>
+    )
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative"
-      onDragOver={handleDrag}
-      onDragEnd={handleDragEnd}
-    >
-      <AnimatePresence mode="popLayout">
-        {cards.map((card, index) => (
-          <PolaroidCardComponent
-            key={card.id}
-            card={card}
-            index={index}
-            total={cards.length}
-            isFlipped={flippedCards.has(card.id)}
-            isShaken={shakenCards.has(card.id)}
-            onFlip={() => handleFlip(card)}
-            onShake={() => handleShake(card)}
-            onDragStart={(e) => handleDragStart(card, e)}
-            isEditing={isEditing}
-          />
-        ))}
+    <div className="space-y-6">
+      {/* Edit Mode Toolbar */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex flex-wrap items-center gap-3"
+          >
+            <button
+              type="button"
+              onClick={handleAddCard}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Polaroid
+            </button>
+            <button
+              type="button"
+              onClick={handleShuffle}
+              disabled={localCards.length < 2}
+              className="btn-ghost flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Shuffle className="w-4 h-4" />
+              Shuffle
+            </button>
+            <span className="text-sm text-slate-500 ml-auto">
+              {localCards.length} polaroid{localCards.length !== 1 ? 's' : ''}
+            </span>
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {/* Polaroid Grid / Deck */}
+      {localCards.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-16"
+        >
+          <div className="text-6xl mb-4">📸</div>
+          <p className="text-slate-500 font-handwriting text-lg mb-4">No polaroids yet</p>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={handleAddCard}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Your First Polaroid
+            </button>
+          )}
+        </motion.div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="popLayout">
+            {localCards.map((card, index) => {
+              const isFlipped = flippedCards.has(card.id)
+              const isShaken = shakenCards.has(card.id)
+              const baseRotation = card.tilt_degrees + (index % 2 === 0 ? -2 : 2)
+
+              return (
+                <div
+                  key={card.id}
+                  draggable={isEditing}
+                  onDragStart={(e) => handleDragStart(card, e)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, card.id)}
+                  onDragEnd={handleDragEnd}
+                  className="relative group"
+                >
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 30, rotate: baseRotation + 180 }}
+                    exit={{ opacity: 0, y: -30, rotate: baseRotation - 180 }}
+                    animate={{ rotate: baseRotation }}
+                    transition={{ delay: index * 0.05, duration: 0.4, type: 'spring', stiffness: 100, damping: 15 }}
+                  >
+                  {card.template === 'colorful_border' ? (
+                    <div className="p-[3px] rounded-xl bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400">
+                      <div className="bg-white rounded-lg overflow-hidden">
+                        {renderFront(card, isFlipped, isEditing, baseRotation, handleFlip, handleShake)}
+                        {renderBack(card, isShaken, isFlipped)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`rounded-xl overflow-hidden ${getTemplateStyles(card.template)}`}>
+                      {renderFront(card, isFlipped, isEditing, baseRotation, handleFlip, handleShake)}
+                      {renderBack(card, isShaken, isFlipped)}
+                    </div>
+                  )}
+
+                  {/* Edit Badge & Controls */}
+                  {isEditing && (
+                    <div className="absolute -top-3 -right-3 flex flex-col gap-1 z-20">
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleEditCard(card)}
+                          className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors shadow-sm"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCard(card.id)}
+                          className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors shadow-sm"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCard(index, 'up')}
+                          disabled={index === 0}
+                          className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Move up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCard(index, 'down')}
+                          disabled={index === localCards.length - 1}
+                          className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Move down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Drag indicator in edit mode */}
+                  {isEditing && (
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-black/50 text-white text-xs cursor-grab active:cursor-grabbing">
+                      ⋮⋮
+                    </div>
+                  )}
+                  </motion.div>
+                </div>
+              )
+            })}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Hidden message toast */}
       <AnimatePresence>
         {Array.from(shakenCards).map(cardId => {
-          const card = cards.find(c => c.id === cardId)
+          const card = localCards.find(c => c.id === cardId)
           return card?.hidden_message ? (
             <motion.div
               key={cardId}
@@ -147,178 +361,132 @@ export function PolaroidDeck({ cards, onCardFlip, isEditing = false }: PolaroidD
   )
 }
 
-interface PolaroidCardComponentProps {
-  card: PolaroidCard
-  index: number
-  total: number
-  isFlipped: boolean
-  isShaken: boolean
-  onFlip: () => void
-  onShake: () => void
-  onDragStart: (e: any) => void
-  isEditing: boolean
-}
-
-function PolaroidCardComponent({
-  card,
-  index,
-  total,
-  isFlipped,
-  isShaken,
-  onFlip,
-  onShake,
-  onDragStart,
-  isEditing,
-}: PolaroidCardComponentProps) {
-  const [hovered, setHovered] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
-
-  const baseRotation = card.tilt_degrees + (Math.random() - 0.5) * 4 - 2
-  const staggerDelay = index * 0.1
-
-  const shakeAnimation = isShaken
-    ? { x: [-10, 10, -10, 10, 0], rotate: [-5, 5, -5, 5, 0] }
-    : {}
-
+function renderFront(
+  card: PolaroidCardType,
+  isFlipped: boolean,
+  isEditing: boolean,
+  baseRotation: number,
+  onFlip: (card: PolaroidCardType) => void,
+  onShake: (card: PolaroidCardType) => void
+) {
   return (
     <motion.div
-      ref={cardRef}
       className="relative"
-      style={{ zIndex: total - index }}
-      initial={{ opacity: 0, y: 50, rotate: baseRotation + 180 }}
-      exit={{ opacity: 0, y: -50, rotate: baseRotation - 180 }}
-      animate={shakeAnimation}
-      transition={{ delay: staggerDelay, duration: 0.5, type: 'spring', stiffness: 100, damping: 15 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      whileHover={!isEditing && !isFlipped ? { y: -10, rotate: baseRotation, scale: 1.02, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' } : {}}
+      style={{
+        transformStyle: 'preserve-3d',
+        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        transition: 'transform 0.6s'
+      }}
+      onClick={() => onFlip(card)}
+      draggable={!isEditing && !!card.hidden_message}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFlip(card) }}}
+      aria-label={isFlipped ? 'Flip to front' : 'Flip to back'}
     >
-      <motion.div
-        className="relative polaroid transform-style-3d w-full max-w-xs"
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        }}
-        onClick={onFlip}
-        onDragStart={onDragStart}
-        draggable={!isEditing && !!card.hidden_message}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFlip() }} }
-        aria-label={isFlipped ? 'Flip to front' : 'Flip to back'}
-      >
-        {/* Front of Polaroid */}
-        <div className="backface-hidden relative">
-          {/* Photo */}
-          <div className="aspect-square relative overflow-hidden bg-cream-100">
-            <motion.img
-              src={card.image_url}
-              alt={card.caption || 'Memory photo'}
-              className="w-full h-full object-cover transition-all duration-500"
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-            />
-            {/* Vignette effect */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-          </div>
+      {/* Photo */}
+      <div className={`relative overflow-hidden ${card.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-square'}`}>
+        <motion.img
+          src={card.image_url}
+          alt={card.caption || 'Memory photo'}
+          className="w-full h-full object-cover transition-all duration-500"
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          whileHover={!isEditing && !isFlipped ? { scale: 1.05 } : {}}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
-          {/* White border */}
-          <div className="p-4 pb-12 bg-white">
-            {/* Caption */}
-            {card.caption && (
-              <p className="font-handwriting text-base text-rose-700 text-center mb-2 leading-relaxed">
-                {card.caption}
-              </p>
-            )}
-
-            {/* Date */}
-            {card.date_tag && (
-              <p className="font-sans text-xs text-rose-400 text-center tracking-wider uppercase">
-                {new Date(card.date_tag).toLocaleDateString('en-US', { 
-                  month: 'long', 
-                  day: 'numeric', 
-                  year: 'numeric' 
-                })}
-              </p>
-            )}
-
-            {/* Flip hint */}
-            {!isEditing && !isFlipped && (
-              <motion.div
-                className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-rose-400 text-xs opacity-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 10 }}
-                transition={{ duration: 0.2 }}
+        {/* Stickers overlay */}
+        {card.stickers && card.stickers.length > 0 && (
+          <div className="absolute top-2 left-0 right-0 flex justify-center gap-1 flex-wrap px-2 pointer-events-none z-10">
+            {card.stickers.map((sticker, i) => (
+              <motion.span
+                key={`${card.id}-sticker-${i}`}
+                className="text-lg drop-shadow-md"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.05, type: 'spring' }}
               >
-                <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                <span>Click to flip</span>
-              </motion.div>
-            )}
-
-            {/* Shake hint */}
-            {!isEditing && !isFlipped && card.hidden_message && (
-              <motion.div
-                className="absolute bottom-3 right-3 flex items-center gap-1 text-rose-400/60 text-xs opacity-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: hovered ? 1 : 0 }}
-                transition={{ duration: 0.2, delay: 0.5 }}
-              >
-                <Sparkles className="w-3 h-3 animate-pulse" aria-hidden="true" />
-                <span>Shake me</span>
-              </motion.div>
-            )}
+                {sticker}
+              </motion.span>
+            ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Back of Polaroid */}
-        <motion.div
-          className="absolute inset-0 backface-hidden bg-white rotate-y-180 p-6 flex flex-col items-center justify-center"
-          style={{
-            transformStyle: 'preserve-3d',
-            backfaceVisibility: 'hidden',
-          }}
-        >
-          {/* Paper texture */}
-          <div className="absolute inset-0 bg-[url('/images/paper-texture.svg')] opacity-10" aria-hidden="true" />
+      {/* White border / content */}
+      <div className="p-4 pb-12 bg-white">
+        {card.caption && (
+          <p
+            className={`${getFontClass(card.font_family)} ${card.font_size} leading-relaxed mb-2`}
+            style={{ color: card.font_color, textAlign: card.text_alignment }}
+          >
+            {card.caption}
+          </p>
+        )}
 
-          <div className="relative z-10 w-full">
-            {card.back_note ? (
-              <p className="font-handwriting text-lg text-rose-700 leading-relaxed whitespace-pre-wrap text-center">
-                {card.back_note}
-              </p>
-            ) : (
-              <div className="text-center text-rose-400 py-8">
-                <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" aria-hidden="true" />
-                <p className="font-handwriting">No note on the back yet...</p>
-                <p className="text-xs mt-1">Add one in the editor!</p>
-              </div>
-            )}
+        {card.date_tag && (
+          <p className="text-xs text-gray-400 text-center tracking-wider uppercase">
+            {new Date(card.date_tag).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+        )}
 
-            {/* Hidden message indicator */}
-            {card.hidden_message && !isShaken && (
-              <motion.div
-                className="mt-6 pt-4 border-t border-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm"
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Sparkles className="w-4 h-4" aria-hidden="true" />
-                <span>Drag to reveal secret</span>
-                <Sparkles className="w-4 h-4" aria-hidden="true" />
-              </motion.div>
-            )}
+        {/* Flip hint */}
+        {!isEditing && !isFlipped && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-gray-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
+            <span>Click to flip</span>
           </div>
-        </motion.div>
-      </motion.div>
+        )}
 
-      {/* Edit badge */}
-      {isEditing && (
-        <div className="absolute -top-3 -right-3 flex gap-1">
-          <span className="px-2 py-1 text-xs rounded-full bg-rose-100 text-rose-600 font-medium">
-            Edit
-          </span>
-        </div>
-      )}
+        {/* Shake hint */}
+        {!isEditing && !isFlipped && card.hidden_message && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 text-gray-400/60 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+            <Sparkles className="w-3 h-3 animate-pulse" aria-hidden="true" />
+            <span>Shake me</span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+function renderBack(card: PolaroidCardType, isShaken: boolean, isFlipped: boolean) {
+  return (
+    <motion.div
+      className="absolute inset-0 bg-white rotate-y-180 p-6 flex flex-col items-center justify-center"
+      style={{
+        transformStyle: 'preserve-3d',
+        backfaceVisibility: 'hidden',
+      }}
+    >
+      <div className="absolute inset-0 bg-[url('/images/paper-texture.svg')] opacity-10" aria-hidden="true" />
+
+      <div className="relative z-10 w-full">
+        {card.back_note ? (
+          <p className="font-handwriting text-lg text-rose-700 leading-relaxed whitespace-pre-wrap text-center">
+            {card.back_note}
+          </p>
+        ) : (
+          <div className="text-center text-gray-400 py-8">
+            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" aria-hidden="true" />
+            <p className="font-handwriting">No note on the back yet...</p>
+            <p className="text-xs mt-1">Add one in the editor!</p>
+          </div>
+        )}
+
+        {card.hidden_message && !isShaken && (
+          <motion.div
+            className="mt-6 pt-4 border-t border-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm"
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+            <span>Drag to reveal secret</span>
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   )
 }

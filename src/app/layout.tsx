@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display, Dancing_Script } from 'next/font/google'
 import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
 import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
+import { NavProvider } from '@/hooks/useNav'
 import './globals.css'
 
 export const inter = Inter({
@@ -85,7 +86,9 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased bg-cream-50 text-sky-900">
         <DemoInitializer />
-        {children}
+        <NavProvider>
+          {children}
+        </NavProvider>
         <DemoModeBanner />
       </body>
     </html>
