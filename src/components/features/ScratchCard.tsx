@@ -1,0 +1,411 @@
+'use client'
+
+import { useRef, useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Heart, Sparkles, Eye, EyeOff } from 'lucide-react'
+
+interface ScratchCardProps {
+  coverColor: string
+  coverImageUrl?: string
+  revealContent: {
+    type: 'text' | 'image'
+    content: string
+  }
+  scratchThreshold?: number
+  onReveal?: () => void
+  className?: string
+}
+
+export function ScratchCard({
+  coverColor,
+  coverImageUrl,
+  revealContent,
+  scratchThreshold = 0.6,
+  onReveal,
+  className = '',
+}: ScratchCardProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isRevealed, setIsRevealed] = useState(false)
+  const [scratchProgress, setScratchProgress] = useState(0)
+  const [isScratching, setIsScratching] = useState(false)
+  const [showContent, setShowContent] = useState(false)
+  const animationFrameRef = useRef<number>()
+
+  const getCanvasContext = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const ctx = canvas.getContext('2d')
+    return ctx
+  }, [])
+
+  const initializeCanvas = useCallback(() => {
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container) return
+
+    const rect = container.getBoundingClientRect()
+    const dpr = window.devicePixelRatio || 1
+
+    canvas.width = rect.width * dpr
+    canvas.height = rect.height * dpr
+    canvas.style.width = `${rect.width}px`
+    canvas.style.height = `${rect.height}px`
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.scale(dpr, dpr)
+
+    // Draw cover
+    if (coverImageUrl) {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = coverImageUrl
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, rect.width, rect.height)
+        // Add scratch overlay
+        drawScratchOverlay(ctx, rect.width, rect.height)
+      }
+    } else {
+      // Solid color with pattern
+      ctx.fillStyle = coverColor
+      ctx.fillRect(0, 0, rect.width, rect.height)
+      drawScratchOverlay(ctx, rect.width, rect.height)
+    }
+  }, [coverColor, coverImageUrl])
+
+  const drawScratchOverlay = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    // Draw a subtle pattern on top
+    ctx.fillStyle = 'rgba(0,0,0,0.1)'
+    for (let x = 0; x < width; x += 4) {
+      for (let y = 0; y < height; y += 4) {
+        if ((x + y) % 8 === 0) {
+          ctx.fillRect(x, y, 2, 2)
+        }
+      }
+    }
+  }
+
+  const scratch = useCallback((x: number, y: number) => {
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const rect = container.getBoundingClientRect()
+    const dpr = window.devicePixelRatio || 1
+    
+    const canvasX = (x - rect.left) * dpr
+    const canvasY = (y - rect.top) * dpr
+
+    // Scratch effect - clear with destination-out
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.beginPath()
+    ctx.arc(canvasX, canvasY, 30 * dpr, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalCompositeOperation = 'source-over'
+
+    // Calculate progress
+    calculateProgress()
+  }, [])
+
+  const calculateProgress = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const pixels = imageData.data
+    let transparentPixels = 0
+    const totalPixels = pixels.length / 4
+
+    for (let i = 3; i < pixels.length; i += 4) {
+      if (pixels[i] === 0) transparentPixels++
+    }
+
+    const progress = transparentPixels / totalPixels
+    setScratchProgress(progress)
+
+    if (progress >= scratchThreshold && !isRevealed) {
+      setIsRevealed(true)
+      onReveal?.()
+      
+      // Animate full reveal
+      setTimeout(() => {
+        setShowContent(true)
+      }, 300)
+    }
+  }, [scratchThreshold, isRevealed, onReveal])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isRevealed) return
+    setIsScratching(true)
+    scratch(e.clientX, e.clientY)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isScratching || isRevealed) return
+    scratch(e.clientX, e.clientY)
+  }
+
+  const handleMouseUp = () => {
+    setIsScratching(false)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isRevealed) return
+    setIsScratching(true)
+    const touch = e.touches[0]
+    scratch(touch.clientX, touch.clientY)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isScratching || isRevealed) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    scratch(touch.clientX, touch.clientY)
+  }
+
+  const handleTouchEnd = () => {
+    setIsScratching(false)
+  }
+
+  useEffect(() => {
+    initializeCanvas()
+    window.addEventListener('resize', initializeCanvas)
+    return () => {
+      window.removeEventListener('resize', initializeCanvas)
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [initializeCanvas])
+
+  // Confetti on reveal
+  useEffect(() => {
+    if (isRevealed && !showContent) {
+      // Trigger confetti
+      if (typeof window !== 'undefined') {
+        import('canvas-confetti').then(({ default: confetti }) => {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#f43f5e', '#fb7185', '#fda4af', '#fce7f3', '#ffffff'],
+            shapes: ['heart'],
+            scalar: 1.2,
+          })
+        })
+      }
+    }
+  }, [isRevealed, showContent])
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative rounded-2xl overflow-hidden cursor-pointer ${className}`}
+      style={{ 
+        aspectRatio: '4/3',
+        maxWidth: '400px',
+        margin: '0 auto',
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          if (!isRevealed) setIsRevealed(true)
+        }
+      }}
+      aria-label={isRevealed ? 'Scratch card revealed' : 'Scratch to reveal'}
+    >
+      {/* Revealed Content */}
+      <AnimatePresence mode="wait">
+        {showContent && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center p-6"
+            initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.8, rotate: 10 }}
+            transition={{ type: 'spring', stiffness: 150, damping: 15, delay: 0.2 }}
+          >
+            <div className="relative w-full h-full max-w-md">
+              {revealContent.type === 'image' ? (
+                <motion.img
+                  src={revealContent.content}
+                  alt="Revealed surprise"
+                  className="w-full h-full object-cover rounded-xl shadow-xl"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', delay: 0.3 }}
+                />
+              ) : (
+                <motion.div
+                  className="w-full h-full bg-gradient-to-br from-rose-50 via-cream-50 to-blush-50 rounded-xl p-8 flex items-center justify-center text-center shadow-xl border border-rose-100"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', delay: 0.3 }}
+                >
+                  <div className="max-w-xs">
+                    <motion.div
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-100 text-rose-600 text-sm font-medium mb-4"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', delay: 0.4 }}
+                    >
+                      <Heart className="w-4 h-4 animate-heartbeat" aria-hidden="true" />
+                      <span>For You</span>
+                    </motion.div>
+                    <motion.p
+                      className="font-handwriting text-2xl md:text-3xl text-rose-700 leading-relaxed whitespace-pre-wrap"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      {revealContent.content}
+                    </motion.p>
+                    <motion.div
+                      className="mt-6 flex items-center justify-center gap-2 text-rose-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.7 }}
+                    >
+                      <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
+                      <span className="font-handwriting text-lg">Made with love</span>
+                      <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scratch Canvas */}
+      <AnimatePresence mode="wait">
+        {!showContent && (
+          <motion.canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full touch-none"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: isRevealed ? 0 : 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            style={{ pointerEvents: isRevealed ? 'none' : 'auto' }}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Progress indicator */}
+      {!isRevealed && (
+        <motion.div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 text-white text-sm backdrop-blur"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(scratchProgress / scratchThreshold, 1) * 100}%` }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            />
+          </div>
+          <span>{Math.round(scratchProgress * 100)}%</span>
+        </motion.div>
+      )}
+
+      {/* Hint overlay */}
+      {!isRevealed && !isScratching && (
+        <motion.div
+          className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: isScratching ? 0 : 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            className="w-16 h-16 rounded-full bg-white/80 backdrop-blur flex items-center justify-center mb-4 shadow-lg"
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <motion.svg
+              className="w-8 h-8 text-rose-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              animate={{ rotate: [-15, 15, -15] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <path d="M12 2v20M17 5l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
+            </motion.svg>
+          </motion.div>
+          <p className="font-handwriting text-lg text-white/90 text-center">
+            Scratch to reveal your surprise ✨
+          </p>
+        </motion.div>
+      )}
+
+      {/* Revealed badge */}
+      {isRevealed && !showContent && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+        >
+          <div className="text-center">
+            <motion.div
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500 text-white text-lg font-medium shadow-xl"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" />
+              <span>Revealing...</span>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+// Scratch Card Grid for multiple cards
+interface ScratchCardGridProps {
+  cards: ScratchCardProps[]
+  columns?: number
+}
+
+export function ScratchCardGrid({ cards, columns = 2 }: ScratchCardGridProps) {
+  return (
+    <div className={`grid gap-6`} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+      {cards.map((card, index) => (
+        <motion.div
+          key={index}
+          className="group"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <ScratchCard {...card} />
+        </motion.div>
+      ))}
+    </div>
+  )
+}
