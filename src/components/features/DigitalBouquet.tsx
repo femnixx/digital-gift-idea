@@ -289,7 +289,7 @@ export function DigitalBouquet({
   return (
     <motion.div
       ref={containerRef}
-      className="relative rounded-3xl bg-gradient-to-br from-cream-50 via-white to-blush-50 p-4 sm:p-8 overflow-hidden"
+      className="relative rounded-3xl bg-stone-50 p-4 sm:p-8 overflow-hidden"
       style={{ minHeight: '500px' }}
       initial="hidden"
       animate="visible"
@@ -300,10 +300,10 @@ export function DigitalBouquet({
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {[...Array(isMobile ? 4 : 8)].map((_, i) => (
+        {[...Array(isMobile ? 2 : 4)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute text-rose-200/30 text-3xl sm:text-4xl"
+            className="absolute text-stone-300/40 text-2xl sm:text-3xl"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -325,7 +325,7 @@ export function DigitalBouquet({
 
       {/* Vase */}
       <motion.div
-        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-16 sm:h-24 text-rose-200/60"
+        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-16 sm:h-24 text-stone-300/50"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.8, type: 'spring', stiffness: 100 }}
@@ -355,8 +355,8 @@ export function DigitalBouquet({
                   onClick={() => handleArrangementChange(arr.type)}
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center ${
                     arrangement === arr.type
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                      ? 'bg-stone-800 text-white'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                   }`}
                 >
                   {arr.icon}
@@ -383,14 +383,14 @@ export function DigitalBouquet({
             <div className="flex gap-2 ml-auto">
               <button
                 onClick={handleAutoArrange}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors flex items-center"
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors flex items-center"
               >
                 <SlidersHorizontal className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Auto-arrange</span>
               </button>
               <button
                 onClick={handleRegenerate}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500 text-white hover:bg-rose-600 transition-colors flex items-center"
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-800 text-white hover:bg-rose-600 transition-colors flex items-center"
               >
                 <Sparkles className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Regenerate</span>
@@ -450,7 +450,7 @@ export function DigitalBouquet({
               <motion.div
                 className="flex items-center justify-center"
                 style={{
-                  filter: `drop-shadow(0 4px 12px ${flower.color}60)`,
+                  filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.12))`,
                 }}
                 animate={{
                   scale: [1, 1.05, 1],
@@ -482,7 +482,7 @@ export function DigitalBouquet({
               {/* Note indicator */}
               {flower.note && !isEditing && (
                 <motion.div
-                  className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-500/90 text-white text-xs font-medium shadow-lg"
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1.5 rounded-full bg-stone-800 text-white text-xs font-medium"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.4 + 0.1 * index, type: 'spring' }}
@@ -500,7 +500,7 @@ export function DigitalBouquet({
                       e.stopPropagation()
                       onRemoveFlower?.(flower.id)
                     }}
-                    className="w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
+                    className="w-7 h-7 rounded-full bg-stone-800 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
                     aria-label="Remove flower"
                   >
                     <X className="w-4 h-4" />
@@ -510,7 +510,7 @@ export function DigitalBouquet({
                       e.stopPropagation()
                       setSelectedFlower(flower)
                     }}
-                    className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center hover:bg-rose-200 transition-colors"
+                    className="w-7 h-7 rounded-full bg-stone-100 text-stone-700 flex items-center justify-center hover:bg-stone-200 transition-colors"
                     aria-label="Edit flower note"
                   >
                     <MessageSquare className="w-4 h-4" />

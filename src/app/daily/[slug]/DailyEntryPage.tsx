@@ -374,10 +374,10 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-cream-50 to-lavender-50">
       {/* Floating hearts background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute text-rose-200/30 text-2xl"
+            className="absolute text-rose-200/40 text-xl"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,

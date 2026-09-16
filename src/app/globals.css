@@ -18,12 +18,12 @@
   }
 
   body {
-    @apply bg-sky-50 text-sky-900;
+    @apply bg-stone-50 text-stone-800;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   ::selection {
-    @apply bg-sky-300 text-sky-900;
+    @apply bg-rose-200 text-stone-900;
   }
 
   ::-webkit-scrollbar {
@@ -31,15 +31,15 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-sky-100;
+    @apply bg-stone-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-sky-300 rounded-full;
+    @apply bg-stone-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-sky-400;
+    @apply bg-stone-400;
   }
 }
 
@@ -49,23 +49,23 @@
   }
 
   .btn-primary {
-    @apply btn bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500 shadow-lg shadow-sky-500/25;
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500;
   }
 
   .btn-secondary {
-    @apply btn bg-sky-100 text-sky-700 hover:bg-sky-200 focus:ring-sky-300 border border-sky-200;
+    @apply btn bg-white text-stone-700 hover:bg-stone-50 focus:ring-stone-300 border border-stone-200;
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-sky-600 hover:bg-sky-50 focus:ring-sky-300;
+    @apply btn bg-transparent text-stone-600 hover:bg-stone-100 focus:ring-stone-300;
   }
 
   .btn-danger {
-    @apply btn bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500;
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-sky-200 bg-white text-sky-900 placeholder-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-stone-200 bg-white text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all duration-200;
   }
 
   .textarea {
@@ -73,11 +73,11 @@
   }
 
   .label {
-    @apply block text-sm font-medium text-sky-700 mb-2;
+    @apply block text-sm font-medium text-stone-700 mb-2;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-lg shadow-sky-100/50 border border-sky-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-sky-200/50;
+    @apply bg-white rounded-2xl border border-stone-200 overflow-hidden transition-all duration-200;
   }
 
   .card-hover {
@@ -93,27 +93,28 @@
   }
 
   .envelope {
-    @apply relative bg-gradient-to-br from-sky-100 to-blush-100 rounded-xl shadow-envelope border border-sky-200 overflow-hidden;
+    @apply relative bg-blush-50 rounded-xl border border-stone-200 overflow-hidden;
   }
 
   .cassette {
-    @apply relative bg-gray-800 rounded-lg shadow-cassette border border-gray-700;
+    @apply relative bg-stone-900 rounded-lg border border-stone-700;
   }
 
   .flower-stem {
-    @apply absolute bottom-0 w-1 h-32 bg-gradient-to-t from-sage-600 to-sage-400 rounded-t transform origin-bottom;
+    @apply w-1 bg-gradient-to-t from-stone-600 to-stone-400 rounded-t transform origin-bottom;
+    flex-shrink: 0;
   }
 
   .glass {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+    @apply bg-white/90 border border-stone-200;
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 bg-clip-text text-transparent;
+    @apply text-rose-700;
   }
 
   .gradient-border {
-    @apply relative before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-sky-300 before:to-indigo-400 before:p-[1px] before:-z-10;
+    @apply relative before:absolute before:inset-0 before:rounded-2xl before:bg-stone-200 before:p-[1px] before:-z-10;
   }
 }
 
