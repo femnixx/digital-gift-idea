@@ -1,12 +1,11 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Heart, X, MessageSquare, Sparkles, Shuffle, Circle, Flower2, SlidersHorizontal } from 'lucide-react'
 import { FLOWER_CONFIG, type FlowerType, type BouquetFlower, type ArrangementType } from '@/types'
 import { ProceduralFlower } from '@/components/features/ProceduralFlower'
 
-// --- Seeded Random (Mulberry32) ---
 function mulberry32(a: number) {
   return function() {
     a |= 0
@@ -21,14 +20,22 @@ function createRng(seed: number) {
   return mulberry32(seed)
 }
 
-// --- Arrangement Algorithms ---
-function arrangeRandom(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
-  const margin = 12
-  return flowers.map(f => ({
-    ...f,
-    position_x: margin + rng() * (width - margin * 2),
-    position_y: margin + rng() * (height - margin * 2),
-  }))
+function arrangeInVase(flowers: BouquetFlower[], vaseWidthPercent: number, vaseCenterX: number, vaseTopY: number, rng: () => number): BouquetFlower[] {
+  const count = flowers.length
+  const radiusX = vaseWidthPercent * 0.8
+  const radiusY = 18
+
+  return flowers.map((f, i) => {
+    const angle = (i / Math.max(count, 1)) * Math.PI * 2 + (rng() - 0.5) * 0.6
+    const r = 0.5 + rng() * 0.5
+    const x = vaseCenterX + Math.cos(angle) * radiusX * r
+    const y = vaseTopY - Math.abs(Math.sin(angle)) * radiusY * r - rng() * 12
+    return {
+      ...f,
+      position_x: Math.max(5, Math.min(95, x)),
+      position_y: Math.max(5, Math.min(95, y)),
+    }
+  })
 }
 
 function arrangeCircular(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
@@ -48,20 +55,13 @@ function arrangeCircular(flowers: BouquetFlower[], width: number, height: number
   })
 }
 
-function arrangeVase(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
-  const cx = width / 2
-  const baseY = height * 0.72
-
-  return flowers.map((f, i) => {
-    const angle = (i / Math.max(flowers.length, 1)) * Math.PI * 2 + (rng() - 0.5) * 0.5
-    const radius = 6 + rng() * 16
-    const heightVar = rng() * 30
-    return {
-      ...f,
-      position_x: Math.max(8, Math.min(92, cx + Math.cos(angle) * radius)),
-      position_y: Math.max(8, Math.min(88, baseY - 8 - heightVar)),
-    }
-  })
+function arrangeRandom(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
+  const margin = 12
+  return flowers.map(f => ({
+    ...f,
+    position_x: margin + rng() * (width - margin * 2),
+    position_y: margin + rng() * (height - margin * 2),
+  }))
 }
 
 function arrangeHeart(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
@@ -88,13 +88,17 @@ function applyArrangement(
   height: number,
   rng: () => number
 ): BouquetFlower[] {
+  const vaseCenterX = 50
+  const vaseTopY = 72
+  const vaseWidth = 55
+
   switch (type) {
-    case 'random':
-      return arrangeRandom(flowers, width, height, rng)
+    case 'vase':
+      return arrangeInVase(flowers, vaseWidth, vaseCenterX, vaseTopY, rng)
     case 'circular':
       return arrangeCircular(flowers, width, height, rng)
-    case 'vase':
-      return arrangeVase(flowers, width, height, rng)
+    case 'random':
+      return arrangeRandom(flowers, width, height, rng)
     case 'heart':
       return arrangeHeart(flowers, width, height, rng)
     default:
@@ -104,7 +108,7 @@ function applyArrangement(
 
 function autoArrange(flowers: BouquetFlower[], iterations: number = 40): BouquetFlower[] {
   let result = [...flowers]
-  const minDist = 15
+  const minDist = 18
 
   for (let iter = 0; iter < iterations; iter++) {
     for (let i = 0; i < result.length; i++) {
@@ -167,7 +171,6 @@ function generateBouquet(count: number, seed: number, entryId: string): BouquetF
   return newFlowers
 }
 
-// --- Component ---
 interface DigitalBouquetProps {
   flowers: BouquetFlower[]
   onFlowerClick?: (flower: BouquetFlower) => void
@@ -279,18 +282,21 @@ export function DigitalBouquet({
 
   const arrangements: { type: ArrangementType; label: string; icon: React.ReactNode }[] = [
     { type: 'random', label: 'Random', icon: <Shuffle className="w-4 h-4" /> },
-    { type: 'circular', label: 'Circle', icon: <Circle className="w-4 h-4" /> },
+    { type: 'circular', label: 'Bouquet', icon: <Circle className="w-4 h-4" /> },
     { type: 'vase', label: 'Vase', icon: <Flower2 className="w-4 h-4" /> },
     { type: 'heart', label: 'Heart', icon: <Heart className="w-4 h-4" /> },
   ]
 
   const displayFlowers = localFlowers.length > 0 ? localFlowers : flowers
 
+  const vaseWidth = useMemo(() => (isMobile ? 'w-28' : 'w-40'), [isMobile])
+  const vaseHeight = useMemo(() => (isMobile ? 'h-20' : 'h-28'), [isMobile])
+
   return (
     <motion.div
       ref={containerRef}
-      className="relative rounded-3xl bg-stone-50 p-4 sm:p-8 overflow-hidden"
-      style={{ minHeight: '500px' }}
+      className="relative rounded-3xl bg-stone-50 overflow-hidden"
+      style={{ minHeight: isMobile ? '420px' : '520px' }}
       initial="hidden"
       animate="visible"
       variants={{
@@ -298,56 +304,10 @@ export function DigitalBouquet({
         visible: { opacity: 1, scale: 1, transition: { duration: 0.5, staggerChildren: 0.05 } }
       }}
     >
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {[...Array(isMobile ? 2 : 4)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-stone-300/40 text-2xl sm:text-3xl"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              rotate: [0, 360],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 20 + Math.random() * 10,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          >
-            ♡
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Vase */}
-      <motion.div
-        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-16 sm:h-24 text-stone-300/50"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.8, type: 'spring', stiffness: 100 }}
-      >
-        <svg viewBox="0 0 128 128" className="w-full h-full">
-          <path
-            d="M40 100 L24 24 Q64 12 104 24 L88 100 Z"
-            fill="currentColor"
-            fillOpacity="0.3"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <ellipse cx="64" cy="24" rx="36" ry="8" fill="none" stroke="currentColor" strokeWidth="2" />
-          <ellipse cx="64" cy="100" rx="20" ry="6" fill="none" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </motion.div>
-
       {/* Controls */}
       {isEditing && (
         <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-30">
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-rose-100 p-2 sm:p-3 flex flex-wrap items-center gap-2">
-            {/* Arrangement buttons */}
+          <div className="bg-white/90 backdrop-blur rounded-2xl border border-stone-200 p-2 sm:p-3 flex flex-wrap items-center gap-2">
             <div className="flex gap-1">
               {arrangements.map(arr => (
                 <button
@@ -365,21 +325,19 @@ export function DigitalBouquet({
               ))}
             </div>
 
-            {/* Flower count slider */}
             <div className="flex items-center gap-2">
-              <label className="text-xs text-rose-600 font-medium whitespace-nowrap">Count</label>
+              <label className="text-xs text-stone-600 font-medium whitespace-nowrap">Count</label>
               <input
                 type="range"
                 min="3"
                 max="20"
                 value={flowerCount}
                 onChange={(e) => setFlowerCount(Number(e.target.value))}
-                className="w-16 sm:w-20 h-2 bg-rose-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                className="w-16 sm:w-20 h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-600"
               />
-              <span className="text-xs text-rose-500 w-4 text-center">{flowerCount}</span>
+              <span className="text-xs text-stone-500 w-4 text-center">{flowerCount}</span>
             </div>
 
-            {/* Action buttons */}
             <div className="flex gap-2 ml-auto">
               <button
                 onClick={handleAutoArrange}
@@ -390,7 +348,7 @@ export function DigitalBouquet({
               </button>
               <button
                 onClick={handleRegenerate}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-800 text-white hover:bg-rose-600 transition-colors flex items-center"
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-800 text-white hover:bg-stone-900 transition-colors flex items-center"
               >
                 <Sparkles className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Regenerate</span>
@@ -400,205 +358,118 @@ export function DigitalBouquet({
         </div>
       )}
 
-      {/* Flowers */}
-      <AnimatePresence mode="popLayout">
-        {displayFlowers.map((flower, index) => {
-          const seed = flower.generation_seed || parseInt(flower.id.slice(-6), 36)
-          const stemRng = createRng(seed)
-          const stemHeight = 100 + Math.floor(stemRng() * 50)
+      {/* Vase area */}
+      <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none" style={{ height: isMobile ? '35%' : '40%' }}>
+        <div className={`relative ${vaseWidth} ${vaseHeight}`}>
+          {/* Vase SVG */}
+          <svg viewBox="0 0 160 160" className="absolute inset-0 w-full h-full text-stone-300/60">
+            <path
+              d="M50 140 L30 30 Q80 15 130 30 L110 140 Z"
+              fill="currentColor"
+              fillOpacity="0.25"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            />
+            <ellipse cx="80" cy="30" rx="48" ry="10" fill="none" stroke="currentColor" strokeWidth="2.5" />
+            <ellipse cx="80" cy="140" rx="28" ry="8" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
 
-          return (
-            <motion.div
-              key={flower.id}
-              className="absolute cursor-pointer select-none"
-              style={{
-                left: `${flower.position_x}%`,
-                top: `${flower.position_y}%`,
-                transform: `translate(-50%, -100%) rotate(${flower.rotation}deg) scale(${flower.scale})`,
-                zIndex: index + 10,
-              }}
-              initial={{ y: 200, opacity: 0, rotate: -90, scale: 0 }}
-              animate={{ y: 0, opacity: 1, rotate: flower.rotation, scale: flower.scale }}
-              exit={{ y: -100, opacity: 0, scale: 0, rotate: 90 }}
-              transition={{
-                delay: 0.1 * index,
-                duration: 0.6,
-                type: 'spring',
-                stiffness: 120,
-                damping: 15,
-              }}
-              onClick={(e) => handleFlowerClick(flower, e)}
-              draggable={isEditing}
-              onDrag={(e) => handleDrag(flower, e)}
-              onDragEnd={() => handleDragEnd(flower)}
-              whileHover={isEditing ? {} : { scale: (flower.scale || 1) * 1.1, rotate: flower.rotation + 5 }}
-              whileTap={isEditing ? {} : { scale: (flower.scale || 1) * 0.95 }}
-            >
-              {/* Stem */}
-              <motion.div
-                className="flower-stem"
-                style={{ height: `${stemHeight}px` }}
-                animate={{ rotate: [0, 2, -2, 0] }}
-                transition={{
-                  duration: 3 + (seed % 3),
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
+          {/* Flower area - above vase opening */}
+          <div className="absolute left-1/2 -translate-x-1/2 w-full" style={{ height: '120%', bottom: '100%' }}>
+            <AnimatePresence mode="popLayout">
+              {displayFlowers.map((flower, index) => {
+                const seed = flower.generation_seed || parseInt(flower.id.slice(-6), 36)
+                const stemRng = createRng(seed)
+                const stemHeight = 80 + Math.floor(stemRng() * 50)
 
-              {/* Flower Head */}
-              <motion.div
-                className="flex items-center justify-center"
-                style={{
-                  filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.12))`,
-                }}
-                animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 3, -3, 0],
-                }}
-                transition={{
-                  duration: 4 + (seed % 3),
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <div
-                  className="animate-sway"
-                  style={{
-                    transformOrigin: 'bottom center',
-                    animationDuration: `${3 + ((seed + 1) % 3)}s`,
-                  }}
-                >
-                  <ProceduralFlower
-                    type={flower.flower_type}
-                    color={flower.color}
-                    seed={seed}
-                    size={Math.round(75 * (flower.scale || 1))}
-                    simplified={isMobile}
-                  />
-                </div>
-              </motion.div>
-
-              {/* Note indicator */}
-              {flower.note && !isEditing && (
-                <motion.div
-                  className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1.5 rounded-full bg-stone-800 text-white text-xs font-medium"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.4 + 0.1 * index, type: 'spring' }}
-                >
-                  <MessageSquare className="w-3 h-3" aria-hidden="true" />
-                  <span>Note</span>
-                </motion.div>
-              )}
-
-              {/* Edit controls */}
-              {isEditing && (
-                <div className="absolute -top-10 -right-4 flex gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onRemoveFlower?.(flower.id)
+                return (
+                  <motion.div
+                    key={flower.id}
+                    className="absolute flex flex-col items-center select-none"
+                    style={{
+                      left: `${flower.position_x}%`,
+                      bottom: `${100 - flower.position_y}%`,
+                      transform: `translateX(-50%) rotate(${flower.rotation}deg) scale(${flower.scale})`,
+                      zIndex: index + 10,
                     }}
-                    className="w-7 h-7 rounded-full bg-stone-800 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
-                    aria-label="Remove flower"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSelectedFlower(flower)
+                    initial={{ y: 40, opacity: 0, rotate: -20, scale: 0 }}
+                    animate={{ y: 0, opacity: 1, rotate: flower.rotation, scale: flower.scale }}
+                    exit={{ y: -30, opacity: 0, scale: 0, rotate: 20 }}
+                    transition={{
+                      delay: 0.08 * index,
+                      duration: 0.5,
+                      type: 'spring',
+                      stiffness: 120,
+                      damping: 15,
                     }}
-                    className="w-7 h-7 rounded-full bg-stone-100 text-stone-700 flex items-center justify-center hover:bg-stone-200 transition-colors"
-                    aria-label="Edit flower note"
+                    onClick={(e) => handleFlowerClick(flower, e)}
+                    draggable={isEditing}
+                    onDrag={(e) => handleDrag(flower, e)}
+                    onDragEnd={() => handleDragEnd(flower)}
+                    whileHover={isEditing ? {} : { scale: (flower.scale || 1) * 1.08 }}
+                    whileTap={isEditing ? {} : { scale: (flower.scale || 1) * 0.95 }}
                   >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          )
-        })}
-      </AnimatePresence>
+                    <motion.div
+                      className="w-1 rounded-t origin-bottom"
+                      style={{
+                        height: `${stemHeight}px`,
+                        background: 'linear-gradient(to top, #57534e, #a8a29e)',
+                      }}
+                      animate={{ rotate: [0, 2, -2, 0] }}
+                      transition={{
+                        duration: 3 + (seed % 3),
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                    <motion.div
+                      className="flex items-center justify-center"
+                      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.12))' }}
+                      animate={{ scale: [1, 1.04, 1], rotate: [0, 2, -2, 0] }}
+                      transition={{
+                        duration: 4 + (seed % 3),
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <ProceduralFlower
+                        type={flower.flower_type}
+                        color={flower.color}
+                        seed={seed}
+                        size={isMobile ? 55 : 72}
+                        simplified={isMobile}
+                      />
+                    </motion.div>
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
 
-      {/* Add flower button */}
-      {isEditing && onAddFlower && (
-        <motion.button
-          onClick={onAddFlower}
-          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 px-6 py-3 rounded-full bg-rose-100 text-rose-600 font-medium hover:bg-rose-200 transition-all shadow-lg"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.5, type: 'spring' }}
-        >
-          <Sparkles className="w-5 h-5" aria-hidden="true" />
-          <span>Add Flower</span>
-        </motion.button>
+      {/* Empty state */}
+      {displayFlowers.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <p className="text-stone-400 font-handwriting text-lg">Your bouquet is empty 🌱</p>
+        </div>
       )}
 
-      {/* Note Modal */}
-      <AnimatePresence>
-        {selectedFlower && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      {/* Note popup */}
+      {selectedFlower && selectedFlower.note && (
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur rounded-xl shadow-lg border border-stone-200 px-4 py-3 max-w-xs z-40"
+          style={{ bottom: isMobile ? '38%' : '42%' }}
+        >
+          <p className="font-handwriting text-stone-700 text-sm">{selectedFlower.note}</p>
+          <button
             onClick={() => setSelectedFlower(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="note-title"
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center hover:bg-stone-300"
           >
-            <motion.div
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 transform-style-3d"
-              initial={{ scale: 0.9, opacity: 0, rotateY: 20 }}
-              animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-              exit={{ scale: 0.9, opacity: 0, rotateY: -20 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span
-                    className="text-4xl"
-                    style={{ color: selectedFlower.color }}
-                    role="img"
-                    aria-label={FLOWER_CONFIG[selectedFlower.flower_type].name}
-                  >
-                    {FLOWER_CONFIG[selectedFlower.flower_type].emoji}
-                  </span>
-                  <div>
-                    <h3 id="note-title" className="font-serif text-xl font-semibold text-rose-900">
-                      {FLOWER_CONFIG[selectedFlower.flower_type].name}
-                    </h3>
-                    <p className="text-rose-500 text-sm capitalize">{selectedFlower.color}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedFlower(null)}
-                  className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-100 transition-colors"
-                  aria-label="Close note"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="bg-cream-50 rounded-2xl p-6 border border-rose-100">
-                <p className="font-handwriting text-lg text-rose-700 leading-relaxed whitespace-pre-wrap">
-                  {selectedFlower.note}
-                </p>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-rose-100 flex items-center justify-end gap-2 text-rose-400 text-sm">
-                <Heart className="w-4 h-4 animate-heartbeat" aria-hidden="true" />
-                <span>Sent with love</span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
     </motion.div>
   )
 }
