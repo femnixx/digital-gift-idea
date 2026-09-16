@@ -8,6 +8,7 @@ import { EntryType, type Entry } from '@/types'
 import { LoveLetterEditor } from './LoveLetterEditor'
 import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
+import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
 
 const ENTRY_TYPES: { type: EntryType; label: string; icon: string; description: string }[] = [
   { type: 'letter', label: 'Love Letter', icon: '💌', description: 'A heartfelt message' },
@@ -170,6 +171,28 @@ export default function NewEntryPage() {
             onCancel={() => setSelectedType(null)}
             mode="create"
           />
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedType === 'voice_note') {
+    return (
+      <div className='min-h-screen bg-cream-50'>
+        <div className='max-w-md mx-auto px-6 py-12'>
+          <button onClick={() => setSelectedType(null)} className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'>
+            <ArrowLeft className='w-4 h-4' /> Back to types
+          </button>
+          <div className='mb-8'>
+            <div className='flex items-center gap-3 mb-2'>
+              <span className='text-3xl'>ðŸŽµ</span>
+              <div>
+                <h1 className='font-script text-3xl gradient-text'>Voice Note</h1>
+                <p className='text-rose-500 text-sm'>Record or upload an audio message</p>
+              </div>
+            </div>
+          </div>
+          <VoiceNoteRecorder entryId={'new-entry'} onSave={() => router.push('/admin')} />
         </div>
       </div>
     )
