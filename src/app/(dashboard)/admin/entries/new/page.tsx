@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Sparkles, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Heart, Sparkles, CheckCircle2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { EntryType, type Entry } from '@/types'
 import { LetterEditor } from '@/components/features/LetterEditor'
@@ -10,6 +10,9 @@ import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomiz
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
 import { BouquetEditor } from '@/components/features/BouquetEditor'
+import { PolaroidCustomizer } from '@/components/features/PolaroidCustomizer'
+import { OpenWhenLetters, OpenWhenEditor } from '@/components/features/OpenWhenLetters'
+import type { PolaroidCard, OpenWhenLetter } from '@/types'
 import { db } from '@/lib/storage/localStorageDB'
 
 const ENTRY_TYPES: { type: EntryType; label: string; icon: string; description: string }[] = [
@@ -39,6 +42,10 @@ export default function NewEntryPage() {
   const [showCoffeeDateEditor, setShowCoffeeDateEditor] = useState(false)
   const [showBouquetEditor, setShowBouquetEditor] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showPolaroidEditor, setShowPolaroidEditor] = useState(false)
+  const [showOpenWhenEditor, setShowOpenWhenEditor] = useState(false)
+  const [polaroidCards, setPolaroidCards] = useState<PolaroidCard[]>([])
+  const [openWhenLetters, setOpenWhenLetters] = useState<OpenWhenLetter[]>([])
 
   const createEntry = (content: Record<string, any> = {}) => {
     if (!title.trim() || !selectedType) return
@@ -74,6 +81,26 @@ export default function NewEntryPage() {
 
   const handleBouquetSave = (flowers: any[]) => {
     createEntry({ bouquet_flowers: flowers })
+  }
+
+  const handlePolaroidAddCard = (card: PolaroidCard) => {
+    setPolaroidCards(prev => [...prev, card])
+  }
+
+  const handlePolaroidSave = () => {
+    createEntry({ polaroid_cards: polaroidCards })
+  }
+
+  const handleOpenWhenSaveLetter = (letter: OpenWhenLetter) => {
+    if (letter.id) {
+      setOpenWhenLetters(prev => prev.map(l => l.id === letter.id ? letter : l))
+    } else {
+      setOpenWhenLetters(prev => [...prev, letter])
+    }
+  }
+
+  const handleOpenWhenSave = () => {
+    createEntry({ open_when_letters: openWhenLetters })
   }
 
   const handleVoiceSave = () => {
@@ -378,6 +405,82 @@ export default function NewEntryPage() {
     )
   }
 
+  if (selectedType === 'open_when' && showOpenWhenEditor) {
+    return (
+      <div className='min-h-screen bg-cream-50'>
+        <div className='max-w-4xl mx-auto px-6 py-12'>
+          <button
+            onClick={() => { setShowOpenWhenEditor(false); setOpenWhenLetters([]); }}
+            className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'
+          >
+            <ArrowLeft className='w-4 h-4' /> Back to types
+          </button>
+          <div className='mb-8'>
+            <div className='flex items-center gap-3 mb-2'>
+              <span className='text-3xl'>💌</span>
+              <div>
+                <h1 className='font-script text-3xl gradient-text'>Open When Letters</h1>
+                <p className='text-rose-500 text-sm'>Create sealed letters that unlock at the right moment</p>
+              </div>
+            </div>
+          </div>
+
+          {openWhenLetters.length === 0 ? (
+            <div className='text-center py-12'>
+              <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
+              <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Your First Letter</h2>
+              <p className='text-slate-500 mb-6'>Add a sealed letter that opens on a specific date, location, or feeling.</p>
+              <button
+                onClick={() => setOpenWhenLetters([{
+                  id: '',
+                  entry_id: 'new-entry',
+                  trigger_label: '',
+                  trigger_type: 'manual',
+                  trigger_value: null,
+                  envelope_color: '#F3E5F5',
+                  seal_emoji: '💌',
+                  content: { title: '', message: '' },
+                  is_unlocked: false,
+                  unlocked_at: null,
+                  sort_order: 0,
+                  created_at: new Date().toISOString(),
+                }])}
+                className='btn-primary inline-flex items-center gap-2'
+              >
+                <Plus className='w-4 h-4' />
+                Add Open When Letter
+              </button>
+            </div>
+          ) : (
+            <div className='space-y-6'>
+              <OpenWhenLetters
+                letters={openWhenLetters}
+                isEditing={true}
+                onSave={setOpenWhenLetters}
+              />
+              <div className='flex justify-end gap-3 pt-4'>
+                <button
+                  onClick={() => { setShowOpenWhenEditor(false); setOpenWhenLetters([]); }}
+                  className='btn-secondary'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleOpenWhenSave}
+                  disabled={openWhenLetters.length === 0}
+                  className='btn-primary'
+                >
+                  <Sparkles className='w-4 h-4' />
+                  Save Entry
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   if (selectedType === 'open_when') {
     return (
       <div className='min-h-screen bg-cream-50'>
@@ -398,11 +501,116 @@ export default function NewEntryPage() {
             <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
             <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Open When Letter</h2>
             <p className='text-slate-500 mb-6'>Write a letter that opens on a specific date, location, or feeling.</p>
-            <button onClick={() => router.push('/admin')} className='btn-primary inline-flex items-center gap-2'>
+            <button
+              onClick={() => {
+                setOpenWhenLetters([{
+                  id: '',
+                  entry_id: 'new-entry',
+                  trigger_label: '',
+                  trigger_type: 'manual',
+                  trigger_value: null,
+                  envelope_color: '#F3E5F5',
+                  seal_emoji: '💌',
+                  content: { title: '', message: '' },
+                  is_unlocked: false,
+                  unlocked_at: null,
+                  sort_order: 0,
+                  created_at: new Date().toISOString(),
+                }])
+                setShowOpenWhenEditor(true)
+              }}
+              className='btn-primary inline-flex items-center gap-2'
+            >
               <Sparkles className='w-4 h-4' />
-              Coming Soon
+              Create Open When Letter
             </button>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedType === 'polaroid' && showPolaroidEditor) {
+    return (
+      <div className='min-h-screen bg-cream-50'>
+        <div className='max-w-4xl mx-auto px-6 py-12'>
+          <button
+            onClick={() => { setShowPolaroidEditor(false); setPolaroidCards([]); }}
+            className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'
+          >
+            <ArrowLeft className='w-4 h-4' /> Back to types
+          </button>
+          <div className='mb-8'>
+            <div className='flex items-center gap-3 mb-2'>
+              <span className='text-3xl'>📸</span>
+              <div>
+                <h1 className='font-script text-3xl gradient-text'>Polaroid Deck</h1>
+                <p className='text-rose-500 text-sm'>Flip-through photos</p>
+              </div>
+            </div>
+          </div>
+
+          {polaroidCards.length === 0 ? (
+            <div className='text-center py-12'>
+              <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
+              <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Your Polaroid Deck</h2>
+              <p className='text-slate-500 mb-6'>Upload photos, add captions, and arrange them in a beautiful polaroid deck.</p>
+              <button
+                onClick={() => {
+                  const newCard: PolaroidCard = {
+                    id: '',
+                    entry_id: 'new-entry',
+                    image_url: '',
+                    caption: '',
+                    date_tag: null,
+                    back_note: null,
+                    hidden_message: null,
+                    tilt_degrees: 0,
+                    sort_order: 0,
+                    template: 'classic_white',
+                    orientation: 'portrait',
+                    font_family: 'font-handwriting',
+                    font_size: 'text-lg',
+                    font_color: '#881337',
+                    text_alignment: 'center',
+                    stickers: [],
+                    created_at: new Date().toISOString(),
+                  }
+                  setPolaroidCards([newCard])
+                }}
+                className='btn-primary inline-flex items-center gap-2'
+              >
+                <Plus className='w-4 h-4' />
+                Add First Photo
+              </button>
+            </div>
+          ) : (
+            <div className='space-y-6'>
+              <div className='flex justify-center'>
+                <span className='text-sm text-rose-500'>{polaroidCards.length} card{polaroidCards.length > 1 ? 's' : ''}</span>
+              </div>
+              <PolaroidCustomizer
+                entryId='new-entry'
+                onSave={handlePolaroidAddCard}
+              />
+              <div className='flex justify-end gap-3 pt-4'>
+                <button
+                  onClick={() => { setShowPolaroidEditor(false); setPolaroidCards([]); }}
+                  className='btn-secondary'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePolaroidSave}
+                  disabled={polaroidCards.length === 0}
+                  className='btn-primary'
+                >
+                  <Sparkles className='w-4 h-4' />
+                  Save Entry
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -428,9 +636,12 @@ export default function NewEntryPage() {
             <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
             <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Polaroid Deck</h2>
             <p className='text-slate-500 mb-6'>Upload photos, add captions, and arrange them in a beautiful polaroid deck.</p>
-            <button onClick={() => router.push('/admin')} className='btn-primary inline-flex items-center gap-2'>
+            <button
+              onClick={() => setShowPolaroidEditor(true)}
+              className='btn-primary inline-flex items-center gap-2'
+            >
               <Sparkles className='w-4 h-4' />
-              Coming Soon
+              Create Polaroid Deck
             </button>
           </div>
         </div>

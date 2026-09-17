@@ -5,19 +5,19 @@ import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { NavProvider } from '@/hooks/useNav'
 import './globals.css'
 
-export const inter = Inter({
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 })
 
-export const playfair = Playfair_Display({
+const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
 })
 
-export const dancing = Dancing_Script({
+const dancing = Dancing_Script({
   subsets: ['latin'],
   variable: '--font-dancing',
   display: 'swap',
