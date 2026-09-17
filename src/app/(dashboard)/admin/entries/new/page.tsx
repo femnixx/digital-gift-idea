@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Sparkles } from 'lucide-react'
+import { ArrowLeft, Heart, Sparkles, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { EntryType, type Entry } from '@/types'
-import { LoveLetterEditor } from './LoveLetterEditor'
+import { LetterEditor } from '@/components/features/LetterEditor'
 import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
@@ -38,6 +38,7 @@ export default function NewEntryPage() {
   const [showScratchEditor, setShowScratchEditor] = useState(false)
   const [showCoffeeDateEditor, setShowCoffeeDateEditor] = useState(false)
   const [showBouquetEditor, setShowBouquetEditor] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const createEntry = (content: Record<string, any> = {}) => {
     if (!title.trim() || !selectedType) return
@@ -59,7 +60,8 @@ export default function NewEntryPage() {
       updated_at: new Date().toISOString(),
     }
     db.entries.insert(entry)
-    router.push('/admin')
+    setShowSuccess(true)
+    setTimeout(() => router.push('/admin'), 1500)
   }
 
   const handleScratchSave = (card: any) => {
@@ -145,6 +147,16 @@ export default function NewEntryPage() {
     )
   }
 
+  {showSuccess && (
+    <div className='min-h-screen bg-cream-50 flex items-center justify-center'>
+      <div className='text-center card p-12 max-w-md'>
+        <CheckCircle2 className='w-16 h-16 text-green-500 mx-auto mb-4' />
+        <h2 className='font-script text-3xl gradient-text mb-2'>Entry Created!</h2>
+        <p className='text-rose-600'>Your gift has been saved. Redirecting...</p>
+      </div>
+    </div>
+  )}
+
   if (selectedType === 'letter') {
     return (
       <div className='min-h-screen bg-cream-50'>
@@ -161,7 +173,12 @@ export default function NewEntryPage() {
               </div>
             </div>
           </div>
-          <LoveLetterEditor />
+          <LetterEditor
+            onSave={handleLetterSave}
+            onCancel={() => { setSelectedType(null); setStep('type') }}
+            mode="edit"
+            showActions={true}
+          />
         </div>
       </div>
     )
