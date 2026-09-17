@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, Sparkles, ArrowLeft, Calendar, Share2, Edit3, X, EyeOff } from 'lucide-react'
+import { Heart, Sparkles, ArrowLeft, Calendar, Share2, Edit3, X, EyeOff, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useNav } from '@/hooks/useNav'
 import { format } from 'date-fns'
@@ -16,7 +16,8 @@ import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDa
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
 import { LetterEditor } from '@/components/features/LetterEditor'
-import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate } from '@/types'
+import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, BouquetFlower, FlowerType } from '@/types'
+import { FLOWER_CONFIG } from '@/types'
 
 interface DailyEntryPageProps {
   entry: Entry
@@ -67,9 +68,97 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
     setEditingBouquet(false)
   }
 
+  const updateBouquetFlowers = (flowers: any[]) => {
+    Object.assign(entry, {
+      bouquet_flowers: flowers,
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  const handleAddFlower = () => {
+    const current = entry.bouquet_flowers || []
+    const newFlower = {
+      id: `flower-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      entry_id: entry.id,
+      flower_type: 'rose' as const,
+      color: '#FF0000',
+      note: null,
+      position_x: 50,
+      position_y: 50,
+      rotation: Math.random() * 30 - 15,
+      scale: 0.8 + Math.random() * 0.4,
+      sort_order: current.length,
+      created_at: new Date().toISOString(),
+      generation_seed: Math.floor(Math.random() * 1000000),
+    }
+    updateBouquetFlowers([...current, newFlower])
+  }
+
+  const handleRemoveFlower = (id: string) => {
+    const updated = (entry.bouquet_flowers || []).filter(f => f.id !== id)
+    updateBouquetFlowers(updated)
+  }
+
+  const handleUpdateFlower = (id: string, updates: Partial<BouquetFlower>) => {
+    const updated = (entry.bouquet_flowers || []).map(f =>
+      f.id === id ? { ...f, ...updates } : f
+    )
+    updateBouquetFlowers(updated)
+  }
+
+  const handleRegenerateBouquet = () => {
+    const count = (entry.bouquet_flowers?.length || 10)
+    const seed = Date.now()
+    const types: FlowerType[] = Object.keys(FLOWER_CONFIG) as FlowerType[]
+    const newFlowers = Array.from({ length: count }, (_, i) => {
+      const type = types[Math.floor(Math.random() * types.length)]
+      const color = FLOWER_CONFIG[type].defaultColors[Math.floor(Math.random() * FLOWER_CONFIG[type].defaultColors.length)]
+      return {
+        id: `flower-${seed}-${i}`,
+        entry_id: entry.id,
+        flower_type: type,
+        color,
+        note: null,
+        position_x: 50,
+        position_y: 50,
+        rotation: Math.random() * 30 - 15,
+        scale: 0.8 + Math.random() * 0.4,
+        sort_order: i,
+        created_at: new Date().toISOString(),
+        generation_seed: Math.floor(Math.random() * 1000000),
+      }
+    })
+    updateBouquetFlowers(newFlowers)
+  }
+
   const renderContent = () => {
     switch (entry.type) {
       case 'bouquet':
+        if (editingBouquet) {
+          return (
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setEditingBouquet(false)}
+                  className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors inline-flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Done Editing
+                </button>
+              </div>
+              <DigitalBouquet
+                flowers={entry.bouquet_flowers || []}
+                isEditing={true}
+                onAddFlower={handleAddFlower}
+                onRemoveFlower={handleRemoveFlower}
+                onUpdateFlower={handleUpdateFlower}
+                onReplaceFlowers={updateBouquetFlowers}
+                entryId={entry.id}
+              />
+            </div>
+          )
+        }
         return entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? (
           <DigitalBouquet flowers={entry.bouquet_flowers} />
         ) : (
@@ -557,6 +646,23 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 >
                   <Edit3 className="w-4 h-4" />
                   Edit Coffee Date
+                </button>
+              </motion.div>
+            )}
+            {entry.type === 'bouquet' && (
+              <motion.div
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setEditingBouquet(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm hover:bg-rose-100 transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  {entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? 'Edit Bouquet' : 'Create Bouquet'}
                 </button>
               </motion.div>
             )}
