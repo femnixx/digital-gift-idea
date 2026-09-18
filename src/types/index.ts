@@ -162,6 +162,38 @@ export interface PartnerInteraction {
   created_at: string
 }
 
+export interface LoveDiary {
+  id: string
+  user_id: string
+  title: string
+  description: string
+  entry_ids: string[]
+  cover_image: string | null
+  created_at: string
+  updated_at: string
+  entry_count: number
+  total_views: number
+}
+
+export interface CreateDiaryForm {
+  title: string
+  description: string
+  entry_ids?: string[]
+  cover_image?: string
+}
+
+export interface LoveDiaryWithMetrics extends LoveDiary {
+  entries_detail: Array<{
+    id: string
+    slug: string
+    title: string
+    type: EntryType
+    is_published: boolean
+    view_count: number
+    created_at: string
+  }>
+}
+
 export interface RelationshipSettings {
   id: string
   partner_one_id: string
@@ -253,9 +285,9 @@ export const FLOWER_CONFIG: Record<FlowerType, {
   petals: number
   defaultColors: string[]
 }> = {
-  rose: { name: 'Rose', emoji: '🌹', petals: 32, defaultColors: ['#FF0000', '#FF69B4', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000'] },
+  rose: { name: 'Rose', emoji: '🌹', petals: 32, defaultColors: ['#0284c7', '#FF69B4', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000'] },
   sunflower: { name: 'Sunflower', emoji: '🌻', petals: 34, defaultColors: ['#FFD700', '#FFA500', '#FF8C00', '#DAA520'] },
-  tulip: { name: 'Tulip', emoji: '🌷', petals: 6, defaultColors: ['#FF69B4', '#FF0000', '#FFFF00', '#FFFFFF', '#800080', '#FFA500'] },
+  tulip: { name: 'Tulip', emoji: '🌷', petals: 6, defaultColors: ['#FF69B4', '#0284c7', '#FFFF00', '#FFFFFF', '#800080', '#FFA500'] },
   lily: { name: 'Lily', emoji: '🌸', petals: 6, defaultColors: ['#FFFFFF', '#FFB6C1', '#FFD700', '#FF69B4', '#E6E6FA'] },
   orchid: { name: 'Orchid', emoji: '🌺', petals: 5, defaultColors: ['#DA70D6', '#BA55D3', '#FFFFFF', '#FF69B4', '#DDA0DD'] },
   peony: { name: 'Peony', emoji: '💮', petals: 40, defaultColors: ['#FF69B4', '#FFB6C1', '#FFFFFF', '#FFC0CB', '#DB7093'] },

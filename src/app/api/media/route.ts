@@ -77,6 +77,39 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const entryId = searchParams.get('entry_id')
+
+    if (!entryId) {
+      return NextResponse.json({ error: 'entry_id required' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('media')
+      .select('*')
+      .eq('entry_id', entryId)
+      .order('sort_order', { ascending: true })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ media: data }, { status: 200 })
+  } catch (error) {
+    console.error('Error fetching media:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = createClient()

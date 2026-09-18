@@ -1,26 +1,27 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Heart, Eye, Edit3, Trash2, ChevronLeft, Sparkles, FileText } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Heart, Eye, Edit3, Trash2, ChevronLeft, Sparkles, FileText, CheckCircle2 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { SkeletonEntryTable } from '@/components/ui/Skeleton'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
+import { createClient } from '@/lib/supabase/client'
 import type { EntryType } from '@/types'
 
-const typeIcons: Record<EntryType, React.ComponentType<{ className?: string }>> = {
-  letter: FileText,
-  bouquet: Sparkles,
-  polaroid: FileText,
-  scratch_card: Sparkles,
-  open_when: FileText,
-  voice_note: FileText,
-  coffee_date: FileText,
-}
-
 export default function AdminEntriesPage() {
+  const router = useRouter()
   const { entries, loading } = useDashboardData()
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const showToast = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   const formattedEntries = useMemo(() => {
     return entries.map((entry) => ({
@@ -30,7 +31,7 @@ export default function AdminEntriesPage() {
         day: 'numeric',
         year: 'numeric',
       }),
-      typeColor: TYPE_COLORS[entry.type as EntryType] || '#881337',
+      typeColor: TYPE_COLORS[entry.type as EntryType] || '#0284c7',
     }))
   }, [entries])
 
@@ -46,7 +47,7 @@ export default function AdminEntriesPage() {
               <ChevronLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="font-script text-3xl md:text-4xl text-rose-700">All Entries</h1>
+              <h1 className="font-script text-3xl md:text-4xl text-sky-700">All Entries</h1>
               <p className="text-stone-600 dark:text-stone-400 mt-1">Manage your gifts and surprises</p>
             </div>
           </div>
@@ -133,16 +134,62 @@ export default function AdminEntriesPage() {
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button
-                            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+                            type="button"
+                            onClick={() => { setEditingId(entry.id); router.push(`/admin/entries/new?edit=${entry.id}`) }}
+                            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-sky-600 hover:bg-sky-200 dark:hover:bg-sky-900/40 hover:text-sky-700 transition-colors"
                             aria-label="Edit entry"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            {editingId === entry.id ? (
+                              <span className="block w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Edit3 className="w-4 h-4" />
+                            )}
                           </button>
-                          <button
-                            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-rose-600 hover:bg-rose-200 dark:hover:bg-rose-900/40 hover:text-red-500 transition-colors"
-                            aria-label="Delete entry"
-                          >
-                            <Trash2 className="w-4 h-4" />
+                           <button
+                             type="button"
+                             onClick={async () => {
+                               if (!confirm('Delete this entry? This cannot be undone.')) return
+                               setDeleting(entry.id)
+                               try {
+                                 const supabase = createClient()
+                                 const { data: { user } } = await supabase.auth.getUser()
+                                 if (!user) {
+                                   showToast('You must be logged in to delete entries')
+                                   setDeleting(null)
+                                   return
+                                 }
+                                 const { data: existing } = await supabase
+                                   .from('entries')
+                                   .select('id')
+                                   .eq('id', entry.id)
+                                   .eq('created_by', user.id)
+                                   .single()
+
+                                 if (!existing) {
+                                   showToast('You can only delete your own entries')
+                                   setDeleting(null)
+                                   return
+                                 }
+                                 const query = supabase.from('entries').delete() as any
+                                 const { error } = await query.eq('id', entry.id)
+                                 if (error) throw error
+                                 showToast('Entry deleted successfully')
+                                 router.refresh()
+                               } catch (err) {
+                                 console.error('Delete error:', err)
+                               } finally {
+                                 setDeleting(null)
+                               }
+                             }}
+                             disabled={deleting === entry.id}
+                             className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-sky-600 hover:bg-sky-200 dark:hover:bg-sky-900/40 hover:text-red-500 transition-colors disabled:opacity-50"
+                             aria-label="Delete entry"
+                           >
+                            {deleting === entry.id ? (
+                              <span className="block w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       </td>
@@ -154,6 +201,15 @@ export default function AdminEntriesPage() {
           </div>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
+          <div className="bg-sky-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="text-sm font-medium">{toast}</span>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

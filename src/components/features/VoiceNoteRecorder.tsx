@@ -206,7 +206,7 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
           <div className="w-20 h-20 rounded-full bg-red-500 mx-auto flex items-center justify-center animate-pulse">
             <Mic className="w-8 h-8 text-white" />
           </div>
-          <p className="text-rose-600 font-handwriting text-xl">Recording...</p>
+          <p className="text-sky-600 font-handwriting text-xl">Recording...</p>
           <button onClick={stopRecording} className="btn-secondary flex items-center gap-2 mx-auto">
             <Square className="w-4 h-4" />
             Stop Recording
@@ -216,17 +216,17 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
 
       {mode === 'preview' && audioUrl && (
         <div className="space-y-4">
-          <div className="p-6 rounded-2xl bg-white border border-rose-100 shadow-lg">
+          <div className="p-6 rounded-2xl bg-white border border-sky-100 shadow-lg">
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={togglePlay}
-                className="w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
+                className="w-12 h-12 rounded-full bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600 transition-colors"
               >
                 {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
               </button>
               <div className="flex-1">
-                <p className="font-medium text-rose-900">{title || 'Voice Note'}</p>
-                <p className="text-sm text-rose-500">
+                <p className="font-medium text-sky-900">{title || 'Voice Note'}</p>
+                <p className="text-sm text-sky-500">
                   {duration ? `${Math.floor(duration / 60)}:${String(Math.floor(duration % 60)).padStart(2, '0')}` : 'Loading...'}
                 </p>
               </div>

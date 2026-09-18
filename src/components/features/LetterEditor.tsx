@@ -15,7 +15,7 @@ interface LetterEditorProps {
 }
 
 const BACKGROUND_COLORS = [
-  { name: 'Rose', value: 'bg-rose-50', text: 'text-rose-900', preview: 'bg-rose-50' },
+  { name: 'Rose', value: 'bg-sky-50', text: 'text-sky-900', preview: 'bg-sky-50' },
   { name: 'Cream', value: 'bg-amber-50', text: 'text-amber-900', preview: 'bg-amber-50' },
   { name: 'Lavender', value: 'bg-lavender-50', text: 'text-lavender-900', preview: 'bg-lavender-50' },
   { name: 'Sage', value: 'bg-sage-50', text: 'text-sage-900', preview: 'bg-sage-50' },
@@ -60,7 +60,7 @@ export function LetterEditor({
     initialContent?.message || existingContent?.message || ''
   )
   const [backgroundColor, setBackgroundColor] = useState(
-    initialContent?.backgroundColor || 'bg-rose-50'
+    initialContent?.backgroundColor || 'bg-sky-50'
   )
   const [stickers, setStickers] = useState<string[]>(
     initialContent?.stickers || []
@@ -125,7 +125,7 @@ export function LetterEditor({
         >
           <div>
             <label className="label flex items-center gap-2">
-              <Heart className="w-4 h-4 text-rose-500" />
+              <Heart className="w-4 h-4 text-sky-500" />
               Your Message
             </label>
             <textarea
@@ -142,7 +142,7 @@ export function LetterEditor({
 
           <div>
             <label className="label flex items-center gap-2">
-              <Sticker className="w-4 h-4 text-rose-500" />
+              <Sticker className="w-4 h-4 text-sky-500" />
               Stickers & Emojis
             </label>
             <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function LetterEditor({
                   key={`${sticker}-${i}`}
                   type="button"
                   onClick={() => removeSticker(sticker)}
-                  className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg hover:bg-sky-50 hover:border-sky-300 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   title="Click to remove"
@@ -186,7 +186,7 @@ export function LetterEditor({
                         onClick={() => addSticker(sticker)}
                         className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-colors ${
                           stickers.includes(sticker)
-                            ? 'bg-rose-100 border-2 border-rose-400'
+                            ? 'bg-sky-100 border-2 border-sky-400'
                             : 'bg-sky-50 hover:bg-sky-100 border border-transparent'
                         }`}
                         whileHover={{ scale: 1.2 }}
@@ -211,7 +211,7 @@ export function LetterEditor({
         >
           <div>
             <label className="label flex items-center gap-2">
-              <Palette className="w-4 h-4 text-rose-500" />
+              <Palette className="w-4 h-4 text-sky-500" />
               Background Color
             </label>
             <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
@@ -222,7 +222,7 @@ export function LetterEditor({
                   onClick={() => !isReadOnly && setBackgroundColor(color.value)}
                   className={`h-10 rounded-xl border-2 transition-all ${color.preview} ${
                     backgroundColor === color.value
-                      ? 'border-rose-500 shadow-md ring-2 ring-rose-200'
+                      ? 'border-sky-500 shadow-md ring-2 ring-sky-200'
                       : 'border-transparent hover:border-sky-300'
                   }`}
                   title={color.name}
@@ -235,7 +235,7 @@ export function LetterEditor({
 
           <div>
             <label className="label flex items-center gap-2">
-              <Type className="w-4 h-4 text-rose-500" />
+              <Type className="w-4 h-4 text-sky-500" />
               Font Style
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -246,7 +246,7 @@ export function LetterEditor({
                   onClick={() => !isReadOnly && setFontStyle(font.value)}
                   className={`px-4 py-3 rounded-xl border-2 transition-all ${
                     fontStyle === font.value
-                      ? 'border-rose-500 bg-rose-50 shadow-sm'
+                      ? 'border-sky-500 bg-sky-50 shadow-sm'
                       : 'border-sky-100 bg-white hover:border-sky-300'
                   } ${font.preview}`}
                   whileHover={isReadOnly ? {} : { scale: 1.03 }}
@@ -260,7 +260,7 @@ export function LetterEditor({
 
           <div>
             <label className="label flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-rose-500" />
+              <Sparkles className="w-4 h-4 text-sky-500" />
               Paper Texture
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -271,7 +271,7 @@ export function LetterEditor({
                   onClick={() => !isReadOnly && setPaperTexture(texture.value)}
                   className={`px-4 py-3 rounded-xl border-2 transition-all text-sm ${
                     paperTexture === texture.value
-                      ? 'border-rose-500 bg-rose-50 shadow-sm'
+                      ? 'border-sky-500 bg-sky-50 shadow-sm'
                       : 'border-sky-100 bg-white hover:border-sky-300'
                   }`}
                   whileHover={isReadOnly ? {} : { scale: 1.03 }}
@@ -297,7 +297,7 @@ export function LetterEditor({
         <motion.button
           type="button"
           onClick={() => setShowPreview(false)}
-          className="p-2 rounded-full bg-white/80 backdrop-blur border border-sky-200 shadow-sm text-slate-600 hover:text-rose-500 transition-colors"
+          className="p-2 rounded-full bg-white/80 backdrop-blur border border-sky-200 shadow-sm text-slate-600 hover:text-sky-500 transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -362,7 +362,7 @@ export function LetterEditor({
             onClick={() => setActiveTab('message')}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'message'
-                ? 'border-rose-500 text-rose-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -374,7 +374,7 @@ export function LetterEditor({
             onClick={() => setActiveTab('style')}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'style'
-                ? 'border-rose-500 text-rose-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >

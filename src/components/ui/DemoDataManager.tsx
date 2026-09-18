@@ -43,17 +43,17 @@ export function DemoDataManager() {
 
   return (
     <motion.div
-      className="card p-6 border-rose-200"
+      className="card p-6 border-sky-200"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
-          <FlaskConical className="w-5 h-5 text-rose-500" />
+        <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
+          <FlaskConical className="w-5 h-5 text-sky-500" />
         </div>
         <div>
-          <h3 className="font-semibold text-rose-900">Demo Mode Tools</h3>
-          <p className="text-rose-500 text-sm">Manage localStorage demo data</p>
+          <h3 className="font-semibold text-sky-900">Demo Mode Tools</h3>
+          <p className="text-sky-500 text-sm">Manage localStorage demo data</p>
         </div>
       </div>
       
@@ -70,7 +70,7 @@ export function DemoDataManager() {
         <button
           onClick={handleClear}
           disabled={status === 'loading'}
-          className="btn flex items-center gap-2 bg-rose-50 text-rose-600 hover:bg-rose-100"
+          className="btn flex items-center gap-2 bg-sky-50 text-sky-600 hover:bg-sky-100"
         >
           <Trash2 className="w-4 h-4" />
           Clear All Data
@@ -81,8 +81,8 @@ export function DemoDataManager() {
         <motion.p
           className={`mt-4 text-sm flex items-center gap-2 ${
             status === 'success' ? 'text-green-600' :
-            status === 'error' ? 'text-rose-600' :
-            'text-rose-600'
+            status === 'error' ? 'text-sky-600' :
+            'text-sky-600'
           }`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -94,8 +94,8 @@ export function DemoDataManager() {
         </motion.p>
       )}
       
-      <div className="mt-4 pt-4 border-t border-rose-100">
-        <p className="text-rose-500 text-xs">
+      <div className="mt-4 pt-4 border-t border-sky-100">
+        <p className="text-sky-500 text-xs">
           <Sparkles className="w-3 h-3 inline" /> 
           Data stored in localStorage: <code>digital-love-letters-demo</code>
         </p>

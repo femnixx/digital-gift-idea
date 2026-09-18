@@ -4,38 +4,36 @@
 
 @layer base {
   :root {
-    --background: 255 250 245;
+    --background: 240 249 255;
     --foreground: 41 34 33;
     --border: 226 232 240;
-    --primary: 244 63 94;
-    --rose: 254 176 186;
-    --rose-dark: 244 63 94;
+    --primary: 14 165 233;
+    --sky: 14 165 233;
     --cream: 255 249 242;
     --gold: 216 176 106;
     --lavender: 233 218 255;
   }
 
   .dark {
-    --background: 25 22 25;
-    --foreground: 248 243 250;
-    --border: 61 57 64;
-    --primary: 217 70 113;
-    --rose: 146 64 94;
-    --rose-dark: 217 70 113;
-    --cream: 44 36 37;
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+    --border: 51 65 85;
+    --primary: 56 189 248;
+    --sky: 56 189 248;
+    --cream: 30 41 59;
     --gold: 196 156 86;
     --lavender: 93 68 146;
   }
 
   body {
-    @apply bg-cream-50 dark:bg-stone-900 text-stone-800 dark:text-stone-200;
+    @apply bg-sky-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    @apply bg-rose-200 text-rose-800;
+    @apply bg-sky-200 text-sky-800;
   }
 
   ::-webkit-scrollbar {
@@ -61,11 +59,11 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply btn bg-rose-600 text-white hover:bg-rose-700;
+    @apply btn bg-sky-600 text-white hover:bg-sky-700;
   }
 
   .btn-secondary {
@@ -77,11 +75,11 @@
   }
 
   .btn-danger {
-    @apply btn bg-rose-600 text-white hover:bg-rose-700;
+    @apply btn bg-sky-600 text-white hover:bg-sky-700;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 placeholder-stone-400 dark:placeholder-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:border-transparent transition-colors duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 placeholder-stone-400 dark:placeholder-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:border-transparent transition-colors duration-200;
   }
 
   .textarea {
@@ -109,7 +107,7 @@
   }
 
   .envelope {
-    @apply relative bg-rose-50 dark:bg-rose-950/20 rounded-xl border border-stone-200 overflow-hidden;
+    @apply relative bg-sky-50 dark:bg-sky-950/20 rounded-xl border border-stone-200 overflow-hidden;
   }
 
   .cassette {
@@ -140,7 +138,7 @@
   }
 
   .gradient-text {
-    @apply text-rose-600 dark:text-rose-300;
+    @apply text-sky-600 dark:text-sky-300;
   }
 
   .gradient-border {
@@ -148,7 +146,7 @@
   }
 
   .romantic-heading {
-    @apply font-script text-3xl md:text-4xl text-rose-600 dark:text-rose-300;
+    @apply font-script text-3xl md:text-4xl text-sky-600 dark:text-sky-300;
   }
 
   .romantic-subheading {
@@ -156,11 +154,11 @@
   }
 
   .romantic-accent {
-    @apply text-rose-500 dark:text-rose-300;
+    @apply text-sky-500 dark:text-sky-300;
   }
 
   .romantic-bg {
-    @apply bg-gradient-to-b from-rose-50 via-cream-50 to-lavender-50 dark:from-stone-900 dark:via-stone-900 dark:to-stone-900;
+    @apply bg-gradient-to-b from-sky-100 via-sky-50 to-sky-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900;
   }
 }
 
@@ -214,6 +212,13 @@
     100% { background-position: 200% 0; }
   }
 
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
   .shimmer-bg {
     background: linear-gradient(90deg, rgb(241 245 249) 0%, rgb(226 232 240) 50%, rgb(241 245 249) 100%);
     background-size: 200% 100%;
@@ -224,6 +229,23 @@
     background: linear-gradient(90deg, rgb(41 37 41) 0%, rgb(61 57 64) 50%, rgb(41 37 41) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-toast {
+    animation: toastIn 0.3s ease-out;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .perspective-1000 {

@@ -1,22 +1,81 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import { EntryType } from '@/types'
+import { createClient } from '@/lib/supabase/client'
+
+function DarkModeToggle() {
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark') || localStorage.getItem('love-letters-theme') === 'dark'
+    setDark(isDark)
+  }, [])
+
+  const toggle = () => {
+    const next = !dark
+    if (next) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('love-letters-theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('love-letters-theme', 'light')
+    }
+    setDark(next)
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+      aria-label="Toggle dark mode"
+    >
+      {dark ? <Sun className="w-5 h-5 text-sky-500" /> : <Moon className="w-5 h-5 text-stone-600" />}
+    </button>
+  )
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [userName, setUserName] = useState('You')
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user?.user_metadata?.display_name) {
+          setUserName(user.user_metadata.display_name)
+        } else if (user?.email) {
+          setUserName(user.email.split('@')[0])
+        }
+      } catch {}
+    }
+    loadUser()
+  }, [])
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setUserMenuOpen(false)
+    router.push('/login')
+    router.refresh()
+  }
 
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: Heart },
     { href: '/admin/entries', label: 'All Entries', icon: Calendar },
+    { href: '/admin/diaries', label: 'Love Diaries', icon: Heart },
     { href: '/admin/entries/new', label: 'Create Entry', icon: Plus },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ]
@@ -54,10 +113,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-stone-200 dark:border-stone-700">
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-rose-600 dark:text-rose-300" />
+              <div className="w-10 h-10 rounded-lg bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
               </div>
-              <span className="font-script text-xl text-rose-700 dark:text-rose-300">Dashboard</span>
+              <span className="font-script text-xl text-sky-700 dark:text-sky-300">Dashboard</span>
             </Link>
             <p className="text-stone-400 dark:text-stone-500 text-xs mt-2">Digital Love Letters</p>
           </div>
@@ -97,11 +156,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-rose-600 dark:text-rose-300" />
+                <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">You</p>
+                  <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">{userName}</p>
                   <p className="text-stone-400 dark:text-stone-500 text-xs">Admin</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-stone-400 dark:text-stone-500" />
@@ -110,7 +169,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <AnimatePresence>
                 {userMenuOpen && (
                   <motion.div
-                    className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 py-2"
+                    className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 py-2 z-50"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -123,7 +182,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       <Heart className="w-4 h-4" />
                       View Site
                     </Link>
-                    <button className="flex items-center gap-3 w-full px-4 py-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700">
+                    <div className="border-t border-stone-200 dark:border-stone-700 my-1" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 w-full px-4 py-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                    >
                       <LogOut className="w-4 h-4" />
                       Sign Out
                     </button>
@@ -148,10 +211,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </svg>
             </button>
             <Link href="/admin" className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-rose-600" />
-              <span className="font-script text-lg text-rose-700">Dashboard</span>
+              <Heart className="w-5 h-5 text-sky-600" />
+              <span className="font-script text-lg text-sky-700">Dashboard</span>
             </Link>
-            <div className="w-10" />
+            <DarkModeToggle />
           </div>
         </header>
 

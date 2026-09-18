@@ -65,7 +65,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
             particleCount: 100,
             spread: 70,
             origin: { y: 0.6 },
-            colors: [primaryDrink.color, '#f43f5e', '#fb7185', '#fda4af', '#ffffff'],
+            colors: [primaryDrink.color, '#0284c7', '#7dd3fc', '#bae6fd', '#ffffff'],
             shapes: ['heart', 'circle'] as any,
             scalar: 1.8,
           })
@@ -151,8 +151,8 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
       style={{ perspective: 1000 }}
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-cream-50 to-transparent" aria-hidden="true" />
-      <div className="absolute top-0 right-0 w-48 h-48 bg-rose-100/50 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-cream-50 to-transparent" aria-hidden="true" />
+      <div className="absolute top-0 right-0 w-48 h-48 bg-sky-100/50 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" aria-hidden="true" />
 
       <div className="relative flex flex-col md:flex-row items-start md:items-center gap-6">
         {/* Drink Visualization */}
@@ -251,7 +251,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
         {/* Drink Info */}
         <div className="flex-1 text-center md:text-left">
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-100 text-rose-700 text-sm font-medium mb-3"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-700 text-sm font-medium mb-3"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -260,7 +260,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
           </motion.div>
 
           <motion.h3
-            className="font-serif text-2xl md:text-3xl font-semibold text-rose-900 mb-2"
+            className="font-serif text-2xl md:text-3xl font-semibold text-sky-900 mb-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -270,7 +270,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
 
           {date.message && (
             <motion.p
-              className="font-handwriting text-lg text-rose-600 leading-relaxed mb-4"
+              className="font-handwriting text-lg text-sky-600 leading-relaxed mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -281,13 +281,13 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
 
           {date.local_cafe_suggestion && (
             <motion.div
-              className="p-3 rounded-xl bg-white/80 backdrop-blur border border-rose-100 mb-4"
+              className="p-3 rounded-xl bg-white/80 backdrop-blur border border-sky-100 mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <p className="text-rose-500 text-sm uppercase tracking-wider mb-1">Suggested Spot</p>
-              <p className="font-medium text-rose-800">{date.local_cafe_suggestion}</p>
+              <p className="text-sky-500 text-sm uppercase tracking-wider mb-1">Suggested Spot</p>
+              <p className="font-medium text-sky-800">{date.local_cafe_suggestion}</p>
             </motion.div>
           )}
 
@@ -302,7 +302,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
               {date.drink_types.map(drink => (
                 <span 
                   key={drink} 
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-rose-200 text-xs text-rose-700"
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-sky-200 text-xs text-sky-700"
                 >
                   {DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}
                 </span>
@@ -353,7 +353,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
         {isAnimating && [...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="heart-particle absolute text-rose-400/60 text-xl"
+            className="heart-particle absolute text-sky-400/60 text-xl"
             style={{
               left: `${10 + Math.random() * 80}%`,
               bottom: '15%',

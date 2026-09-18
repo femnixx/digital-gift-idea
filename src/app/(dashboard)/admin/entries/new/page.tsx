@@ -1,28 +1,38 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Sparkles, CheckCircle2, Plus } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { EntryType, type Entry } from '@/types'
-import { LetterEditor } from '@/components/features/LetterEditor'
-import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
-import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
-import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
-import { BouquetEditor } from '@/components/features/BouquetEditor'
-import { PolaroidCustomizer } from '@/components/features/PolaroidCustomizer'
-import { OpenWhenLetters } from '@/components/features/OpenWhenLetters'
-import type { PolaroidCard, OpenWhenLetter } from '@/types'
+import { useRouter } from 'next/navigation'
+import {
+  ArrowLeft,
+  Eye,
+  Trash2,
+  Heart,
+  Mail,
+  Flower2,
+  Coffee,
+  Music,
+  Camera,
+  Gamepad2,
+  MessageSquare,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+} from 'lucide-react'
+import { AdminLayout } from '@/components/layout/AdminLayout'
+import { createClient } from '@/lib/supabase/client'
 import { saveEntryToStorage } from '@/lib/entryStorage'
+import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
+import type { Entry, EntryType } from '@/types'
 
-const ENTRY_TYPES: { type: EntryType; label: string; icon: string; description: string }[] = [
-  { type: 'letter', label: 'Love Letter', icon: '💌', description: 'A heartfelt message' },
-  { type: 'bouquet', label: 'Digital Bouquet', icon: '💐', description: 'Flowers with notes' },
-  { type: 'polaroid', label: 'Polaroid Deck', icon: '📸', description: 'Flip-through photos' },
-  { type: 'scratch_card', label: 'Scratch Card', icon: '🎫', description: 'Hidden surprise reveal' },
-  { type: 'open_when', label: 'Open When Letter', icon: '💌', description: 'Sealed until the right moment' },
-  { type: 'voice_note', label: 'Voice Note', icon: '🎵', description: 'Audio cassette message' },
-  { type: 'coffee_date', label: 'Coffee Date', icon: '☕', description: 'Virtual treat with gift card' },
+const ENTRY_TYPES: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { type: 'letter', label: 'Love Letter', icon: MessageSquare },
+  { type: 'bouquet', label: 'Digital Bouquet', icon: Flower2 },
+  { type: 'coffee_date', label: 'Coffee Date', icon: Coffee },
+  { type: 'voice_note', label: 'Voice Note', icon: Music },
+  { type: 'polaroid', label: 'Polaroid', icon: Camera },
+  { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
 ]
 
 function generateSlug(title: string): string {
@@ -31,55 +41,51 @@ function generateSlug(title: string): string {
   return `${base}-${timestamp}`
 }
 
-function TypeSelector({ onSelect, selectedType }: { onSelect: (type: EntryType) => void; selectedType: EntryType | null }) {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {ENTRY_TYPES.map((type, index) => (
-          <button
-            key={type.type}
-            onClick={() => onSelect(type.type)}
-            className={`group text-left p-6 rounded-xl border transition-all ${
-              selectedType === type.type
-                ? 'border-rose-300 bg-rose-50 dark:bg-rose-950/20'
-                : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-white dark:bg-stone-800'
-            }`}
-            style={{ animationDelay: `${index * 0.05}s` }}
-          >
-            <div className="text-3xl mb-3">{type.icon}</div>
-            <h3 className="font-serif text-lg font-semibold text-stone-800 dark:text-stone-200 mb-1">{type.label}</h3>
-            <p className="text-stone-500 dark:text-stone-400 text-sm">{type.description}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export default function NewEntryPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'title' | 'type' | 'editor'>('title')
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [selectedType, setSelectedType] = useState<EntryType | null>(null)
-  const [showScratchEditor, setShowScratchEditor] = useState(false)
-  const [showCoffeeDateEditor, setShowCoffeeDateEditor] = useState(false)
-  const [showBouquetEditor, setShowBouquetEditor] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [showPolaroidEditor, setShowPolaroidEditor] = useState(false)
-  const [showOpenWhenEditor, setShowOpenWhenEditor] = useState(false)
-  const [polaroidCards, setPolaroidCards] = useState<PolaroidCard[]>([])
-  const [openWhenLetters, setOpenWhenLetters] = useState<OpenWhenLetter[]>([])
-  const [saveError, setSaveError] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const createEntry = async (content: Record<string, any> = {}) => {
-    if (!title.trim() || !selectedType) return
+  const showToast = useCallback((message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2500)
+  }, [])
+
+  useEffect(() => {
+    loadEntries()
+  }, [])
+
+  async function loadEntries() {
+    try {
+      const raw = localStorage.getItem('digital-love-letters-demo')
+      if (raw) {
+        const data = JSON.parse(raw)
+        setEntries(data.entries || [])
+      }
+    } catch {}
+    setLoading(false)
+  }
+
+  async function handleCreate() {
+    if (!title.trim() || !selectedType) {
+      setError('Please enter a title and select a type')
+      return
+    }
+    setCreating(true)
+    setError(null)
+
     const slug = generateSlug(title)
     const entry: Entry = {
       id: `entry-${Date.now()}`,
       slug,
       title: title.trim(),
       type: selectedType,
-      content,
+      content: {},
       publish_at: new Date().toISOString(),
       unlock_at: null,
       unlock_condition: null,
@@ -91,549 +97,239 @@ export default function NewEntryPage() {
       updated_at: new Date().toISOString(),
     }
 
-    const { success, error } = await saveEntryToStorage(entry)
-    if (!success) {
-      setSaveError(error || 'Failed to save entry')
-      return
-    }
-
-    setShowSuccess(true)
-    setTimeout(() => {
-      setShowSuccess(false)
-      setSaveError('')
-      router.push('/admin')
-    }, 1500)
-  }
-
-  const handleScratchSave = (card: any) => {
-    createEntry({ scratch_cards: [card] })
-  }
-
-  const handleCoffeeDateSave = (dates: any[]) => {
-    createEntry({ coffee_dates: dates })
-  }
-
-  const handleBouquetSave = (flowers: any[]) => {
-    createEntry({ bouquet_flowers: flowers })
-  }
-
-  const handlePolaroidAddCard = (card: PolaroidCard) => {
-    setPolaroidCards(prev => [...prev, card])
-  }
-
-  const handlePolaroidSave = () => {
-    createEntry({ polaroid_cards: polaroidCards })
-  }
-
-  const handleOpenWhenSaveLetter = (letter: OpenWhenLetter) => {
-    if (letter.id) {
-      setOpenWhenLetters(prev => prev.map(l => l.id === letter.id ? letter : l))
+    const { success } = await saveEntryToStorage(entry)
+    if (success) {
+      showToast('Entry created!')
+      setTitle('')
+      setSelectedType(null)
+      setEntries((prev) => [entry, ...prev])
     } else {
-      setOpenWhenLetters(prev => [...prev, letter])
+      setError('Failed to create entry')
+    }
+    setCreating(false)
+  }
+
+  async function handleDelete(entryId: string) {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { error } = await (supabase as any)
+          .from('entries')
+          .delete()
+          .eq('id', entryId)
+          .eq('created_by', user.id)
+
+        if (error) {
+          // Fall back to localStorage deletion
+          removeFromLocal(entryId)
+        }
+      } else {
+        removeFromLocal(entryId)
+      }
+    } catch {
+      removeFromLocal(entryId)
     }
   }
 
-  const handleOpenWhenSave = () => {
-    createEntry({ open_when_letters: openWhenLetters })
+  function removeFromLocal(entryId: string) {
+    const raw = localStorage.getItem('digital-love-letters-demo')
+    if (raw) {
+      const data = JSON.parse(raw)
+      data.entries = data.entries.filter((e: Entry) => e.id !== entryId)
+      localStorage.setItem('digital-love-letters-demo', JSON.stringify(data))
+      setEntries((prev) => prev.filter((e) => e.id !== entryId))
+      showToast('Entry deleted')
+    }
   }
 
-  const handleVoiceSave = () => {
-    createEntry({ voice_notes: [] })
+  const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+    letter: MessageSquare,
+    bouquet: Flower2,
+    coffee_date: Coffee,
+    voice_note: Music,
+    polaroid: Camera,
+    scratch_card: Gamepad2,
   }
 
-  const handleLetterSave = (content: { message: string }, extra?: Record<string, any>) => {
-    createEntry({ ...content, ...extra })
-  }
-
-  const EditorWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen romantic-bg">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <button
-          onClick={() => { setSelectedType(null); setStep('type') }}
-          className="inline-flex items-center gap-2 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to types
-        </button>
-        {children}
-      </div>
-    </div>
-  )
-
-  if (step === 'title') {
-    return (
-      <div className="min-h-screen romantic-bg">
-        <div className="max-w-2xl mx-auto px-6 py-12">
+  return (
+    <AdminLayout>
+      <div className="space-y-8 max-w-4xl mx-auto">
+        <div className="flex items-center gap-3">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 mb-8"
+            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            <ArrowLeft className="w-5 h-5" />
           </Link>
+          <div>
+            <h1 className="font-script text-3xl md:text-4xl text-sky-700">Create Love Entry</h1>
+            <p className="text-stone-600 mt-1">Name your surprise and see your past entries</p>
+          </div>
+        </div>
 
-          <div className="mb-8">
-            <h1 className="font-script text-4xl text-rose-700 dark:text-rose-300 mb-2">Create New Entry</h1>
-            <p className="text-stone-600 dark:text-stone-300">Give your surprise a title</p>
+        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+            New Entry
+          </h2>
+
+          {error && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+              Entry Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Our First Anniversary"
+              className="input focus:ring-sky-500"
+              autoFocus
+            />
           </div>
 
-          <div className="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-8">
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-stone-700 dark:text-stone-200 mb-2">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g., Our First Anniversary"
-                  className="input"
-                  autoFocus
-                />
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+              Entry Type
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {ENTRY_TYPES.map((type) => {
+                const Icon = typeIcons[type.type] || Mail
+                const isSelected = selectedType === type.type
+                const color = TYPE_COLORS[type.type] || '#0284c7'
+                return (
+                  <button
+                    key={type.type}
+                    onClick={() => setSelectedType(isSelected ? null : type.type)}
+                    className={`group text-left p-5 rounded-xl border transition-all ${
+                      isSelected
+                        ? 'border-sky-400 bg-sky-50 dark:bg-sky-950/30'
+                        : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-white dark:bg-stone-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span style={{ color }}>
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                      </span>
+                      <span className="text-lg">
+                        <EntryTypeIcon type={type.type} />
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-base font-semibold text-stone-800 dark:text-stone-200">
+                      {type.label}
+                    </h3>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={handleCreate}
+            disabled={creating || !title.trim() || !selectedType}
+            className="btn-primary w-full inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {creating ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Create Entry
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-stone-200 dark:border-stone-700">
+            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+              Your Past Entries
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            {loading ? (
+              <div className="p-6 space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-stone-100 dark:bg-stone-700 rounded-lg animate-pulse" />
+                ))}
               </div>
-              <button
-                onClick={() => { if (title.trim()) setStep('type') }}
-                disabled={!title.trim()}
-                className="btn-primary w-full disabled:opacity-50"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (step === 'type' && !selectedType) {
-    return (
-      <div className="min-h-screen romantic-bg">
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <button
-            onClick={() => setStep('title')}
-            className="inline-flex items-center gap-2 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-
-          <div className="mb-8">
-            <h1 className="font-script text-4xl text-rose-700 dark:text-rose-300 mb-2">Choose a Format</h1>
-            <p className="text-stone-600 dark:text-stone-300">What kind of surprise do you want to create?</p>
-          </div>
-
-          <TypeSelector onSelect={setSelectedType} selectedType={selectedType} />
-        </div>
-      </div>
-    )
-  }
-
-  if (showSuccess) {
-    return (
-      <div className="min-h-screen romantic-bg flex items-center justify-center">
-        <div className="text-center bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-12 max-w-md">
-          <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="font-script text-3xl text-rose-700 dark:text-rose-300 mb-2">Entry Created!</h2>
-          <p className="text-stone-600 dark:text-stone-300">Your gift has been saved. Redirecting...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (selectedType === 'letter') {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">💌</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Love Letter</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Write a heartfelt message</p>
-            </div>
-          </div>
-        </div>
-        <LetterEditor
-          onSave={handleLetterSave}
-          onCancel={() => { setSelectedType(null); setStep('type') }}
-          mode="edit"
-          showActions={true}
-        />
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'scratch_card' && showScratchEditor) {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🎫</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Scratch Card</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a hidden surprise reveal</p>
-            </div>
-          </div>
-        </div>
-        <ScratchCardCustomizer
-          entryId={'new-entry'}
-          onSave={handleScratchSave}
-          onCancel={() => { setShowScratchEditor(false); setSelectedType(null); }}
-        />
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'scratch_card') {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🎫</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Scratch Card</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a hidden surprise reveal</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-8 text-center">
-          <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-          <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Your Scratch Card</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-6">Upload an image or write a message to hide under the scratch layer.</p>
-          <button onClick={() => setShowScratchEditor(true)} className="btn-primary inline-flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Create Scratch Card
-          </button>
-        </div>
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'coffee_date' && showCoffeeDateEditor) {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">☕</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Coffee Date</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a virtual coffee date with gift card</p>
-            </div>
-          </div>
-        </div>
-        <CoffeeDateSelector
-          entryId={'new-entry'}
-          onSave={handleCoffeeDateSave}
-          onCancel={() => { setShowCoffeeDateEditor(false); setSelectedType(null); }}
-          mode="create"
-        />
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'coffee_date') {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">☕</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Coffee Date</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a virtual coffee date with gift card</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-8 text-center">
-          <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-          <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Your Coffee Date</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-6">Choose drinks, add a personal message, and include a gift card link for your partner.</p>
-          <button onClick={() => setShowCoffeeDateEditor(true)} className="btn-primary inline-flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Create Coffee Date
-          </button>
-        </div>
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'bouquet' && showBouquetEditor) {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">💐</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Digital Bouquet</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a beautiful flower arrangement</p>
-            </div>
-          </div>
-        </div>
-        <BouquetEditor
-          entryId={'new-entry'}
-          onSave={handleBouquetSave}
-          onCancel={() => { setShowBouquetEditor(false); setSelectedType(null); }}
-        />
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'bouquet') {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">💐</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Digital Bouquet</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create a beautiful flower arrangement with procedural generation</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-8 text-center">
-          <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-          <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Your Bouquet</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-6">
-            Choose flower types, colors, and arrangement patterns.
-            Your bouquet will be generated with beautiful procedural flowers.
-          </p>
-          <button onClick={() => setShowBouquetEditor(true)} className="btn-primary inline-flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Create Bouquet
-          </button>
-        </div>
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'voice_note') {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🎵</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Voice Note</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Record or upload an audio message</p>
-            </div>
-          </div>
-        </div>
-        <VoiceNoteRecorder entryId={'new-entry'} onSave={handleVoiceSave} />
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'open_when' && showOpenWhenEditor) {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">💌</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Open When Letters</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Create sealed letters that unlock at the right moment</p>
-            </div>
+            ) : entries.length === 0 ? (
+              <div className="text-center py-12">
+                <Heart className="w-12 h-12 mx-auto mb-4 text-stone-300" />
+                <p className="text-stone-500 dark:text-stone-400">No entries yet</p>
+                <p className="text-stone-400 text-sm mt-1">Your created entries will appear here</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-stone-200 dark:divide-stone-700">
+                {entries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-sky-50 dark:hover:bg-sky-950/20 transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TYPE_COLORS[entry.type]}15` }}>
+                      <span
+                        className="text-xl"
+                      >
+                        <EntryTypeIcon type={entry.type} />
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-stone-800 dark:text-stone-200 truncate">
+                        {entry.title}
+                      </p>
+                      <p className="text-stone-400 dark:text-stone-500 text-sm">
+                        {entry.type.replace('_', ' ')} &middot; {entry.slug}
+                      </p>
+                    </div>
+                    <span
+                      className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
+                      style={{
+                        backgroundColor: `${TYPE_COLORS[entry.type]}20`,
+                        color: TYPE_COLORS[entry.type],
+                      }}
+                    >
+                      {entry.is_published ? 'Published' : 'Draft'}
+                    </span>
+                    <Link
+                      href={`/daily/${entry.slug}`}
+                      className="p-2 rounded-lg text-stone-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors flex-shrink-0"
+                      aria-label="View entry"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(entry.id)}
+                      className="p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      aria-label="Delete entry"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {openWhenLetters.length === 0 ? (
-          <div className="text-center py-12">
-            <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-            <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Your First Letter</h2>
-            <p className="text-stone-500 dark:text-stone-400 mb-6">Add a sealed letter that opens on a specific date, location, or feeling.</p>
-            <button
-              onClick={() => setOpenWhenLetters([{
-                id: '',
-                entry_id: 'new-entry',
-                trigger_label: '',
-                trigger_type: 'manual',
-                trigger_value: null,
-                envelope_color: '#F3E5F5',
-                seal_emoji: '💌',
-                content: { title: '', message: '' },
-                is_unlocked: false,
-                unlocked_at: null,
-                sort_order: 0,
-                created_at: new Date().toISOString(),
-              }])}
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Open When Letter
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <OpenWhenLetters
-              letters={openWhenLetters}
-              isEditing={true}
-              onSave={setOpenWhenLetters}
-            />
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => { setShowOpenWhenEditor(false); setOpenWhenLetters([]); }}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleOpenWhenSave}
-                disabled={openWhenLetters.length === 0}
-                className="btn-primary"
-              >
-                <Sparkles className="w-4 h-4" />
-                Save Entry
-              </button>
+        {toast && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
+            <div className="bg-sky-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              <span className="text-sm font-medium">{toast}</span>
             </div>
           </div>
         )}
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'open_when') {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">💌</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Open When Letter</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Sealed until the right moment</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-8 text-center">
-          <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-          <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Open When Letter</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-6">Write a letter that opens on a specific date, location, or feeling.</p>
-          <button
-            onClick={() => {
-              setOpenWhenLetters([{
-                id: '',
-                entry_id: 'new-entry',
-                trigger_label: '',
-                trigger_type: 'manual',
-                trigger_value: null,
-                envelope_color: '#F3E5F5',
-                seal_emoji: '💌',
-                content: { title: '', message: '' },
-                is_unlocked: false,
-                unlocked_at: null,
-                sort_order: 0,
-                created_at: new Date().toISOString(),
-              }])
-              setShowOpenWhenEditor(true)
-            }}
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            Create Open When Letter
-          </button>
-        </div>
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'polaroid' && showPolaroidEditor) {
-    return (
-      <EditorWrapper>
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">📸</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Polaroid Deck</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Flip-through photos</p>
-            </div>
-          </div>
-        </div>
-
-        {polaroidCards.length === 0 ? (
-          <div className="text-center py-12">
-            <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-            <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Your Polaroid Deck</h2>
-            <p className="text-stone-500 dark:text-stone-400 mb-6">Upload photos, add captions, and arrange them in a beautiful polaroid deck.</p>
-            <button
-              onClick={() => {
-                const newCard: PolaroidCard = {
-                  id: '',
-                  entry_id: 'new-entry',
-                  image_url: '',
-                  caption: '',
-                  date_tag: null,
-                  back_note: null,
-                  hidden_message: null,
-                  tilt_degrees: 0,
-                  sort_order: 0,
-                  template: 'classic_white',
-                  orientation: 'portrait',
-                  font_family: 'font-handwriting',
-                  font_size: 'text-lg',
-                  font_color: '#881337',
-                  text_alignment: 'center',
-                  stickers: [],
-                  created_at: new Date().toISOString(),
-                }
-                setPolaroidCards([newCard])
-              }}
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add First Photo
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex justify-center">
-              <span className="text-sm text-stone-500 dark:text-stone-400">{polaroidCards.length} card{polaroidCards.length > 1 ? 's' : ''}</span>
-            </div>
-            <PolaroidCustomizer
-              entryId='new-entry'
-              onSave={handlePolaroidAddCard}
-            />
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => { setShowPolaroidEditor(false); setPolaroidCards([]); }}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePolaroidSave}
-                disabled={polaroidCards.length === 0}
-                className="btn-primary"
-              >
-                <Sparkles className="w-4 h-4" />
-                Save Entry
-              </button>
-            </div>
-          </div>
-        )}
-      </EditorWrapper>
-    )
-  }
-
-  if (selectedType === 'polaroid') {
-    return (
-      <EditorWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">📸</span>
-            <div>
-              <h1 className="font-script text-3xl text-rose-700 dark:text-rose-300">Polaroid Deck</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">Flip-through photos</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-8 text-center">
-          <Sparkles className="w-12 h-12 text-stone-400 dark:text-stone-500 mx-auto mb-4" />
-          <h2 className="font-serif text-xl text-stone-700 dark:text-stone-200 mb-2">Create Polaroid Deck</h2>
-          <p className="text-stone-500 dark:text-stone-400 mb-6">Upload photos, add captions, and arrange them in a beautiful polaroid deck.</p>
-          <button
-            onClick={() => setShowPolaroidEditor(true)}
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            Create Polaroid Deck
-          </button>
-        </div>
-      </EditorWrapper>
-    )
-  }
-
-  return null
+      </div>
+    </AdminLayout>
+  )
 }

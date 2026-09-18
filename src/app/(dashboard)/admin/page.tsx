@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { gsap } from 'gsap'
 import {
-  Heart, Plus, Eye, Calendar, TrendingUp, FileText, ChevronRight
+  Heart, Plus, Eye, Calendar, TrendingUp, FileText, ChevronRight, Sparkles, CheckCircle2
 } from 'lucide-react'
 import { format, startOfMonth } from 'date-fns'
 import { AdminLayout } from '@/components/layout/AdminLayout'
@@ -25,6 +25,12 @@ import {
 export default function AdminDashboardPage() {
   const { entries, loading, isDemoMode } = useDashboardData()
   const containerRef = useRef<HTMLDivElement>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const showToast = useCallback((message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2500)
+  }, [])
 
   useEffect(() => {
     if (loading || !containerRef.current) return
@@ -51,7 +57,7 @@ export default function AdminDashboardPage() {
         label: 'Total Entries',
         value: loading ? '...' : entries.length,
         icon: Heart,
-        color: 'rose',
+        color: 'sky',
       },
       {
         label: 'Published',
@@ -89,16 +95,19 @@ export default function AdminDashboardPage() {
       <div ref={containerRef} className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-script text-3xl md:text-4xl text-rose-700">Dashboard</h1>
+            <h1 className="font-script text-3xl md:text-4xl text-sky-700">Dashboard</h1>
             <p className="text-stone-600 mt-1">Track your progress and manage your surprises</p>
             {isDemoMode && (
               <p className="text-amber-600 text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
             )}
           </div>
-          <Link href="/admin/entries/new" className="btn-primary w-full sm:w-auto inline-flex items-center gap-2">
-            <Plus className="w-5 h-5" />
+          <button
+            onClick={() => showToast('Preparing your new entry...')}
+            className="btn-primary w-full sm:w-auto inline-flex items-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
             <span>Create Entry</span>
-          </Link>
+          </button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -122,7 +131,7 @@ export default function AdminDashboardPage() {
             <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">Recent Entries</h2>
             <Link
               href="/admin/entries"
-              className="text-rose-600 text-sm font-medium hover:text-rose-700 flex items-center gap-1"
+              className="text-sky-600 text-sm font-medium hover:text-sky-700 flex items-center gap-1 transition-colors"
             >
               View All <ChevronRight className="w-4 h-4" />
             </Link>
@@ -170,7 +179,7 @@ export default function AdminDashboardPage() {
                     recentEntries.map((entry) => (
                       <tr
                         key={entry.id}
-                        className="hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors"
+                        className="hover:bg-sky-50 dark:hover:bg-sky-950/20 transition-colors cursor-pointer"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -213,13 +222,13 @@ export default function AdminDashboardPage() {
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               href={`/daily/${entry.slug}`}
-                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:text-sky-600 transition-colors"
                               aria-label="View entry"
                             >
                               <Eye className="w-4 h-4" />
                             </Link>
                             <button
-                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:text-sky-600 transition-colors"
                               aria-label="More options"
                             >
                               <ChevronRight className="w-4 h-4" />
@@ -236,6 +245,15 @@ export default function AdminDashboardPage() {
         </section>
 
         <DemoDataManager />
+
+        {toast && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
+            <div className="bg-sky-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              <span className="text-sm font-medium">{toast}</span>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   )

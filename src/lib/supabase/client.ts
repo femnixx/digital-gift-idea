@@ -43,7 +43,16 @@ function createMockClient() {
     } catch {}
   }
   
-  const generateId = () => Math.random().toString(36).substring(2, 15)
+  const generateId = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID()
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
+      return v.toString(16)
+    })
+  }
   
   return {
     auth: {
@@ -66,7 +75,34 @@ function createMockClient() {
         return { data: { user, session: storage.session }, error: null }
       },
       signUp: async ({ email, password }: any) => {
-        return createMockClient().auth.signInWithPassword({ email, password })
+        const user = { id: generateId(), email, user_metadata: { display_name: email.split('@')[0] }, confirmed_at: new Date().toISOString() }
+        const storage = getStorage()
+        storage.currentUser = user
+        storage.session = { user, access_token: 'demo-token' }
+        setStorage(storage)
+        return { data: { user, session: storage.session }, error: null }
+      },
+      signInWithOAuth: async ({ provider }: { provider: string }) => {
+        const user = { id: generateId(), email: `${provider}@demo.com`, user_metadata: { display_name: provider, provider } }
+        const storage = getStorage()
+        storage.currentUser = user
+        storage.session = { user, access_token: 'demo-oauth-token' }
+        setStorage(storage)
+        return { data: { user, session: storage.session }, error: null }
+      },
+      signInWithOtp: async ({ email }: { email: string }) => {
+        const user = { id: generateId(), email, user_metadata: { display_name: email.split('@')[0] } }
+        const storage = getStorage()
+        storage.currentUser = user
+        storage.session = { user, access_token: 'demo-otp-token' }
+        setStorage(storage)
+        return { data: { user, session: storage.session }, error: null }
+      },
+      resetPasswordForEmail: async (email: string) => {
+        return { data: { email }, error: null }
+      },
+      verifyOtp: async ({ email, token, type }: { email?: string; token?: string; type?: string }) => {
+        return { data: { user: { id: generateId(), email: 'verified@demo.com' }, session: { access_token: 'demo-verified' } }, error: null }
       },
       signOut: async () => {
         const storage = getStorage()
@@ -144,32 +180,67 @@ function createMockClient() {
           }))
           storage[table].push(...newItems)
           setStorage(storage)
-          return Promise.resolve({ data: newItems, error: null })
+
+          const result = { data: newItems, error: null }
+          const insertChain = {
+            select: (cols = '*') => {
+              query.selectCols = cols
+              return { ...insertChain, _result: result }
+            },
+            single: () => Promise.resolve({ data: newItems[0] || null, error: null }),
+            eq: (col: string, val: any) => insertChain,
+            neq: (col: string, val: any) => insertChain,
+            then: <T>(onFulfill: (value: any) => T): T => onFulfill(result),
+            catch: () => Promise.resolve({ error: null }),
+          }
+          return insertChain
         },
         update: (data: any) => {
           const now = new Date().toISOString()
+          const updatedRows: any[] = []
           storage[table] = storage[table].map((row: any) => {
             if (query.data.some((q: any) => q.id === row.id)) {
-              return { ...row, ...data, updated_at: now }
+              const updated = { ...row, ...data, updated_at: now }
+              updatedRows.push(updated)
+              return updated
             }
             return row
           })
           setStorage(storage)
           const updated = storage[table].filter((row: any) => query.data.some((q: any) => q.id === row.id))
-          return Promise.resolve({ data: updated, error: null })
+
+          const result = { data: updated, error: null }
+          const updateChain = {
+            select: (cols = '*') => {
+              query.selectCols = cols
+              return { ...updateChain, _result: result }
+            },
+            single: () => Promise.resolve({ data: updated[0] || null, error: null }),
+            eq: (col: string, val: any) => updateChain,
+            neq: (col: string, val: any) => updateChain,
+            then: <T>(onFulfill: (value: any) => T): T => onFulfill(result),
+            catch: () => Promise.resolve({ error: null }),
+          }
+          return updateChain
         },
         delete: () => {
           storage[table] = storage[table].filter((row: any) => !query.data.some((q: any) => q.id === row.id))
           setStorage(storage)
-          return Promise.resolve({ error: null })
+          const result = { error: null }
+          const deleteChain = {
+            eq: (col: string, val: any) => deleteChain,
+            neq: (col: string, val: any) => deleteChain,
+            then: <T>(onFulfill: (value: any) => T): T => onFulfill(result),
+            catch: () => Promise.resolve({ error: null }),
+          }
+          return deleteChain
         }
-      }
-      
-      return chain
+      };
+      return chain as any
     },
     storage: {
       from: (bucket: string) => ({
-        upload: async (path: string, file: File) => {
+        upload: async (path: string, file: File, _options?: any) => {
           // Return a mock URL
           const url = URL.createObjectURL(file)
           return { data: { path }, error: null }

@@ -173,15 +173,15 @@ function DrinkCard({ drinkType, isSelected, onToggle, index }: DrinkCardProps) {
       onClick={onToggle}
       className={`relative cursor-pointer rounded-2xl border-2 p-4 transition-all duration-300 ${
         isSelected
-          ? 'border-rose-400 bg-rose-50 shadow-lg shadow-rose-200/50'
-          : 'border-slate-200 bg-white hover:border-rose-200 hover:shadow-md'
+          ? 'border-sky-400 bg-sky-50 shadow-lg shadow-sky-200/50'
+          : 'border-slate-200 bg-white hover:border-sky-200 hover:shadow-md'
       }`}
     >
       {isSelected && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center"
+          className="absolute -top-2 -right-2 w-6 h-6 bg-sky-500 rounded-full flex items-center justify-center"
         >
           <Check className="w-4 h-4 text-white" />
         </motion.div>
@@ -193,7 +193,7 @@ function DrinkCard({ drinkType, isSelected, onToggle, index }: DrinkCardProps) {
         <div>
           <h3 className="font-serif font-semibold text-slate-800 text-sm">{drink.name}</h3>
           <p className="text-xs text-slate-500 mt-1">{drink.description}</p>
-          <p className="text-xs font-medium text-rose-600 mt-1">{drink.priceSuggestion}</p>
+          <p className="text-xs font-medium text-sky-600 mt-1">{drink.priceSuggestion}</p>
         </div>
       </div>
     </motion.div>
@@ -329,7 +329,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
         className="card p-6 md:p-8"
       >
         <div className="flex items-center gap-3 mb-6">
-          <Coffee className="w-6 h-6 text-rose-500" />
+          <Coffee className="w-6 h-6 text-sky-500" />
           <h2 className="font-serif text-xl font-semibold text-slate-800">Choose Your Drinks</h2>
         </div>
         <p className="text-slate-500 text-sm mb-6">Select one or more drinks to create the perfect coffee date arrangement</p>
@@ -350,12 +350,12 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-100"
+            className="mt-6 p-4 rounded-xl bg-sky-50 border border-sky-100"
           >
-            <p className="text-sm text-rose-700 font-medium mb-2">Selected arrangement:</p>
+            <p className="text-sm text-sky-700 font-medium mb-2">Selected arrangement:</p>
             <div className="flex flex-wrap gap-2">
               {selectedDrinks.map(drink => (
-                <span key={drink} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-rose-200 text-sm text-rose-700">
+                <span key={drink} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-sky-200 text-sm text-sky-700">
                   {DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}
                 </span>
               ))}
@@ -372,7 +372,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
         className="card p-6 md:p-8"
       >
         <div className="flex items-center gap-3 mb-6">
-          <Heart className="w-6 h-6 text-rose-500" />
+          <Heart className="w-6 h-6 text-sky-500" />
           <h2 className="font-serif text-xl font-semibold text-slate-800">Personalize</h2>
         </div>
 
@@ -436,7 +436,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-rose-500" />
+              <Sparkles className="w-6 h-6 text-sky-500" />
               <h2 className="font-serif text-xl font-semibold text-slate-800">Preview</h2>
             </div>
             <div className="flex gap-2">
@@ -527,7 +527,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
           {selectedDrinks.length > 0 && (
             <button
               onClick={() => setSelectedDrinks([])}
-              className="text-sm text-slate-500 hover:text-rose-500 transition-colors"
+              className="text-sm text-slate-500 hover:text-sky-500 transition-colors"
             >
               Clear selection
             </button>

@@ -243,7 +243,7 @@ export function PolaroidCustomizer({
         {croppedImage || imageSrc ? (
           <img src={croppedImage || imageSrc} alt="Preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-sky-100 to-pink-100 flex items-center justify-center">
             <span className="text-6xl">📷</span>
           </div>
         )}
@@ -312,7 +312,7 @@ export function PolaroidCustomizer({
               className="space-y-4"
             >
               <div className="text-center">
-                <h4 className="font-handwriting text-lg text-rose-600 mb-1">Preview</h4>
+                <h4 className="font-handwriting text-lg text-sky-600 mb-1">Preview</h4>
                 <p className="text-slate-500 text-sm">How your polaroid will look</p>
               </div>
               <div className="flex justify-center">
@@ -358,7 +358,7 @@ export function PolaroidCustomizer({
                   step={0.05}
                   value={zoom}
                   onChange={e => setZoom(Number(e.target.value))}
-                  className="w-full accent-rose-500"
+                  className="w-full accent-sky-500"
                 />
                 <div className="flex gap-2">
                   <button type="button" onClick={applyCrop} className="btn-primary flex-1 text-sm">
@@ -382,7 +382,7 @@ export function PolaroidCustomizer({
               {/* Image Upload / Preset Selection */}
               <div className="space-y-3">
                 <label className="label flex items-center gap-2">
-                  <Image className="w-4 h-4 text-rose-500" />
+                  <Image className="w-4 h-4 text-sky-500" />
                   Photo
                 </label>
                 {croppedImage || imageSrc ? (
@@ -398,7 +398,7 @@ export function PolaroidCustomizer({
                     <button
                       type="button"
                       onClick={() => setShowCropper(true)}
-                      className="absolute bottom-2 right-2 px-3 py-1.5 rounded-full bg-white/90 text-rose-600 text-xs font-medium hover:bg-white transition-colors"
+                      className="absolute bottom-2 right-2 px-3 py-1.5 rounded-full bg-white/90 text-sky-600 text-xs font-medium hover:bg-white transition-colors"
                     >
                       Recrop
                     </button>
@@ -408,7 +408,7 @@ export function PolaroidCustomizer({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-sky-300 hover:border-rose-400 hover:bg-rose-50 transition-colors aspect-square"
+                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-sky-300 hover:border-sky-400 hover:bg-sky-50 transition-colors aspect-square"
                     >
                       <Upload className="w-6 h-6 text-sky-500" />
                       <span className="text-xs text-slate-600">Upload</span>
@@ -418,7 +418,7 @@ export function PolaroidCustomizer({
                         key={preset.name}
                         type="button"
                         onClick={() => handlePresetSelect(preset)}
-                        className="flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 border-sky-100 hover:border-rose-300 hover:bg-rose-50 transition-colors aspect-square"
+                        className="flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 border-sky-100 hover:border-sky-300 hover:bg-sky-50 transition-colors aspect-square"
                         title={preset.name}
                       >
                         <span className="text-3xl">{preset.emoji}</span>
@@ -439,7 +439,7 @@ export function PolaroidCustomizer({
               {/* Template Selection */}
               <div className="space-y-3">
                 <label className="label flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-rose-500" />
+                  <Palette className="w-4 h-4 text-sky-500" />
                   Template
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -450,7 +450,7 @@ export function PolaroidCustomizer({
                       onClick={() => setTemplate(t.id)}
                       className={`px-3 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         template === t.id
-                          ? 'border-rose-500 bg-rose-50 shadow-sm'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
                           : 'border-sky-100 bg-white hover:border-sky-300'
                       }`}
                     >
@@ -471,7 +471,7 @@ export function PolaroidCustomizer({
                       onClick={() => setOrientation(o)}
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                         orientation === o
-                          ? 'border-rose-500 bg-rose-50 shadow-sm'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
                           : 'border-sky-100 bg-white hover:border-sky-300'
                       }`}
                     >
@@ -484,7 +484,7 @@ export function PolaroidCustomizer({
               {/* Caption */}
               <div className="space-y-3">
                 <label className="label flex items-center gap-2">
-                  <Type className="w-4 h-4 text-rose-500" />
+                  <Type className="w-4 h-4 text-sky-500" />
                   Caption
                 </label>
                 <textarea
@@ -498,7 +498,7 @@ export function PolaroidCustomizer({
               {/* Font Customization */}
               <div className="space-y-4">
                 <label className="label flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-rose-500" />
+                  <Palette className="w-4 h-4 text-sky-500" />
                   Font Style
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -509,7 +509,7 @@ export function PolaroidCustomizer({
                       onClick={() => setFontFamily(font.id)}
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${font.class} ${
                         fontFamily === font.id
-                          ? 'border-rose-500 bg-rose-50 shadow-sm'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
                           : 'border-sky-100 bg-white hover:border-sky-300'
                       }`}
                     >
@@ -526,7 +526,7 @@ export function PolaroidCustomizer({
                       onClick={() => setFontSize(size.id)}
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${
                         fontSize === size.id
-                          ? 'border-rose-500 bg-rose-50 shadow-sm'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
                           : 'border-sky-100 bg-white hover:border-sky-300'
                       }`}
                     >
@@ -542,7 +542,7 @@ export function PolaroidCustomizer({
                       type="button"
                       onClick={() => setFontColor(color.color)}
                       className={`h-10 rounded-xl border-2 transition-all ${
-                        fontColor === color.color ? 'border-rose-500 shadow-md ring-2 ring-rose-200' : 'border-transparent hover:border-sky-300'
+                        fontColor === color.color ? 'border-sky-500 shadow-md ring-2 ring-sky-200' : 'border-transparent hover:border-sky-300'
                       }`}
                       style={{ backgroundColor: color.color }}
                       title={color.name}
@@ -558,7 +558,7 @@ export function PolaroidCustomizer({
                       onClick={() => setTextAlignment(align.id as PolaroidCardType['text_alignment'])}
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${
                         textAlignment === align.id
-                          ? 'border-rose-500 bg-rose-50 shadow-sm'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
                           : 'border-sky-100 bg-white hover:border-sky-300'
                       }`}
                     >
@@ -571,14 +571,14 @@ export function PolaroidCustomizer({
               {/* Stickers */}
               <div className="space-y-3">
                 <label className="label flex items-center gap-2">
-                  <Sticker className="w-4 h-4 text-rose-500" />
+                  <Sticker className="w-4 h-4 text-sky-500" />
                   Stickers
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {stickers.map((sticker, i) => (
                     <motion.span
                       key={`${sticker}-${i}`}
-                      className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg cursor-pointer hover:bg-rose-50 hover:border-rose-300 transition-colors"
+                      className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg cursor-pointer hover:bg-sky-50 hover:border-sky-300 transition-colors"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => removeSticker(sticker)}
@@ -605,7 +605,7 @@ export function PolaroidCustomizer({
                         onClick={() => addSticker(sticker)}
                         className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-colors ${
                           stickers.includes(sticker)
-                            ? 'bg-rose-100 border-2 border-rose-400'
+                            ? 'bg-sky-100 border-2 border-sky-400'
                             : 'bg-sky-50 hover:bg-sky-100 border border-transparent'
                         }`}
                       >
@@ -629,7 +629,7 @@ export function PolaroidCustomizer({
 
               <div className="space-y-3">
                 <label className="label flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-rose-500" />
+                  <Sparkles className="w-4 h-4 text-sky-500" />
                   Hidden Message (revealed by shaking)
                 </label>
                 <input
@@ -650,7 +650,7 @@ export function PolaroidCustomizer({
                   max={20}
                   value={tiltDegrees}
                   onChange={(e) => setTiltDegrees(Number(e.target.value))}
-                  className="w-full accent-rose-500"
+                  className="w-full accent-sky-500"
                 />
               </div>
             </motion.div>

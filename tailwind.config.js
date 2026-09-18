@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,16 +10,33 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#fce7f3',
-          100: '#fbcfe8',
-          200: '#fecdd5',
-          300: '#fba3b4',
-          400: '#f78b92',
-          500: '#f43f5e',
-          600: '#bc283f',
-          700: '#9b1c2c',
-          800: '#7f163a',
-          900: '#6b1128',
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+        },
+        romantic: {
+          50: '#f0f9ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+        cloud: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
         },
         sky: {
           50: '#f0f9ff',

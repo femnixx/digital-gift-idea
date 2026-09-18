@@ -281,7 +281,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                           <button
                             type="button"
                             onClick={() => handleEditCard(card)}
-                            className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                            className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors"
                             title="Edit"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -289,7 +289,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                           <button
                             type="button"
                             onClick={() => handleDeleteCard(card.id)}
-                            className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 hover:text-red-600 transition-colors"
+                            className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 hover:text-red-600 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -339,7 +339,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
           return card?.hidden_message ? (
             <motion.div
               key={cardId}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 font-handwriting text-lg max-w-md text-center"
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl bg-sky-50 border border-sky-200 text-sky-800 font-handwriting text-lg max-w-md text-center"
               initial={{ y: 100, opacity: 0, scale: 0.9 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -50, opacity: 0, scale: 0.9 }}
@@ -348,9 +348,9 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
               aria-live="polite"
             >
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-rose-500" aria-hidden="true" />
+                <Sparkles className="w-4 h-4 text-sky-500" aria-hidden="true" />
                 <span className="font-serif">Hidden Message Revealed!</span>
-                <Sparkles className="w-4 h-4 text-rose-500" aria-hidden="true" />
+                <Sparkles className="w-4 h-4 text-sky-500" aria-hidden="true" />
               </div>
               <p>{card.hidden_message}</p>
             </motion.div>
@@ -464,7 +464,7 @@ function renderBack(card: PolaroidCardType, isShaken: boolean, isFlipped: boolea
 
       <div className="relative z-10 w-full">
         {card.back_note ? (
-          <p className="font-handwriting text-lg text-rose-700 leading-relaxed whitespace-pre-wrap text-center">
+          <p className="font-handwriting text-lg text-sky-700 leading-relaxed whitespace-pre-wrap text-center">
             {card.back_note}
           </p>
         ) : (
@@ -477,7 +477,7 @@ function renderBack(card: PolaroidCardType, isShaken: boolean, isFlipped: boolea
 
         {card.hidden_message && !isShaken && (
           <motion.div
-            className="mt-6 pt-4 border-t border-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm"
+            className="mt-6 pt-4 border-t border-sky-100 flex items-center justify-center gap-2 text-sky-400 text-sm"
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >

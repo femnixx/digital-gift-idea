@@ -202,7 +202,7 @@ export function ScratchCard({
             particleCount: 100,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#f43f5e', '#fb7185', '#fda4af', '#fce7f3', '#ffffff'],
+            colors: ['#0284c7', '#7dd3fc', '#bae6fd', '#f0f9ff', '#ffffff'],
             shapes: ['heart'] as any,
             scalar: 1.2,
           })
@@ -266,7 +266,7 @@ export function ScratchCard({
                 >
                   <div className="max-w-xs">
                     <motion.div
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-100 text-rose-600 text-sm font-medium mb-4"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-600 text-sm font-medium mb-4"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -275,7 +275,7 @@ export function ScratchCard({
                       <span>For You</span>
                     </motion.div>
                     <motion.p
-                      className="font-handwriting text-2xl md:text-3xl text-rose-600 leading-relaxed whitespace-pre-wrap"
+                      className="font-handwriting text-2xl md:text-3xl text-sky-600 leading-relaxed whitespace-pre-wrap"
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.15 }}
@@ -324,7 +324,7 @@ export function ScratchCard({
         >
           <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-rose-400 rounded-full"
+              className="h-full bg-sky-400 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(scratchProgress / scratchThreshold, 1) * 100}%` }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -345,7 +345,7 @@ export function ScratchCard({
             transition={{ duration: 2, repeat: Infinity }}
           >
             <svg
-              className="w-6 h-6 text-rose-500"
+              className="w-6 h-6 text-sky-500"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -365,7 +365,7 @@ export function ScratchCard({
         <motion.button
           type="button"
           onClick={onEdit}
-          className="absolute top-3 right-3 p-2 rounded-lg bg-white border border-stone-200 text-stone-600 hover:text-rose-600 hover:bg-stone-100 transition-colors z-10"
+          className="absolute top-3 right-3 p-2 rounded-lg bg-white border border-stone-200 text-stone-600 hover:text-sky-600 hover:bg-stone-100 transition-colors z-10"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.05 }}

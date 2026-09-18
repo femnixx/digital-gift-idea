@@ -179,7 +179,7 @@ export class DemoDataProvider {
         { id: this.generateId(), entry_id: bouquetEntry.id, flower_type: 'sunflower', color: '#FFA500', note: 'You are my sunshine', position_x: 70, position_y: 35, rotation: 3, scale: 1.0, sort_order: 1, created_at: now.toISOString() },
         { id: this.generateId(), entry_id: bouquetEntry.id, flower_type: 'sunflower', color: '#FF8C00', note: 'Growing toward you always', position_x: 50, position_y: 55, rotation: 0, scale: 1.2, sort_order: 2, created_at: now.toISOString() },
         { id: this.generateId(), entry_id: bouquetEntry.id, flower_type: 'lavender', color: '#E6E6FA', note: 'Calm in the chaos', position_x: 20, position_y: 60, rotation: -8, scale: 0.8, sort_order: 3, created_at: now.toISOString() },
-        { id: this.generateId(), entry_id: bouquetEntry.id, flower_type: 'rose', color: '#FF0000', note: 'Classic love, forever', position_x: 80, position_y: 50, rotation: 5, scale: 0.9, sort_order: 4, created_at: now.toISOString() }
+        { id: this.generateId(), entry_id: bouquetEntry.id, flower_type: 'rose', color: '#0284c7', note: 'Classic love, forever', position_x: 80, position_y: 50, rotation: 5, scale: 0.9, sort_order: 4, created_at: now.toISOString() }
       ]
     }
 
@@ -266,6 +266,19 @@ export class DemoDataProvider {
     storage.media = []
     storage.partner_interactions = []
 
+    storage.love_diaries = [
+      {
+        id: this.generateId(),
+        user_id: userId,
+        title: 'Our Love Story',
+        description: 'A collection of love letters and gifts',
+        entry_ids: (storage.entries || []).map((e: any) => e.id),
+        cover_image: null,
+        created_at: now.toISOString(),
+        updated_at: now.toISOString()
+      }
+    ]
+
     this.setStorage(storage)
   }
 
@@ -277,5 +290,10 @@ export class DemoDataProvider {
   static getDemoEntries() {
     const storage = this.getStorage()
     return storage.entries || []
+  }
+
+  static getDemoDiaries() {
+    const storage = this.getStorage()
+    return storage.love_diaries || []
   }
 }

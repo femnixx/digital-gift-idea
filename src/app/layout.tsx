@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Dancing_Script } from 'next/font/google'
 import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
 import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { NavProvider } from '@/hooks/useNav'
+import { ThemeScript } from '@/components/ThemeScript'
 import './globals.css'
 
 const inter = Inter({
@@ -78,13 +79,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable} bg-sky-50 dark:bg-slate-900`}>
       <head>
+        <ThemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans antialiased bg-cream-50 text-sky-900">
+      <body className="font-sans antialiased text-sky-900 dark:text-slate-200">
         <DemoInitializer />
         <NavProvider>
           {children}

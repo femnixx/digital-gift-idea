@@ -68,7 +68,7 @@ export function Coffee3DPreview({ drinkType, onBack }: { drinkType: DrinkType; o
         transition={{ delay: 0.3 }}
       >
         <div className="flex items-center justify-center gap-3 mb-2">
-          <Coffee className="w-6 h-6 text-rose-600" />
+          <Coffee className="w-6 h-6 text-sky-600" />
           <h3 className="font-serif text-xl text-stone-800">{DRINK_CONFIG[drinkType].name}</h3>
         </div>
         <p className="text-stone-500 text-sm mb-4">{DRINK_CONFIG[drinkType].description}</p>

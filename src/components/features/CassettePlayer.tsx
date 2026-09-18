@@ -235,13 +235,13 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
           {/* Top label area */}
           <div className="absolute top-4 left-4 right-4 h-20 bg-gray-700 rounded border border-gray-600 flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
-              <Music className="w-5 h-5 text-rose-400" aria-hidden="true" />
+              <Music className="w-5 h-5 text-sky-400" aria-hidden="true" />
               <span className="font-mono text-xs text-gray-300">LOVE NOTES</span>
             </div>
             <div className="flex items-center gap-2">
               <span className={`w-6 h-6 rounded border-2 font-mono text-xs flex items-center justify-center ${
                 currentNote.cassetteSide === 'A' 
-                  ? 'border-rose-400 text-rose-400 bg-rose-400/10' 
+                  ? 'border-sky-400 text-sky-400 bg-sky-400/10' 
                   : 'border-lavender-400 text-lavender-400 bg-lavender-400/10'
               }`}>
                 {currentNote.cassetteSide}
@@ -300,7 +300,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
           {isPlaying && [...Array(5)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-rose-400/60 text-xl pointer-events-none"
+              className="absolute text-sky-400/60 text-xl pointer-events-none"
               style={{
                 left: `${20 + Math.random() * 60}%`,
                 bottom: '20%',
@@ -327,16 +327,16 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <p className="text-rose-500 text-sm uppercase tracking-wider mb-1">
+        <p className="text-sky-500 text-sm uppercase tracking-wider mb-1">
           Now Playing • Side {currentNote.cassetteSide}
         </p>
-        <h3 className="font-serif text-xl md:text-2xl font-semibold text-rose-900 mb-1">
+        <h3 className="font-serif text-xl md:text-2xl font-semibold text-sky-900 mb-1">
           {currentNote.title || 'Untitled Voice Note'}
         </h3>
         {currentNote.transcript && (
           <button
             onClick={() => setShowTranscript(!showTranscript)}
-            className="text-rose-500 text-sm hover:text-rose-600 flex items-center justify-center gap-1 mt-2"
+            className="text-sky-500 text-sm hover:text-sky-600 flex items-center justify-center gap-1 mt-2"
           >
             <Music className="w-4 h-4" aria-hidden="true" />
             {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
@@ -346,12 +346,12 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
         <AnimatePresence>
           {showTranscript && currentNote.transcript && (
             <motion.div
-              className="mt-4 p-4 bg-cream-50 rounded-xl border border-rose-100 text-left max-w-md mx-auto"
+              className="mt-4 p-4 bg-cream-50 rounded-xl border border-sky-100 text-left max-w-md mx-auto"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <p className="font-handwriting text-rose-700 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="font-handwriting text-sky-700 text-sm leading-relaxed whitespace-pre-wrap">
                 {currentNote.transcript}
               </p>
             </motion.div>
@@ -361,22 +361,22 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="relative h-2 bg-rose-100 rounded-full cursor-pointer overflow-hidden" onClick={handleSeek}>
+        <div className="relative h-2 bg-sky-100 rounded-full cursor-pointer overflow-hidden" onClick={handleSeek}>
           <motion.div
-            className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"
+            className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
             transition={{ duration: 0.1, ease: 'linear' }}
           />
           <div className="absolute inset-0 flex items-center justify-end pr-2 pointer-events-none">
             <motion.div
-              className="w-3 h-3 bg-white rounded-full shadow-lg border-2 border-rose-400"
+              className="w-3 h-3 bg-white rounded-full shadow-lg border-2 border-sky-400"
               style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`, transform: 'translateX(50%)' }}
               animate={{ scale: isPlaying ? 1.2 : 1 }}
             />
           </div>
         </div>
-        <div className="flex justify-between text-xs text-rose-400 mt-1 font-mono">
+        <div className="flex justify-between text-xs text-sky-400 mt-1 font-mono">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
@@ -387,7 +387,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
         <button
           onClick={() => goToNote(Math.max(0, currentIndex - 1))}
           disabled={currentIndex === 0}
-          className="p-3 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-3 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           aria-label="Previous note"
         >
           <RotateCcw className="w-5 h-5" />
@@ -395,7 +395,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
 
         <motion.button
           onClick={togglePlay}
-          className="p-4 rounded-full bg-rose-500 text-white shadow-lg shadow-rose-500/30 hover:bg-rose-600 transition-all"
+          className="p-4 rounded-full bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-600 transition-all"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -410,7 +410,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
         <button
           onClick={() => goToNote(Math.min(notes.length - 1, currentIndex + 1))}
           disabled={currentIndex === notes.length - 1}
-          className="p-3 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-3 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           aria-label="Next note"
         >
           <RotateCcw className="w-5 h-5 rotate-180" />
@@ -421,7 +421,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
       <div className="flex items-center justify-center gap-3">
         <button
           onClick={handleMute}
-          className="p-2 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+          className="p-2 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors"
           aria-label={muted ? 'Unmute' : 'Mute'}
         >
           {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -433,7 +433,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
           step="0.1"
           value={muted ? 0 : volume}
           onChange={handleVolumeChange}
-          className="w-32 h-2 bg-rose-100 rounded-full appearance-none cursor-pointer accent-rose-500"
+          className="w-32 h-2 bg-sky-100 rounded-full appearance-none cursor-pointer accent-sky-500"
           aria-label="Volume"
         />
       </div>
@@ -441,12 +441,12 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
       {/* Playlist */}
       {notes.length > 1 && (
         <motion.div
-          className="mt-6 pt-6 border-t border-rose-100"
+          className="mt-6 pt-6 border-t border-sky-100"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <p className="text-rose-500 text-sm uppercase tracking-wider mb-3">Side {currentNote.cassetteSide} Tracks</p>
+          <p className="text-sky-500 text-sm uppercase tracking-wider mb-3">Side {currentNote.cassetteSide} Tracks</p>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {notes
               .filter(n => n.cassetteSide === currentNote.cassetteSide)
@@ -456,8 +456,8 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
                   onClick={() => goToNote(notes.indexOf(note))}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                     notes.indexOf(note) === currentIndex
-                      ? 'bg-rose-500 text-white shadow-lg'
-                      : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-100'
+                      ? 'bg-sky-500 text-white shadow-lg'
+                      : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-100'
                   }`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -466,7 +466,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     notes.indexOf(note) === currentIndex
                       ? 'bg-white/20 text-white'
-                      : 'bg-rose-100 text-rose-500'
+                      : 'bg-sky-100 text-sky-500'
                   }`}>
                     {notes.indexOf(note) === currentIndex && isPlaying ? (
                       <motion.span
@@ -489,7 +489,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
                     </p>
                   </div>
                   {notes.indexOf(note) === currentIndex && (
-                    <Heart className="w-5 h-5 text-rose-400 animate-heartbeat" aria-hidden="true" />
+                    <Heart className="w-5 h-5 text-sky-400 animate-heartbeat" aria-hidden="true" />
                   )}
                 </motion.button>
               ))}
@@ -565,9 +565,9 @@ export function MiniCassettePlayer({ audioUrl, title, duration: durationProp }: 
       </motion.div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-rose-900 truncate">{title || 'Voice Note'}</p>
+        <p className="font-medium text-sky-900 truncate">{title || 'Voice Note'}</p>
         <div className="flex items-center gap-2 mt-1">
-          <div className="flex-1 h-1.5 bg-rose-100 rounded-full relative" onClick={(e) => {
+          <div className="flex-1 h-1.5 bg-sky-100 rounded-full relative" onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect()
             const percent = (e.clientX - rect.left) / rect.width
             if (audioRef.current) {
@@ -575,13 +575,13 @@ export function MiniCassettePlayer({ audioUrl, title, duration: durationProp }: 
             }
           }}>
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"
+              className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
               transition={{ duration: 0.1 }}
             />
           </div>
-          <span className="text-xs text-rose-500 font-mono w-14 text-right">
+          <span className="text-xs text-sky-500 font-mono w-14 text-right">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>
@@ -589,7 +589,7 @@ export function MiniCassettePlayer({ audioUrl, title, duration: durationProp }: 
 
       <motion.button
         onClick={togglePlay}
-        className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg hover:bg-rose-600 transition-colors"
+        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:bg-sky-600 transition-colors"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         aria-label={isPlaying ? 'Pause' : 'Play'}

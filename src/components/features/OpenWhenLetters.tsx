@@ -145,7 +145,7 @@ export function OpenWhenLetters({ letters, onUnlock, onSave, isEditing = false, 
               sort_order: letters.length,
               created_at: new Date().toISOString(),
             })}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-rose-500 text-white font-medium shadow-lg hover:bg-rose-600 active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-sky-500 text-white font-medium shadow-lg hover:bg-sky-600 active:scale-95 transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -214,7 +214,7 @@ export function OpenWhenLetters({ letters, onUnlock, onSave, isEditing = false, 
                   <motion.button
                     type="button"
                     onClick={(e) => handleEdit(letter, e)}
-                    className="p-2 rounded-full bg-white/90 text-rose-500 hover:bg-rose-100 shadow-sm active:scale-90 transition-all"
+                    className="p-2 rounded-full bg-white/90 text-sky-500 hover:bg-sky-100 shadow-sm active:scale-90 transition-all"
                     title="Edit"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -454,12 +454,12 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, isJumping, didJump, onCl
                 ))}
 
                 <div className="p-4">
-                  <p className="font-handwriting text-lg text-rose-700 leading-relaxed line-clamp-4">
+                  <p className="font-handwriting text-lg text-sky-700 leading-relaxed line-clamp-4">
                     {letter.content.message}
                   </p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-rose-50 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-sky-50 to-transparent" />
               </div>
             </motion.div>
           </motion.div>
@@ -487,7 +487,7 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, isJumping, didJump, onCl
           {[...Array(5)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-rose-400/70 text-xl"
+              className="absolute text-sky-400/70 text-xl"
               style={{
                 left: `${10 + i * 20}%`,
                 bottom: '15%',
@@ -533,15 +533,15 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
         <div className="absolute inset-0 bg-[url('/images/paper-texture.svg')] opacity-5" aria-hidden="true" />
 
         {/* Header */}
-        <div className="relative p-6 pb-4 border-b border-rose-100 flex items-start justify-between">
+        <div className="relative p-6 pb-4 border-b border-sky-100 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="text-3xl">{letter.seal_emoji}</span>
             <div>
-              <p className="font-handwriting text-2xl text-rose-700 mb-1">
+              <p className="font-handwriting text-2xl text-sky-700 mb-1">
                 {letter.content.title || letter.trigger_label}
               </p>
               {letter.unlocked_at && (
-                <p className="text-rose-400 text-xs">
+                <p className="text-sky-400 text-xs">
                   Opened {new Date(letter.unlocked_at).toLocaleDateString()}
                 </p>
               )}
@@ -549,7 +549,7 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all touch-manipulation"
+            className="w-8 h-8 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center hover:bg-sky-100 active:scale-90 transition-all touch-manipulation"
             aria-label="Close letter"
           >
             <EyeOff className="w-4 h-4" />
@@ -570,7 +570,7 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
           )}
 
           <motion.div
-            className="font-handwriting text-lg text-rose-700 leading-relaxed whitespace-pre-wrap"
+            className="font-handwriting text-lg text-sky-700 leading-relaxed whitespace-pre-wrap"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -583,7 +583,7 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
 
           {letter.content.audio_url && (
             <motion.div
-              className="mt-6 pt-4 border-t border-rose-100"
+              className="mt-6 pt-4 border-t border-sky-100"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -594,8 +594,8 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
         </div>
 
         {/* Footer decoration */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-rose-50 to-transparent" aria-hidden="true" />
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-rose-300" aria-hidden="true">
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-sky-50 to-transparent" aria-hidden="true" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-sky-300" aria-hidden="true">
           <Heart className="w-4 h-4 animate-heartbeat" />
           <Sparkles className="w-4 h-4" />
           <Heart className="w-4 h-4 animate-heartbeat" />
@@ -627,7 +627,7 @@ function UnlockAnimation({ letter, onComplete }: UnlockAnimationProps) {
               animate={{ rotateY: [0, 180, 360], scale: [1, 1.2, 1] }}
               transition={{ duration: 1.2, delay: 0.3 }}
             >
-              <Calendar className="w-24 h-24 text-rose-500" />
+              <Calendar className="w-24 h-24 text-sky-500" />
             </motion.div>
           </motion.div>
         )
@@ -644,17 +644,17 @@ function UnlockAnimation({ letter, onComplete }: UnlockAnimationProps) {
               animate={{ y: [0, 10, -5, 0], scale: [1, 1.1, 0.95, 1] }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              <MapPin className="w-24 h-24 text-rose-500" />
+              <MapPin className="w-24 h-24 text-sky-500" />
             </motion.div>
             {/* Ripple effect */}
             <motion.div
-              className="absolute w-24 h-24 rounded-full border-4 border-rose-300"
+              className="absolute w-24 h-24 rounded-full border-4 border-sky-300"
               initial={{ scale: 0, opacity: 0.8 }}
               animate={{ scale: [0, 2, 3], opacity: [0.8, 0.4, 0] }}
               transition={{ duration: 1.5, delay: 0.5 }}
             />
             <motion.div
-              className="absolute w-24 h-24 rounded-full border-4 border-rose-200"
+              className="absolute w-24 h-24 rounded-full border-4 border-sky-200"
               initial={{ scale: 0, opacity: 0.6 }}
               animate={{ scale: [0, 2, 3], opacity: [0.6, 0.3, 0] }}
               transition={{ duration: 1.5, delay: 0.7 }}
@@ -696,7 +696,7 @@ function UnlockAnimation({ letter, onComplete }: UnlockAnimationProps) {
               animate={{ rotate: [0, -5, 5, -3, 3, 0] }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <Mail className="w-24 h-24 text-rose-500" />
+              <Mail className="w-24 h-24 text-sky-500" />
             </motion.div>
           </motion.div>
         )
@@ -775,7 +775,7 @@ function UnlockAnimation({ letter, onComplete }: UnlockAnimationProps) {
       </div>
 
       <motion.p
-        className="text-center mt-6 font-handwriting text-xl text-rose-600"
+        className="text-center mt-6 font-handwriting text-xl text-sky-600"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.4 }}
@@ -807,11 +807,11 @@ function MiniCassettePlayer({ audioUrl }: { audioUrl: string }) {
   }, [audioUrl])
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-cream-50 rounded-xl border border-rose-100">
+    <div className="flex items-center gap-3 p-3 bg-cream-50 rounded-xl border border-sky-100">
       <audio ref={audioRef} preload="metadata" />
       <motion.button
         onClick={togglePlay}
-        className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center active:scale-90 transition-transform touch-manipulation"
+        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center active:scale-90 transition-transform touch-manipulation"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -819,10 +819,10 @@ function MiniCassettePlayer({ audioUrl }: { audioUrl: string }) {
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
       </motion.button>
       <div className="flex-1">
-        <p className="text-rose-500 text-xs uppercase tracking-wider">Voice Message</p>
-        <div className="h-1.5 bg-rose-100 rounded-full overflow-hidden">
+        <p className="text-sky-500 text-xs uppercase tracking-wider">Voice Message</p>
+        <div className="h-1.5 bg-sky-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"
+            className="h-full bg-gradient-to-r from-sky-400 to-sky-600 rounded-full"
             animate={{ width: isPlaying ? '100%' : '0%' }}
             transition={{ duration: isPlaying ? 30000 : 0.3, ease: 'linear' }}
           />
@@ -869,13 +869,13 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-script text-2xl text-rose-600">
+        <h2 className="font-script text-2xl text-sky-600">
           {letter.id ? 'Edit Letter' : 'New Letter'}
         </h2>
         <button
           type="button"
           onClick={onCancel}
-          className="p-2 rounded-full hover:bg-rose-50 text-rose-400 active:scale-90 transition-all touch-manipulation"
+          className="p-2 rounded-full hover:bg-sky-50 text-sky-400 active:scale-90 transition-all touch-manipulation"
         >
           <EyeOff className="w-5 h-5" />
         </button>
@@ -912,8 +912,8 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
                 onClick={() => setForm(prev => ({ ...prev, trigger_type: type as any }))}
                 className={`p-3 rounded-xl border-2 flex items-center gap-2 transition-all active:scale-95 touch-manipulation ${
                   form.trigger_type === type
-                    ? 'border-rose-500 bg-rose-50 text-rose-600'
-                    : 'border-slate-200 hover:border-rose-300'
+                    ? 'border-sky-500 bg-sky-50 text-sky-600'
+                    : 'border-slate-200 hover:border-sky-300'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -932,7 +932,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
           value={form.trigger_label}
           onChange={(e) => setForm(prev => ({ ...prev, trigger_label: e.target.value }))}
           placeholder="e.g., Open when you miss me"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
           required
         />
       </div>
@@ -948,7 +948,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
             value={form.trigger_value}
             onChange={(e) => setForm(prev => ({ ...prev, trigger_value: e.target.value }))}
             placeholder={form.trigger_type === 'location' ? 'e.g., Paris, France' : 'e.g., Feeling sad'}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
           />
         </div>
       )}
@@ -963,7 +963,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
               type="button"
               onClick={() => setForm(prev => ({ ...prev, envelope_color: color.color }))}
               className={`w-10 h-10 rounded-full border-2 transition-all active:scale-90 touch-manipulation ${
-                form.envelope_color === color.color ? 'border-rose-500 ring-2 ring-rose-200' : 'border-transparent'
+                form.envelope_color === color.color ? 'border-sky-500 ring-2 ring-sky-200' : 'border-transparent'
               }`}
               style={{ backgroundColor: color.color }}
               title={color.name}
@@ -982,7 +982,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
               type="button"
               onClick={() => setForm(prev => ({ ...prev, seal_emoji: emoji }))}
               className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
-                form.seal_emoji === emoji ? 'bg-rose-100 ring-2 ring-rose-500' : 'bg-slate-50 hover:bg-slate-100'
+                form.seal_emoji === emoji ? 'bg-sky-100 ring-2 ring-sky-500' : 'bg-slate-50 hover:bg-slate-100'
               }`}
             >
               {emoji}
@@ -999,7 +999,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
           value={form.content.title}
           onChange={(e) => setForm(prev => ({ ...prev, content: { ...prev.content, title: e.target.value } }))}
           placeholder="A title for your letter"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
         />
       </div>
 
@@ -1011,7 +1011,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
           onChange={(e) => setForm(prev => ({ ...prev, content: { ...prev.content, message: e.target.value } }))}
           placeholder="Write your heartfelt message..."
           rows={5}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all resize-none font-handwriting text-lg"
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all resize-none font-handwriting text-lg"
           required
         />
       </div>
@@ -1027,7 +1027,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
         </button>
         <motion.button
           type="submit"
-          className="flex-1 px-6 py-3 rounded-xl bg-rose-500 text-white font-medium shadow-lg hover:bg-rose-600 active:scale-95 transition-all touch-manipulation"
+          className="flex-1 px-6 py-3 rounded-xl bg-sky-500 text-white font-medium shadow-lg hover:bg-sky-600 active:scale-95 transition-all touch-manipulation"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.95 }}
         >

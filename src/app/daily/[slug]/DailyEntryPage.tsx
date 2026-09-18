@@ -94,7 +94,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
       id: `flower-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       entry_id: entry.id,
       flower_type: 'rose' as const,
-      color: '#FF0000',
+      color: '#0284c7',
       note: null,
       position_x: 50,
       position_y: 50,
@@ -228,7 +228,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                         setEditingScratchCard(card)
                         setShowScratchCustomizer(true)
                       }}
-                      className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                      className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors"
                       title="Edit"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -271,7 +271,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                   onClick={() => setEditingOpenWhenLetters(prev => !prev)}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
                     editingOpenWhenLetters
-                      ? 'bg-rose-100 text-rose-600 border border-rose-200'
+                      ? 'bg-sky-100 text-sky-600 border border-sky-200'
                       : 'bg-stone-100 border border-stone-200 text-stone-600 hover:bg-stone-200'
                   }`}
                 >
@@ -364,11 +364,11 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           return (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-script text-xl text-rose-700">Edit Letter</h3>
+                <h3 className="font-script text-xl text-sky-700">Edit Letter</h3>
                 <motion.button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-rose-600 transition-colors"
+                  className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-sky-600 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -388,7 +388,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         }
         return (
           <motion.div
-            className="prose prose-rose max-w-none"
+            className="prose prose-sky max-w-none"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -438,6 +438,19 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
     }
   }
 
+  const [shareCopied, setShareCopied] = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch {
+      setShareCopied(false)
+    }
+  }
+
   const getEditButton = () => {
     const typeLabels: Record<string, string> = {
       letter: 'Edit Letter',
@@ -458,7 +471,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="absolute text-rose-200/10 dark:text-rose-900/20 text-xl pointer-events-none"
+              className="absolute text-sky-200/10 dark:text-sky-900/20 text-xl pointer-events-none"
               style={{
                 left: `${10 + i * 15}%`,
                 top: `${20 + (i % 3) * 30}%`,
@@ -488,8 +501,16 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 <Calendar className="w-4 h-4 inline mr-1" />
                 {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
               </span>
-              <button className="p-2 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors" aria-label="Share">
-                <Share2 className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+              <button
+                onClick={handleShare}
+                className="p-2 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                aria-label="Share"
+              >
+                {shareCopied ? (
+                  <span className="text-sky-600 text-xs font-medium">Copied!</span>
+                ) : (
+                  <Share2 className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+                )}
               </button>
             </div>
           </motion.header>
@@ -527,13 +548,13 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-rose-700 dark:text-rose-300 mb-4">
+                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-sky-700 dark:text-sky-300 mb-4">
                   {entry.title}
                 </h1>
 
                 <div className="flex items-center justify-center gap-4 text-stone-400 dark:text-stone-500">
                   <span className="w-16 h-px bg-gradient-to-r from-transparent via-stone-300 dark:via-stone-600 to-transparent" />
-                  <Heart className="w-5 h-5 text-rose-600 dark:text-rose-300" />
+                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
                   <span className="w-16 h-px bg-gradient-to-r from-transparent via-stone-300 dark:via-stone-600 to-transparent" />
                 </div>
 
@@ -544,14 +565,18 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => entry.type === 'bouquet' ? setEditingBouquet(true) : setIsEditing(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 text-sm hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                      {getEditButton()}
-                    </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditing(true); }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 text-sm hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+                >
+                  {editing ? (
+                    <span className="block w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Edit3 className="w-4 h-4" />
+                  )}
+                  {editing ? 'Editing...' : getEditButton()}
+                </button>
                   </motion.div>
                 )}
               </motion.header>
@@ -588,9 +613,9 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 transition={{ delay: 0.5 }}
               >
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <Heart className="w-5 h-5 text-rose-600 dark:text-rose-300" />
+                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
                   <span className="font-handwriting text-xl text-stone-700 dark:text-stone-200">With love, always</span>
-                  <Heart className="w-5 h-5 text-rose-600 dark:text-rose-300" />
+                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
                 </div>
                 <p className="text-stone-500 dark:text-stone-400 text-sm">
                   {format(new Date(entry.publish_at), 'MMMM d, yyyy')}

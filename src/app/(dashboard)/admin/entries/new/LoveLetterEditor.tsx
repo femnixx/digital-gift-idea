@@ -94,7 +94,7 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
 
   if (saved) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-cream-50 to-lavender-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-cream-50 to-lavender-50 flex items-center justify-center p-6">
         <motion.div
           className="text-center card p-8 md:p-12"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -115,12 +115,12 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-cream-50 to-lavender-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-cream-50 to-lavender-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <motion.button
           type="button"
           onClick={handleCancel}
-          className="inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-sky-500 hover:text-sky-600 mb-6 transition-colors"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
         >
@@ -139,7 +139,7 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
               <h1 className="font-script text-3xl md:text-4xl gradient-text">
                 {isEditing ? 'Edit Love Letter' : 'Write a Love Letter'}
               </h1>
-              <p className="text-rose-500 text-sm mt-1">
+              <p className="text-sky-500 text-sm mt-1">
                 {isEditing ? 'Make your letter even more special' : 'Pour your heart out with style'}
               </p>
             </div>
@@ -185,17 +185,17 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100">
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-sky-50 border border-sky-100">
               <input
                 type="checkbox"
                 id="published"
                 checked={isPublished}
                 onChange={(e) => setIsPublished(e.target.checked)}
-                className="w-5 h-5 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
+                className="w-5 h-5 rounded border-sky-300 text-sky-600 focus:ring-sky-500"
               />
-              <label htmlFor="published" className="text-rose-700 cursor-pointer">
+              <label htmlFor="published" className="text-sky-700 cursor-pointer">
                 <span className="font-medium">Publish immediately</span>
-                <p className="text-sm text-rose-500">Your partner will be able to see this right away</p>
+                <p className="text-sm text-sky-500">Your partner will be able to see this right away</p>
               </label>
             </div>
           </motion.div>
@@ -225,7 +225,7 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
           )}
 
           {isSubmitting && (
-            <div className="flex items-center justify-center gap-2 text-rose-500 py-4">
+            <div className="flex items-center justify-center gap-2 text-sky-500 py-4">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span className="text-sm">Saving your letter...</span>
             </div>

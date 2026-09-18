@@ -357,6 +357,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- =============================================
+-- LOVE DIARIES TABLE
+-- =============================================
+CREATE TABLE IF NOT EXISTS love_diaries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    entry_ids UUID[] DEFAULT '{}',
+    cover_image TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_love_diaries_user_id ON love_diaries(user_id);
+CREATE INDEX IF NOT EXISTS idx_love_diaries_entry_ids ON love_diaries USING gin(entry_ids);
+
+CREATE OR REPLACE FUNCTION update_love_diaries_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER IF NOT EXISTS trigger_love_diaries_updated_at
+    BEFORE UPDATE ON love_diaries
+    FOR EACH ROW
+    EXECUTE FUNCTION update_love_diaries_updated_at();
+
+ALTER TABLE love_diaries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY IF NOT EXISTS "Users can view own diaries"
+    ON love_diaries FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY IF NOT EXISTS "Users can create own diaries"
+    ON love_diaries FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY IF NOT EXISTS "Users can delete own diaries"
+    ON love_diaries FOR DELETE
+    USING (auth.uid() = user_id);
+
 CREATE OR REPLACE FUNCTION calculate_distance(lat1 DECIMAL, lon1 DECIMAL, lat2 DECIMAL, lon2 DECIMAL)
 RETURNS DECIMAL AS $$
 DECLARE
@@ -367,7 +411,51 @@ DECLARE
     c DECIMAL;
 BEGIN
     a := sin(dLat/2) * sin(dLat/2) + cos(radians(lat1)) * cos(radians(lat2)) * sin(dLon/2) * sin(dLon/2);
-    c := 2 * atan2(sqrt(a), sqrt(1-a));
+    c := 2 * atan2(sqrt(a), 1-a);
     RETURN R * c;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =============================================
+-- LOVE DIARIES TABLE
+-- =============================================
+CREATE TABLE IF NOT EXISTS love_diaries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    entry_ids UUID[] DEFAULT '{}',
+    cover_image TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_love_diaries_user_id ON love_diaries(user_id);
+CREATE INDEX IF NOT EXISTS idx_love_diaries_entry_ids ON love_diaries USING gin(entry_ids);
+
+CREATE OR REPLACE FUNCTION update_love_diaries_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER IF NOT EXISTS trigger_love_diaries_updated_at
+    BEFORE UPDATE ON love_diaries
+    FOR EACH ROW
+    EXECUTE FUNCTION update_love_diaries_updated_at();
+
+ALTER TABLE love_diaries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY IF NOT EXISTS "Users can view own diaries"
+    ON love_diaries FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY IF NOT EXISTS "Users can create own diaries"
+    ON love_diaries FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY IF NOT EXISTS "Users can delete own diaries"
+    ON love_diaries FOR DELETE
+    USING (auth.uid() = user_id);

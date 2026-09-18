@@ -113,11 +113,11 @@ export function TimezoneClock({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-serif text-xl font-semibold text-rose-900 flex items-center gap-2">
-          <Globe className="w-5 h-5 text-rose-500" aria-hidden="true" />
+        <h2 className="font-serif text-xl font-semibold text-sky-900 flex items-center gap-2">
+          <Globe className="w-5 h-5 text-sky-500" aria-hidden="true" />
           Across the Miles
         </h2>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-sm font-medium">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-sm font-medium">
           <Heart className="w-4 h-4 animate-heartbeat" aria-hidden="true" />
           <span>{hoursDiff}h apart</span>
         </div>
@@ -131,7 +131,7 @@ export function TimezoneClock({
         ].map(({ partner, time, isDay, label }) => (
           <motion.div
             key={partner.name}
-            className="relative p-4 rounded-2xl bg-gradient-to-br from-cream-50 to-white border border-rose-100"
+            className="relative p-4 rounded-2xl bg-gradient-to-br from-cream-50 to-white border border-sky-100"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -154,17 +154,17 @@ export function TimezoneClock({
 
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-2">
-                <MapPin className="w-4 h-4 text-rose-400" aria-hidden="true" />
-                <span className="font-medium text-rose-700 text-sm">{partner.location}</span>
+                <MapPin className="w-4 h-4 text-sky-400" aria-hidden="true" />
+                <span className="font-medium text-sky-700 text-sm">{partner.location}</span>
               </div>
-              <p className="text-rose-500 text-xs uppercase tracking-wider mb-1">{label}</p>
-              <p className="font-sans text-3xl md:text-4xl font-bold text-rose-900 font-mono">
+              <p className="text-sky-500 text-xs uppercase tracking-wider mb-1">{label}</p>
+              <p className="font-sans text-3xl md:text-4xl font-bold text-sky-900 font-mono">
                 {formatTime(time, partner.timezone)}
               </p>
-              <p className="font-serif text-sm text-rose-500 mt-1">
+              <p className="font-serif text-sm text-sky-500 mt-1">
                 {formatDate(time, partner.timezone)}
               </p>
-              <p className="text-rose-400 text-xs mt-2">
+              <p className="text-sky-400 text-xs mt-2">
                 {partner.timezone}
               </p>
             </div>
@@ -175,7 +175,7 @@ export function TimezoneClock({
       {/* Distance Counter */}
       {(distance > 0 || distanceKm) && (
         <motion.div
-          className="relative p-6 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 text-white overflow-hidden"
+          className="relative p-6 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 text-white overflow-hidden"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -193,7 +193,7 @@ export function TimezoneClock({
                 <MapPin className="w-8 h-8" aria-hidden="true" />
               </motion.div>
               <div>
-                <p className="text-rose-100 text-sm uppercase tracking-wider">Distance Between You</p>
+                <p className="text-sky-100 text-sm uppercase tracking-wider">Distance Between You</p>
                 <motion.p
                   className="font-serif text-3xl md:text-4xl font-bold"
                   initial={{ opacity: 0, y: 10 }}
@@ -201,14 +201,14 @@ export function TimezoneClock({
                 >
                   {distance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 })} km
                 </motion.p>
-                <p className="text-rose-100/80 text-sm mt-1">
+                <p className="text-sky-100/80 text-sm mt-1">
                   ≈ {(distance / 1.609).toLocaleString(undefined, { maximumFractionDigits: 0 })} miles
                 </p>
               </div>
             </div>
 
             <div className="text-center md:text-right">
-              <p className="text-rose-100 text-sm uppercase tracking-wider">Time Difference</p>
+              <p className="text-sky-100 text-sm uppercase tracking-wider">Time Difference</p>
               <motion.p
                 className="font-serif text-2xl md:text-3xl font-bold"
                 initial={{ opacity: 0, y: 10 }}
@@ -216,7 +216,7 @@ export function TimezoneClock({
               >
                 {hoursDiff} hour{hoursDiff !== 1 ? 's' : ''}
               </motion.p>
-              <p className="text-rose-100/80 text-sm mt-1">
+              <p className="text-sky-100/80 text-sm mt-1">
                 {hoursDiff === 0 ? 'Same timezone!' : 'apart'}
               </p>
             </div>
@@ -224,7 +224,7 @@ export function TimezoneClock({
 
           {/* Cute message */}
           <motion.p
-            className="absolute bottom-4 right-4 text-rose-100/60 text-sm font-handwriting text-right max-w-xs"
+            className="absolute bottom-4 right-4 text-sky-100/60 text-sm font-handwriting text-right max-w-xs"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
@@ -237,7 +237,7 @@ export function TimezoneClock({
       {/* Anniversary Countdown */}
       {anniversaryDate && (
         <motion.div
-          className="p-4 rounded-2xl bg-gradient-to-r from-lavender-50 to-rose-50 border border-lavender-100"
+          className="p-4 rounded-2xl bg-gradient-to-r from-lavender-50 to-sky-50 border border-lavender-100"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -249,8 +249,8 @@ export function TimezoneClock({
                 <Heart className="w-6 h-6 text-lavender-600" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-rose-500 text-sm uppercase tracking-wider">Anniversary</p>
-                <p className="font-serif text-lg font-semibold text-rose-900">
+                <p className="text-sky-500 text-sm uppercase tracking-wider">Anniversary</p>
+                <p className="font-serif text-lg font-semibold text-sky-900">
                   {format(new Date(anniversaryDate), 'MMMM d, yyyy')}
                 </p>
               </div>
@@ -306,7 +306,7 @@ function AnniversaryCountdown({ targetDate }: { targetDate: string }) {
   if (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0) {
     return (
       <motion.div
-        className="flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500 text-white font-medium"
+        className="flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500 text-white font-medium"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200 }}
@@ -336,10 +336,10 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <span className="font-mono font-bold text-rose-700 min-w-[1.5ch] text-right">
+      <span className="font-mono font-bold text-sky-700 min-w-[1.5ch] text-right">
         {value.toString().padStart(2, '0')}
       </span>
-      <span className="text-rose-500 text-xs">{label}</span>
+      <span className="text-sky-500 text-xs">{label}</span>
     </motion.div>
   )
 }

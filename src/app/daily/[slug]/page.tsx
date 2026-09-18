@@ -1,32 +1,38 @@
-// 'use client' removed - server component for generateMetadata
-
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { DailyEntryPage } from './DailyEntryPage'
 import { DailyEntryPageClient } from './DailyEntryPageClient'
-import { isSupabaseConfigured } from '@/lib/supabase/client'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
 async function getDemoEntry(slug: string) {
-  return null
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('digital-love-letters-demo')
+    if (!raw) return null
+    const data = JSON.parse(raw)
+    return (data.entries || []).find((e: any) => e.slug === slug) || null
+  } catch {
+    return null
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  
+
   if (!isSupabaseConfigured()) {
     return {
       title: `Digital Love Letter: ${slug}`,
       description: 'A romantic digital space for long-distance love',
     }
   }
-  
+
   const supabase = createClient()
-  
+
   const { data: entry } = await supabase
     .from('entries')
     .select('title, content')
@@ -53,11 +59,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DailyEntryRoute({ params }: PageProps) {
   const { slug } = await params
-  
+
   if (!isSupabaseConfigured()) {
     return <DailyEntryPageClient slug={slug} />
   }
-  
+
   const supabase = createClient()
 
   const { data: entry } = await supabase

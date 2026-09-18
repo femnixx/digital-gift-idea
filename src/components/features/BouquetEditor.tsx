@@ -7,7 +7,7 @@ import { DigitalBouquet } from '@/components/features/DigitalBouquet'
 import type { BouquetFlower, ArrangementType, FlowerType } from '@/types'
 import { FLOWER_CONFIG } from '@/types'
 
-const COLORS = ['#FF69B4', '#FF0000', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000', '#FFD700', '#FFA500', '#E6E6FA', '#D8BFD8', '#9370DB', '#BA55D3']
+const COLORS = ['#FF69B4', '#0284c7', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000', '#FFD700', '#FFA500', '#E6E6FA', '#D8BFD8', '#9370DB', '#BA55D3']
 
 export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; onSave?: (flowers: BouquetFlower[]) => void; onCancel?: () => void }) {
   const [flowers, setFlowers] = useState<BouquetFlower[]>([])
@@ -63,7 +63,7 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
     <div className='min-h-screen bg-cream-50'>
       <div className='max-w-4xl mx-auto px-6 py-12'>
         {onCancel && (
-          <button onClick={onCancel} className='inline-flex items-center gap-2 text-rose-500 hover:text-rose-600 mb-8'>
+          <button onClick={onCancel} className='inline-flex items-center gap-2 text-sky-500 hover:text-sky-600 mb-8'>
             <ArrowLeft className='w-4 h-4' /> Back to types
           </button>
         )}
@@ -73,7 +73,7 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
             <span className='text-3xl'>💐</span>
             <div>
               <h1 className='font-script text-3xl gradient-text'>Digital Bouquet</h1>
-              <p className='text-rose-500 text-sm'>Create a beautiful flower arrangement</p>
+              <p className='text-sky-500 text-sm'>Create a beautiful flower arrangement</p>
             </div>
           </div>
         </div>
@@ -108,12 +108,12 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
                       onClick={() => setSelectedType(key as FlowerType)}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         selectedType === key
-                          ? 'border-rose-500 bg-rose-50'
-                          : 'border-rose-100 hover:border-rose-300'
+                          ? 'border-sky-500 bg-sky-50'
+                          : 'border-sky-100 hover:border-sky-300'
                       }`}
                     >
                       <div className='text-2xl mb-1'>{config.emoji}</div>
-                      <div className='text-xs text-rose-600'>{config.name}</div>
+                      <div className='text-xs text-sky-600'>{config.name}</div>
                     </button>
                   ))}
                 </div>
@@ -127,7 +127,7 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
                       key={color}
                       onClick={() => setSelectedColor(color)}
                       className={`w-10 h-10 rounded-full border-2 transition-all ${
-                        selectedColor === color ? 'border-rose-500 scale-110' : 'border-rose-100'
+                        selectedColor === color ? 'border-sky-500 scale-110' : 'border-sky-100'
                       }`}
                       style={{ backgroundColor: color }}
                       aria-label={`Select color ${color}`}

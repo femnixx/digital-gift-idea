@@ -20,6 +20,7 @@ import {
 import { format, parseISO, subDays, startOfDay } from 'date-fns'
 import type { DashboardEntry } from '@/hooks/useDashboardData'
 import type { EntryType } from '@/types'
+import { chartColors } from '@/lib/theme/colors'
 
 export interface Stat {
   label: string
@@ -29,17 +30,17 @@ export interface Stat {
 }
 
 const TYPE_COLORS: Record<EntryType, string> = {
-  letter: '#f43f5e',
-  bouquet: '#f97316',
-  polaroid: '#3b82f6',
-  scratch_card: '#a855f7',
+  letter: '#0284c7',
+  bouquet: '#7dd3fc',
+  polaroid: '#38bdf8',
+  scratch_card: '#7c3aed',
   open_when: '#ec4899',
   voice_note: '#6366f1',
-  coffee_date: '#ea580c',
+  coffee_date: '#f97316',
 }
 
 const statColors: Record<string, { bg: string; text: string }> = {
-  rose: { bg: 'bg-rose-100', text: 'text-rose-600' },
+  sky: { bg: 'bg-sky-100', text: 'text-sky-600' },
   green: { bg: 'bg-green-100', text: 'text-green-600' },
   amber: { bg: 'bg-amber-100', text: 'text-amber-600' },
   blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
@@ -61,13 +62,14 @@ export function typeLabel(type: EntryType): string {
 
 export function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const Icon = stat.icon
-  const colors = statColors[stat.color] ?? statColors.rose
+  const colors = statColors[stat.color] ?? statColors.sky
   return (
     <motion.div
-      className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4"
+      className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4 cursor-pointer hover:shadow-lg transition-shadow"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      whileHover={{ scale: 1.02 }}
     >
       <div className="flex items-center justify-between">
         <div className="min-w-0">
@@ -139,9 +141,9 @@ export function EntriesOverTimeChart({ entries, days = 14 }: ProgressChartProps)
           <Line
             type="monotone"
             dataKey="count"
-            stroke="#f43f5e"
+            stroke={chartColors.entriesCreated}
             strokeWidth={2.5}
-            dot={{ r: 4, strokeWidth: 1, fill: '#fff', stroke: '#f43f5e' }}
+            dot={{ r: 4, strokeWidth: 1, fill: '#fff', stroke: chartColors.entriesCreated }}
             activeDot={{ r: 6, strokeWidth: 1 }}
           />
         </LineChart>
@@ -193,7 +195,7 @@ export function ViewsByEntryChart({ entries }: ProgressChartProps) {
             itemStyle={{ color: '#0f172a' }}
             cursor={{ fill: '#f1f5f9' }}
           />
-          <Bar dataKey="views" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="views" fill={chartColors.viewsByEntry} radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -249,8 +251,8 @@ export function PublishedStatusChart({ entries }: ProgressChartProps) {
   const drafts = entries.length - published
 
   const data = [
-    { name: 'Published', value: published, color: '#16a34a' },
-    { name: 'Drafts', value: drafts, color: '#f59e0b' },
+    { name: 'Published', value: published, color: chartColors.published },
+    { name: 'Drafts', value: drafts, color: chartColors.drafts },
   ].filter((d) => d.value > 0)
 
   if (entries.length === 0 || data.length === 0) {

@@ -42,13 +42,13 @@ export function DailyEntryPageClient({ slug }: { slug: string }) {
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-6 text-4xl">📭</div>
-          <h1 className="font-script text-3xl text-rose-600 mb-2">Letter Not Found</h1>
+          <h1 className="font-script text-3xl text-sky-600 mb-2">Letter Not Found</h1>
           <p className="text-stone-500 dark:text-stone-400 mb-6">
             This letter hasn't been written yet...
           </p>
           <a
             href="/"
-            className="inline-flex items-center justify-center px-6 py-3 bg-rose-600 text-white rounded-xl font-medium hover:bg-rose-700 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-3 bg-sky-600 text-white rounded-xl font-medium hover:bg-sky-700 transition-colors"
           >
             Back Home
           </a>
