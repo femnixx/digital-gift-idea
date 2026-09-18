@@ -242,55 +242,53 @@ export function ScratchCard({
         {showContent && (
           <motion.div
             className="absolute inset-0 flex items-center justify-center p-6"
-            initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotate: 10 }}
-            transition={{ type: 'spring', stiffness: 150, damping: 15, delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: 'power2.out' }}
           >
             <div className="relative w-full h-full max-w-md">
               {revealContent.type === 'image' ? (
                 <motion.img
                   src={revealContent.content}
                   alt="Revealed surprise"
-                  className="w-full h-full object-cover rounded-xl shadow-xl"
-                  initial={{ scale: 0.9 }}
+                  className="w-full h-full object-cover rounded-lg border border-stone-200"
+                  initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.3 }}
+                  transition={{ duration: 0.4 }}
                 />
               ) : (
                 <motion.div
-                  className="w-full h-full bg-gradient-to-br from-rose-50 via-cream-50 to-blush-50 rounded-xl p-8 flex items-center justify-center text-center shadow-xl border border-rose-100"
-                  initial={{ scale: 0.9 }}
+                  className="w-full h-full bg-stone-50 rounded-lg p-8 flex items-center justify-center text-center border border-stone-200"
+                  initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.3 }}
+                  transition={{ duration: 0.4 }}
                 >
                   <div className="max-w-xs">
                     <motion.div
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-100 text-rose-600 text-sm font-medium mb-4"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: 'spring', delay: 0.4 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
                     >
-                      <Heart className="w-4 h-4 animate-heartbeat" aria-hidden="true" />
+                      <Heart className="w-4 h-4" aria-hidden="true" />
                       <span>For You</span>
                     </motion.div>
                     <motion.p
-                      className="font-handwriting text-2xl md:text-3xl text-rose-700 leading-relaxed whitespace-pre-wrap"
-                      initial={{ opacity: 0, y: 20 }}
+                      className="font-handwriting text-2xl md:text-3xl text-rose-600 leading-relaxed whitespace-pre-wrap"
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ duration: 0.4, delay: 0.15 }}
                     >
                       {revealContent.content}
                     </motion.p>
                     <motion.div
-                      className="mt-6 flex items-center justify-center gap-2 text-rose-400"
+                      className="mt-6 flex items-center justify-center gap-2 text-stone-400"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.7 }}
+                      transition={{ duration: 0.4, delay: 0.3 }}
                     >
-                      <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
                       <span className="font-handwriting text-lg">Made with love</span>
-                      <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -309,7 +307,7 @@ export function ScratchCard({
             initial={{ opacity: 1 }}
             animate={{ opacity: isRevealed ? 0 : 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
             style={{ pointerEvents: isRevealed ? 'none' : 'auto' }}
             aria-hidden="true"
           />
@@ -319,14 +317,14 @@ export function ScratchCard({
       {/* Progress indicator */}
       {!isRevealed && (
         <motion.div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 text-white text-sm backdrop-blur"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-stone-100 text-stone-800 text-sm border border-stone-200"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.3 }}
         >
-          <div className="w-32 h-2 bg-white/20 rounded-full overflow-hidden">
+          <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"
+              className="h-full bg-rose-400 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(scratchProgress / scratchThreshold, 1) * 100}%` }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -338,54 +336,28 @@ export function ScratchCard({
 
       {/* Hint overlay */}
       {!isRevealed && !isScratching && (
-        <motion.div
+        <div
           className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: isScratching ? 0 : 1 }}
-          transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="w-16 h-16 rounded-full bg-white/80 backdrop-blur flex items-center justify-center mb-4 shadow-lg"
-            animate={{ scale: [1, 1.1, 1] }}
+            className="w-14 h-14 rounded-lg bg-stone-100 flex items-center justify-center mb-3 border border-stone-200"
+            animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <motion.svg
-              className="w-8 h-8 text-rose-500"
+            <svg
+              className="w-6 h-6 text-rose-500"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              animate={{ rotate: [-15, 15, -15] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
             >
               <path d="M12 2v20M17 5l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
-            </motion.svg>
+            </svg>
           </motion.div>
-          <p className="font-handwriting text-lg text-white/90 text-center">
-            Scratch to reveal your surprise ✨
+          <p className="font-handwriting text-lg text-stone-500 text-center">
+            Scratch to reveal your surprise
           </p>
-        </motion.div>
-      )}
-
-      {/* Revealed badge */}
-      {isRevealed && !showContent && (
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        >
-          <div className="text-center">
-            <motion.div
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-500 text-white text-lg font-medium shadow-xl"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <Sparkles className="w-6 h-6 animate-spin" aria-hidden="true" />
-              <span>Revealing...</span>
-            </motion.div>
-          </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Edit button */}
@@ -393,11 +365,11 @@ export function ScratchCard({
         <motion.button
           type="button"
           onClick={onEdit}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur shadow-lg text-rose-500 hover:text-rose-600 hover:bg-white transition-colors z-10"
+          className="absolute top-3 right-3 p-2 rounded-lg bg-white border border-stone-200 text-stone-600 hover:text-rose-600 hover:bg-stone-100 transition-colors z-10"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           title="Edit scratch card"
         >
           <Edit3 className="w-4 h-4" aria-hidden="true" />

@@ -278,49 +278,49 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                   {isEditing && (
                     <div className="absolute -top-3 -right-3 flex flex-col gap-1 z-20">
                       <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleEditCard(card)}
-                          className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors shadow-sm"
-                          title="Edit"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCard(card.id)}
-                          className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEditCard(card)}
+                            className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCard(card.id)}
+                            className="p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 hover:text-red-600 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                       </div>
                       <div className="flex gap-1">
                         <button
-                          type="button"
-                          onClick={() => handleMoveCard(index, 'up')}
-                          disabled={index === 0}
-                          className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Move up"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveCard(index, 'down')}
-                          disabled={index === localCards.length - 1}
-                          className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Move down"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
+                            type="button"
+                            onClick={() => handleMoveCard(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1.5 rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Move up"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveCard(index, 'down')}
+                            disabled={index === localCards.length - 1}
+                            className="p-1.5 rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Move down"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
                       </div>
                     </div>
                   )}
 
                   {/* Drag indicator in edit mode */}
                   {isEditing && (
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-black/50 text-white text-xs cursor-grab active:cursor-grabbing">
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-xs cursor-grab active:cursor-grabbing">
                       ⋮⋮
                     </div>
                   )}
@@ -339,18 +339,18 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
           return card?.hidden_message ? (
             <motion.div
               key={cardId}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-2xl bg-rose-600 text-white shadow-2xl font-handwriting text-lg max-w-md text-center"
-              initial={{ y: 100, opacity: 0, scale: 0.8 }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 font-handwriting text-lg max-w-md text-center"
+              initial={{ y: 100, opacity: 0, scale: 0.9 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: -50, opacity: 0, scale: 0.8 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              exit={{ y: -50, opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
               role="alert"
               aria-live="polite"
             >
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
+                <Sparkles className="w-4 h-4 text-rose-500" aria-hidden="true" />
                 <span className="font-serif">Hidden Message Revealed!</span>
-                <Sparkles className="w-5 h-5 animate-pulse" aria-hidden="true" />
+                <Sparkles className="w-4 h-4 text-rose-500" aria-hidden="true" />
               </div>
               <p>{card.hidden_message}</p>
             </motion.div>
@@ -402,7 +402,7 @@ function renderFront(
             {card.stickers.map((sticker, i) => (
               <motion.span
                 key={`${card.id}-sticker-${i}`}
-                className="text-lg drop-shadow-md"
+                className="text-lg"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: i * 0.05, type: 'spring' }}

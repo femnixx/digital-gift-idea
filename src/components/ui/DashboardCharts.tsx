@@ -64,15 +64,15 @@ export function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const colors = statColors[stat.color] ?? statColors.rose
   return (
     <motion.div
-      className="bg-white rounded-xl border border-stone-200 px-5 py-4"
+      className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-stone-500 text-xs uppercase tracking-wider truncate">{stat.label}</p>
-          <p className="font-semibold text-2xl text-stone-900 mt-1">{stat.value}</p>
+          <p className="text-stone-500 dark:text-stone-400 text-xs uppercase tracking-wider truncate">{stat.label}</p>
+          <p className="font-semibold text-2xl text-stone-800 dark:text-stone-100 mt-1">{stat.value}</p>
         </div>
         <div className={`w-11 h-11 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
           <Icon className={`w-5 h-5 ${colors.text}`} />
@@ -91,11 +91,11 @@ const ChartWrapper = ({
   subtitle?: string
   children: ReactNode
 }) => (
-  <div className="bg-white rounded-xl border border-stone-200 px-5 py-4">
+  <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4">
     <div className="flex items-center justify-between mb-4">
       <div>
-        <h3 className="font-semibold text-stone-900">{title}</h3>
-        {subtitle && <p className="text-stone-500 text-xs mt-0.5">{subtitle}</p>}
+        <h3 className="font-semibold text-stone-800 dark:text-stone-200">{title}</h3>
+        {subtitle && <p className="text-stone-500 dark:text-stone-400 text-xs mt-0.5">{subtitle}</p>}
       </div>
     </div>
     <div className="h-64 w-full">{children}</div>

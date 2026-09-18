@@ -1,12 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Heart, Plus, Eye, Calendar, TrendingUp, FileText, MoreVertical, ChevronRight } from 'lucide-react'
+import { gsap } from 'gsap'
+import {
+  Heart, Plus, Eye, Calendar, TrendingUp, FileText, ChevronRight
+} from 'lucide-react'
 import { format, startOfMonth } from 'date-fns'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { DemoDataManager } from '@/components/ui/DemoDataManager'
+import { SkeletonStatCard, SkeletonEntryTable } from '@/components/ui/Skeleton'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import {
   StatCard,
@@ -21,6 +24,26 @@ import {
 
 export default function AdminDashboardPage() {
   const { entries, loading, isDemoMode } = useDashboardData()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (loading || !containerRef.current) return
+
+    const ctx = gsap.context(() => {}, containerRef.current)
+    const elements = (ctx.selector ? ctx.selector('.gsap-section') : []) as Element[]
+
+    if (elements.length) {
+      gsap.from(elements, {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+        stagger: 0.1,
+      })
+    }
+
+    return () => ctx.revert()
+  }, [loading, entries])
 
   const stats: Stat[] = useMemo(
     () => [
@@ -63,111 +86,91 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
-        <motion.div
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+      <div ref={containerRef} className="space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-script text-3xl md:text-4xl gradient-text">Dashboard</h1>
-            <p className="text-rose-500 mt-1">Track your progress and manage your surprises</p>
+            <h1 className="font-script text-3xl md:text-4xl text-rose-700">Dashboard</h1>
+            <p className="text-stone-600 mt-1">Track your progress and manage your surprises</p>
             {isDemoMode && (
               <p className="text-amber-600 text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
             )}
           </div>
-          <Link href="/admin/entries/new" className="btn-primary group w-full sm:w-auto">
+          <Link href="/admin/entries/new" className="btn-primary w-full sm:w-auto inline-flex items-center gap-2">
             <Plus className="w-5 h-5" />
             <span>Create Entry</span>
           </Link>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          {stats.map((stat, index) => (
-            <StatCard key={stat.label} stat={stat} index={index} />
-          ))}
-        </motion.div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => <SkeletonStatCard key={i} />)
+            : stats.map((stat, index) => <StatCard key={stat.label} stat={stat} index={index} />)}
+        </div>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h2 className="font-serif text-xl font-semibold text-rose-900 mb-4">Progress Graphs</h2>
+        <section className="gsap-section">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Progress Graphs</h2>
           <div className="grid gap-6 lg:grid-cols-2">
             <EntriesOverTimeChart entries={entries} />
             <ViewsByEntryChart entries={entries} />
             <EntriesByTypeChart entries={entries} />
             <PublishedStatusChart entries={entries} />
           </div>
-        </motion.section>
+        </section>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <section className="gsap-section">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl font-semibold text-rose-900">Recent Entries</h2>
+            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">Recent Entries</h2>
             <Link
               href="/admin/entries"
-              className="text-rose-500 text-sm font-medium hover:text-rose-600 flex items-center gap-1"
+              className="text-rose-600 text-sm font-medium hover:text-rose-700 flex items-center gap-1"
             >
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-cream-50 border-b border-rose-100">
+                <thead className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700">
                   <tr>
-                    <th className="px-6 py-4 text-left text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Entry
                     </th>
-                    <th className="px-6 py-4 text-left text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-left text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Published
                     </th>
-                    <th className="px-6 py-4 text-left text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Views
                     </th>
-                    <th className="px-6 py-4 text-right text-rose-500 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-rose-100">
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-700">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-rose-400">
-                        Loading your surprises...
+                      <td colSpan={6} className="px-6 py-12">
+                        <SkeletonEntryTable rows={5} cells={6} />
                       </td>
                     </tr>
                   ) : recentEntries.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-rose-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-stone-500 dark:text-stone-400">
                         No entries yet. Create your first love letter!
                       </td>
                     </tr>
                   ) : (
-                    recentEntries.map((entry, index) => (
-                      <motion.tr
+                    recentEntries.map((entry) => (
+                      <tr
                         key={entry.id}
-                        className="hover:bg-rose-50/50 transition-colors"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -175,8 +178,8 @@ export default function AdminDashboardPage() {
                               <EntryTypeIcon type={entry.type} />
                             </span>
                             <div>
-                              <p className="font-medium text-rose-900">{entry.title}</p>
-                              <p className="text-rose-400 text-sm">{entry.slug}</p>
+                              <p className="font-medium text-stone-800 dark:text-stone-200">{entry.title}</p>
+                              <p className="text-stone-400 dark:text-stone-500 text-sm">{entry.slug}</p>
                             </div>
                           </div>
                         </td>
@@ -195,42 +198,42 @@ export default function AdminDashboardPage() {
                           <span
                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
                               entry.is_published
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-amber-100 text-amber-700'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                             }`}
                           >
                             {entry.is_published ? 'Published' : 'Draft'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-rose-600">
+                        <td className="px-6 py-4 text-stone-500 dark:text-stone-400">
                           {format(new Date(entry.publish_at), 'MMM d, yyyy')}
                         </td>
-                        <td className="px-6 py-4 text-rose-600 font-mono">{entry.view_count || 0}</td>
+                        <td className="px-6 py-4 text-stone-500 dark:text-stone-400 font-mono">{entry.view_count || 0}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               href={`/daily/${entry.slug}`}
-                              className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors"
+                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
                               aria-label="View entry"
                             >
                               <Eye className="w-4 h-4" />
                             </Link>
                             <button
-                              className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors"
+                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
                               aria-label="More options"
                             >
-                              <MoreVertical className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
-                      </motion.tr>
+                      </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
           </div>
-        </motion.section>
+        </section>
 
         <DemoDataManager />
       </div>
