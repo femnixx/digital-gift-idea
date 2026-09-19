@@ -4,6 +4,7 @@ import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
 import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { NavProvider } from '@/hooks/useNav'
 import { ThemeScript } from '@/components/ThemeScript'
+import { ThemeProvider } from '@/lib/theme'
 import './globals.css'
 
 const inter = Inter({
@@ -79,18 +80,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable} bg-sky-50 dark:bg-slate-900`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable}`}>
       <head>
         <ThemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans antialiased text-sky-900 dark:text-slate-200">
-        <DemoInitializer />
-        <NavProvider>
-          {children}
-        </NavProvider>
+      <body className="font-sans antialiased" style={{ backgroundColor: 'rgb(var(--bg))', color: 'rgb(var(--text))', transition: 'background-color 0.6s ease, color 0.6s ease' }}>
+        <ThemeProvider>
+          <DemoInitializer />
+          <NavProvider>
+            {children}
+          </NavProvider>
+        </ThemeProvider>
         <DemoModeBanner />
       </body>
     </html>

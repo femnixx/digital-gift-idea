@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Heart, Loader2, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { ensureProfileExists } from '@/lib/auth'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -29,6 +30,7 @@ export default function AuthCallbackPage() {
               setError(urlError.message)
             }
           } else {
+            await ensureProfileExists(session.user.id, session.user.user_metadata?.display_name || session.user.email?.split('@')[0] || 'User')
             const redirectTo = searchParams.get('redirect') || '/admin'
             router.push(redirectTo)
             router.refresh()
@@ -41,6 +43,7 @@ export default function AuthCallbackPage() {
         if (sessionError) {
           setError(sessionError.message)
         } else if (session) {
+          await ensureProfileExists(session.user.id, session.user.user_metadata?.display_name || session.user.email?.split('@')[0] || 'User')
           const redirectTo = searchParams.get('redirect') || '/admin'
           router.push(redirectTo)
           router.refresh()
