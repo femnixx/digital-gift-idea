@@ -24,11 +24,11 @@ export default function Error({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center romantic-bg">
-      <div className="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-8 max-w-md text-center space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-base">
+      <div className="card p-8 max-w-md text-center space-y-4">
         <div className="text-5xl">⚠️</div>
-        <h1 className="font-script text-2xl text-sky-700">Something went wrong</h1>
-        <p className="text-stone-500 text-sm">{error.message || 'An unexpected error occurred.'}</p>
+        <h1 className="heading">Something went wrong</h1>
+        <p className="muted-foreground text-sm">{error.message || 'An unexpected error occurred.'}</p>
         <div className="flex gap-3 justify-center">
           <button onClick={reset} className="btn-primary">Try Again</button>
           <button onClick={handleSignOut} className="btn-secondary">Sign Out</button>

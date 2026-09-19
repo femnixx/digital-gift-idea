@@ -26,27 +26,27 @@ export function DemoModeBanner() {
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-4">
+      <div className="card p-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0">
-            <FlaskConical className="w-5 h-5 text-sky-600" />
+          <div className="w-10 h-10 rounded-lg bg-card border border-base flex items-center justify-center flex-shrink-0">
+            <FlaskConical className="w-5 h-5 accent" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-stone-800 dark:text-stone-200 text-sm">Demo Mode Active</p>
-            <p className="text-stone-500 dark:text-stone-400 text-xs mt-1">
+            <p className="font-semibold text-sm">Demo Mode Active</p>
+            <p className="muted-foreground text-xs mt-1">
               Running with localStorage fallback. Data persists in your browser.
             </p>
             <div className="flex items-center gap-2 mt-3">
               <Link
                 href="/daily/2026-09-15"
-                className="inline-flex items-center justify-center px-3 py-1.5 bg-sky-600 text-white text-xs rounded-lg hover:bg-sky-700 transition-colors"
+                className="btn-primary inline-flex items-center justify-center px-3 py-1.5 text-xs"
               >
                 Try Demo Entry
                 <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <button
                 onClick={() => setDismissed(true)}
-                className="text-sky-500 hover:text-sky-700 text-xs font-medium"
+                className="accent hover:opacity-80 text-xs font-medium"
               >
                 Dismiss
               </button>
@@ -54,15 +54,15 @@ export function DemoModeBanner() {
           </div>
           <button
             onClick={() => setDismissed(true)}
-            className="text-stone-400 hover:text-stone-600 flex-shrink-0"
+            className="muted hover:opacity-80 flex-shrink-0"
             aria-label="Dismiss demo banner"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 text-stone-500 dark:text-stone-400 text-xs">
-          <Heart className="w-3 h-3 text-sky-500" />
+        <div className="mt-3 pt-3 border-t border-base flex items-center gap-2 muted-foreground text-xs">
+          <Heart className="w-3 h-3 accent" />
           <span>Made with love for testing</span>
         </div>
       </div>

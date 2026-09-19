@@ -5,12 +5,5 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-      ports: 
-        - "3000:3000"
-      
-  frontend: 
-    path: ./src/app
-  
-  backend: 
-    path: ./src/app/api
-
+    ports: 
+      - "3000:3000"

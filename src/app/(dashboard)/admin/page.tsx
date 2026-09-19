@@ -95,8 +95,8 @@ export default function AdminDashboardPage() {
       <div ref={containerRef} className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-script text-3xl md:text-4xl text-sky-700">Dashboard</h1>
-            <p className="text-stone-600 mt-1">Track your progress and manage your surprises</p>
+            <h1 className="heading">Dashboard</h1>
+            <p className="muted-foreground mt-1">Track your progress and manage your surprises</p>
             {isDemoMode && (
               <p className="text-amber-600 text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
             )}
@@ -131,38 +131,38 @@ export default function AdminDashboardPage() {
             <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">Recent Entries</h2>
             <Link
               href="/admin/entries"
-              className="text-sky-600 text-sm font-medium hover:text-sky-700 flex items-center gap-1 transition-colors"
+              className="accent text-sm font-medium hover:opacity-80 flex items-center gap-1 transition-colors"
             >
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+          <div className="card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700">
+                <thead className="bg-base border-b border-base">
                   <tr>
-                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
                       Entry
                     </th>
-                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
                       Published
                     </th>
-                    <th className="px-6 py-4 text-left text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
                       Views
                     </th>
-                    <th className="px-6 py-4 text-right text-stone-500 dark:text-stone-400 text-sm font-medium uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right muted-foreground text-sm font-medium uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-200 dark:divide-stone-700">
+                <tbody className="divide-y divide-base">
                   {loading ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12">
@@ -171,66 +171,66 @@ export default function AdminDashboardPage() {
                     </tr>
                   ) : recentEntries.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-stone-500 dark:text-stone-400">
+                      <td colSpan={6} className="px-6 py-12 text-center muted-foreground">
                         No entries yet. Create your first love letter!
                       </td>
                     </tr>
                   ) : (
                     recentEntries.map((entry) => (
-                      <tr
-                        key={entry.id}
-                        className="hover:bg-sky-50 dark:hover:bg-sky-950/20 transition-colors cursor-pointer"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl w-6 text-center">
-                              <EntryTypeIcon type={entry.type} />
-                            </span>
-                            <div>
-                              <p className="font-medium text-stone-800 dark:text-stone-200">{entry.title}</p>
-                              <p className="text-stone-400 dark:text-stone-500 text-sm">{entry.slug}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium"
-                            style={{
-                              backgroundColor: `${TYPE_COLORS[entry.type]}20`,
-                              color: TYPE_COLORS[entry.type],
-                            }}
-                          >
-                            {entry.type.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                              entry.is_published
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                            }`}
-                          >
-                            {entry.is_published ? 'Published' : 'Draft'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-stone-500 dark:text-stone-400">
-                          {format(new Date(entry.publish_at), 'MMM d, yyyy')}
-                        </td>
-                        <td className="px-6 py-4 text-stone-500 dark:text-stone-400 font-mono">{entry.view_count || 0}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link
-                              href={`/daily/${entry.slug}`}
-                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:text-sky-600 transition-colors"
-                              aria-label="View entry"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                            <button
-                              className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-sky-100 dark:hover:bg-sky-900/30 hover:text-sky-600 transition-colors"
-                              aria-label="More options"
-                            >
+                       <tr
+                         key={entry.id}
+                         className="hover:bg-base/50 transition-colors cursor-pointer"
+                       >
+                         <td className="px-6 py-4">
+                           <div className="flex items-center gap-3">
+                             <span className="text-xl w-6 text-center">
+                               <EntryTypeIcon type={entry.type} />
+                             </span>
+                             <div>
+                               <p className="font-medium">{entry.title}</p>
+                               <p className="muted-foreground text-sm">{entry.slug}</p>
+                             </div>
+                           </div>
+                         </td>
+                         <td className="px-6 py-4">
+                           <span
+                             className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium"
+                             style={{
+                               backgroundColor: `${TYPE_COLORS[entry.type]}20`,
+                               color: TYPE_COLORS[entry.type],
+                             }}
+                           >
+                             {entry.type.replace('_', ' ')}
+                           </span>
+                         </td>
+                         <td className="px-6 py-4">
+                           <span
+                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                               entry.is_published
+                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                 : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                             }`}
+                           >
+                             {entry.is_published ? 'Published' : 'Draft'}
+                           </span>
+                         </td>
+                         <td className="px-6 py-4 muted-foreground">
+                           {format(new Date(entry.publish_at), 'MMM d, yyyy')}
+                         </td>
+                         <td className="px-6 py-4 muted-foreground font-mono">{entry.view_count || 0}</td>
+                         <td className="px-6 py-4">
+                           <div className="flex items-center justify-end gap-2">
+                             <Link
+                               href={`/daily/${entry.slug}`}
+                               className="p-2 rounded-lg bg-base border border-base muted hover:accent hover:border-accent transition-colors"
+                               aria-label="View entry"
+                             >
+                               <Eye className="w-4 h-4" />
+                             </Link>
+                             <button
+                               className="p-2 rounded-lg bg-base border border-base muted hover:accent hover:border-accent transition-colors"
+                               aria-label="More options"
+                             >
                               <ChevronRight className="w-4 h-4" />
                             </button>
                           </div>
@@ -246,14 +246,14 @@ export default function AdminDashboardPage() {
 
         <DemoDataManager />
 
-        {toast && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
-            <div className="bg-sky-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="text-sm font-medium">{toast}</span>
+          {toast && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
+              <div className="btn-primary px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">{toast}</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </AdminLayout>
   )

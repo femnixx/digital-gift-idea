@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { EntryType } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 
@@ -31,10 +32,10 @@ function DarkModeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+      className="p-2 rounded-lg hover:bg-base/50 transition-colors"
       aria-label="Toggle dark mode"
     >
-      {dark ? <Sun className="w-5 h-5 text-sky-500" /> : <Moon className="w-5 h-5 text-stone-600" />}
+      {dark ? <Sun className="w-5 h-5 accent" /> : <Moon className="w-5 h-5 muted" />}
     </button>
   )
 }
@@ -91,7 +92,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   ]
 
   return (
-    <div className="min-h-screen romantic-bg">
+    <div className="min-h-screen bg-base">
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -105,20 +106,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </AnimatePresence>
 
       <motion.aside
-        className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-stone-800 border-r border-stone-200 dark:border-stone-700 lg:translate-x-0"
+        className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-base lg:translate-x-0"
         initial={{ x: -280 }}
         animate={{ x: sidebarOpen ? 0 : -280 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-stone-200 dark:border-stone-700">
+          <div className="p-6 border-b border-base">
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
+              <div className="w-10 h-10 rounded-lg bg-card border border-base flex items-center justify-center">
+                <Heart className="w-5 h-5 accent" />
               </div>
-              <span className="font-script text-xl text-sky-700 dark:text-sky-300">Dashboard</span>
+              <span className="font-script text-xl accent">Dashboard</span>
             </Link>
-            <p className="text-stone-400 dark:text-stone-500 text-xs mt-2">Digital Love Letters</p>
+            <p className="muted-foreground text-xs mt-2">Digital Love Letters</p>
           </div>
 
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -126,7 +127,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg muted hover:bg-base/50 transition-colors"
               >
                 <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.label}</span>
@@ -134,58 +135,58 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-stone-200 dark:border-stone-700">
-            <p className="text-stone-500 dark:text-stone-400 text-xs uppercase tracking-wider mb-3">Quick Create</p>
+          <div className="p-4 border-t border-base">
+            <p className="muted-foreground text-xs uppercase tracking-wider mb-3">Quick Create</p>
             <div className="grid grid-cols-2 gap-2">
               {entryTypes.slice(0, 4).map((type) => (
                 <Link
                   key={type.type}
                   href={`/admin/entries/new?type=${type.type}`}
-                  className="flex flex-col items-center gap-1 p-3 rounded-lg bg-stone-50 dark:bg-stone-700/50 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                  className="flex flex-col items-center gap-1 p-3 rounded-lg bg-base/50 hover:bg-base transition-colors"
                 >
-                  <type.icon className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                  <span className="text-xs font-medium text-stone-700 dark:text-stone-200">{type.label}</span>
+                  <type.icon className="w-5 h-5 muted" />
+                  <span className="text-xs font-medium">{type.label}</span>
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="p-4 border-t border-stone-200 dark:border-stone-700">
+          <div className="p-4 border-t border-base">
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-base/50 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
+                <div className="w-8 h-8 rounded-full bg-card border border-base flex items-center justify-center">
+                  <Heart className="w-5 h-5 accent" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-medium text-stone-800 dark:text-stone-200 text-sm">{userName}</p>
-                  <p className="text-stone-400 dark:text-stone-500 text-xs">Admin</p>
+                  <p className="font-medium text-sm">{userName}</p>
+                  <p className="muted-foreground text-xs">Admin</p>
                 </div>
-                <ChevronDown className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+                <ChevronDown className="w-4 h-4 muted-foreground" />
               </button>
 
               <AnimatePresence>
                 {userMenuOpen && (
                   <motion.div
-                    className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 py-2 z-50"
+                    className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-base rounded-xl py-2 z-50"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                   >
-                    <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-2 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700">
+                    <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
                       <Settings className="w-4 h-4" />
                       Profile
                     </Link>
-                    <Link href="/" className="flex items-center gap-3 px-4 py-2 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700">
+                    <Link href="/" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
                       <Heart className="w-4 h-4" />
                       View Site
                     </Link>
-                    <div className="border-t border-stone-200 dark:border-stone-700 my-1" />
+                    <div className="border-t border-base my-1" />
                     <button
                       onClick={handleSignOut}
-                      className="flex items-center gap-3 w-full px-4 py-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                      className="flex items-center gap-3 w-full px-4 py-2 muted-foreground hover:bg-base/50 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -199,22 +200,25 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </motion.aside>
 
       <div className="lg:pl-64 min-h-screen">
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border-b border-stone-200 dark:border-stone-700 lg:hidden">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-sm border-b border-base lg:hidden">
           <div className="flex items-center justify-between p-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-base/50 transition-colors"
               aria-label="Open menu"
             >
-              <svg className="w-6 h-6 text-stone-600 dark:text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <Link href="/admin" className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-sky-600" />
-              <span className="font-script text-lg text-sky-700">Dashboard</span>
+              <Heart className="w-5 h-5 accent" />
+              <span className="font-script text-lg accent">Dashboard</span>
             </Link>
-            <DarkModeToggle />
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              <DarkModeToggle />
+            </div>
           </div>
         </header>
 

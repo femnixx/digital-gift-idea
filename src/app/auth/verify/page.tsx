@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Heart, Loader2, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { ensureProfileExists } from '@/lib/auth'
 
 export default function VerifyEmailPage() {
   const router = useRouter()
@@ -29,7 +30,8 @@ export default function VerifyEmailPage() {
           if (error) {
             setStatus('error')
             setMessage(error.message)
-          } else {
+          } else if (data.user) {
+            await ensureProfileExists(data.user.id, (data.user as any).user_metadata?.display_name || data.user.email?.split('@')[0] || 'User')
             setStatus('success')
             setMessage('Your email has been verified! Redirecting...')
             setTimeout(() => {
@@ -38,11 +40,12 @@ export default function VerifyEmailPage() {
             }, 2000)
           }
         } else {
-          const { error } = await supabase.auth.getUser()
+          const { data: { user }, error } = await supabase.auth.getUser()
           if (error) {
             setStatus('error')
             setMessage(error.message)
-          } else {
+          } else if (user) {
+            await ensureProfileExists(user.id, user.user_metadata?.display_name || user.email?.split('@')[0] || 'User')
             setStatus('success')
             setMessage('Email verified! Redirecting...')
             setTimeout(() => {
