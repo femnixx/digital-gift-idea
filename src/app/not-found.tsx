@@ -14,11 +14,11 @@ export default function NotFound() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center romantic-bg">
-      <div className="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 p-12 max-w-md text-center space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-base">
+      <div className="card p-12 max-w-md text-center space-y-6">
         <div className="text-6xl">💌</div>
-        <h1 className="font-script text-3xl text-sky-700">Page Not Found</h1>
-        <p className="text-stone-500">The page you're looking for doesn't exist or has been moved.</p>
+        <h1 className="heading">Page Not Found</h1>
+        <p className="muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
         <button
           onClick={handleNav}
           disabled={navigating}

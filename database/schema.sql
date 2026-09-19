@@ -245,8 +245,9 @@ CREATE POLICY "Service role can manage voice_notes" ON voice_notes FOR ALL USING
 CREATE POLICY "Service role can manage partner_interactions" ON partner_interactions FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 CREATE POLICY "Service role can manage relationship_settings" ON relationship_settings FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
--- Profiles: Users can read all, update own
+-- Profiles: Users can read all, update own, insert own
 CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Entries: Published entries viewable by all, unpublished only by creator
