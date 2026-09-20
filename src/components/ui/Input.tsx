@@ -15,7 +15,7 @@ export function Input({ label, icon: Icon, isPassword, error, className, ...prop
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : (props.type ?? 'text')
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-2.5 w-full">
       <label className="label">{label}</label>
       <div className="relative flex items-center">
         {Icon && <Icon className="absolute left-3.5 w-5 h-5 muted-foreground" />}
