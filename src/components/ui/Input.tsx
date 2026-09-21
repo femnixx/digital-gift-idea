@@ -17,18 +17,37 @@ export function Input({ label, icon: Icon, isPassword, error, className, ...prop
   return (
     <div className="flex flex-col gap-2.5 w-full">
       <label className="label">{label}</label>
-      <div className="relative flex items-center">
-        {Icon && <Icon className="absolute left-3.5 w-5 h-5 muted-foreground" />}
+      <div className="relative">
+        {Icon && (
+          <Icon
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none muted-foreground"
+          />
+        )}
         <input
           type={inputType}
-          className={`input bg-base-2/50 border-card-border rounded-xl h-12 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20 ${Icon ? 'pl-10' : 'pl-3.5'} ${error ? 'border-accent' : ''} ${className || ''}`}
+          className={[
+            'w-full',
+            'h-12',
+            'rounded-xl',
+            'border border-card-border',
+            'bg-base-2/50',
+            'text-text',
+            'placeholder:text-muted',
+            'focus:border-accent',
+            'focus:ring-2',
+            'focus:ring-accent/20',
+            'transition-colors',
+            Icon ? 'pl-10' : 'pl-3.5',
+            isPassword ? 'pr-10' : 'pr-3.5',
+            className || '',
+          ].join(' ')}
           {...props}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3.5 muted hover:opacity-80"
+            className="absolute right-3 top-1/2 -translate-y-1/2 muted hover:opacity-80"
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
