@@ -21,7 +21,7 @@ export default function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-base">
       <div className="text-center space-y-4">
-        <div className="w-10 h-10 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto dark:border-romantic-500" />
+        <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="muted-foreground font-handwriting text-lg">Loading...</p>
       </div>
     </div>
