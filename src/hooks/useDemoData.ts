@@ -6,19 +6,18 @@ import { createClient } from '@/lib/supabase/client'
 export function useDemoEntries() {
   const [entries, setEntries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
+
     const fetchEntries = async () => {
-      // Check if we're in demo mode
       const isDemoMode = !(
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
         process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_project_url'
       )
-      
+
       if (isDemoMode) {
-        // Get from localStorage
         try {
           const storage = localStorage.getItem('digital-love-letters-demo')
           if (storage) {
@@ -29,21 +28,20 @@ export function useDemoEntries() {
         setLoading(false)
         return
       }
-      
-      // Real Supabase fetch
+
       const { data } = await (supabase as any)
         .from('entries')
         .select('*')
         .eq('is_published', true)
         .lte('publish_at', new Date().toISOString())
         .order('publish_at', { ascending: false })
-      
+
       setEntries(data || [])
       setLoading(false)
     }
-    
+
     fetchEntries()
-  }, [supabase])
+  }, [])
 
   return { entries, loading }
 }
@@ -51,16 +49,17 @@ export function useDemoEntries() {
 export function useDemoEntry(slug: string) {
   const [entry, setEntry] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
+
     const fetchEntry = async () => {
       const isDemoMode = !(
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
         process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_project_url'
       )
-      
+
       if (isDemoMode) {
         try {
           const storage = localStorage.getItem('digital-love-letters-demo')
@@ -68,7 +67,6 @@ export function useDemoEntry(slug: string) {
             const data = JSON.parse(storage)
             const found = data.entries?.find((e: any) => e.slug === slug)
             if (found) {
-              // Enrich with related data
               found.media = data.media?.filter((m: any) => m.entry_id === found.id) || []
               found.bouquet_flowers = data.bouquet_flowers?.filter((f: any) => f.entry_id === found.id) || []
               found.polaroid_cards = data.polaroid_cards?.filter((p: any) => p.entry_id === found.id) || []
@@ -76,8 +74,7 @@ export function useDemoEntry(slug: string) {
               found.open_when_letters = data.open_when_letters?.filter((l: any) => l.entry_id === found.id) || []
               found.coffee_dates = data.coffee_dates?.filter((c: any) => c.entry_id === found.id) || []
               found.voice_notes = data.voice_notes?.filter((v: any) => v.entry_id === found.id) || []
-              
-              // Check unlock conditions
+
               const now = new Date()
               if (found.open_when_letters) {
                 found.open_when_letters = found.open_when_letters.map((letter: any) => {
@@ -88,7 +85,7 @@ export function useDemoEntry(slug: string) {
                   return { ...letter, is_unlocked: isUnlocked }
                 })
               }
-              
+
               setEntry(found)
             }
           }
@@ -96,7 +93,7 @@ export function useDemoEntry(slug: string) {
         setLoading(false)
         return
       }
-      
+
       const { data } = await (supabase as any)
         .from('entries')
         .select(`
@@ -113,13 +110,13 @@ export function useDemoEntry(slug: string) {
         .eq('is_published', true)
         .lte('publish_at', new Date().toISOString())
         .single()
-      
+
       setEntry(data)
       setLoading(false)
     }
-    
+
     fetchEntry()
-  }, [slug, supabase])
+  }, [slug])
 
   return { entry, loading }
 }
