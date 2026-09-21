@@ -126,14 +126,14 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           return (
             <div className="space-y-4">
               <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setEditingBouquet(false)}
-                  className="px-4 py-2 rounded-lg bg-stone-100 border border-stone-200 text-stone-600 text-sm hover:bg-stone-200 transition-colors inline-flex items-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Done Editing
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowScratchCustomizer(false)}
+                    className="px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors inline-flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Done Editing
+                  </button>
               </div>
               <DigitalBouquet
                 flowers={entry.bouquet_flowers || []}
@@ -150,7 +150,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         return entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? (
           <DigitalBouquet flowers={entry.bouquet_flowers} />
         ) : (
-          <p className="text-center text-stone-500 dark:text-stone-400 py-12">No flowers in this bouquet yet</p>
+          <p className="text-center text-muted py-12">No flowers in this bouquet yet</p>
         )
 
       case 'polaroid':
@@ -228,7 +228,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                         setEditingScratchCard(card)
                         setShowScratchCustomizer(true)
                       }}
-                      className="p-1.5 rounded-full bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors"
+                      className="p-1.5 rounded-full bg-base-2 text-accent hover:bg-base transition-colors"
                       title="Edit"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -240,7 +240,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-stone-500 dark:text-stone-400 font-handwriting text-lg mb-4">No scratch cards yet</p>
+            <p className="text-muted font-handwriting text-lg mb-4">No scratch cards yet</p>
             {isEditing && (
               <button
                 type="button"
@@ -271,8 +271,8 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                   onClick={() => setEditingOpenWhenLetters(prev => !prev)}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
                     editingOpenWhenLetters
-                      ? 'bg-sky-100 text-sky-600 border border-sky-200'
-                      : 'bg-stone-100 border border-stone-200 text-stone-600 hover:bg-stone-200'
+                      ? 'bg-accent/10 text-accent border border-accent/20'
+                      : 'bg-base-2 border-card-border text-text hover:bg-base'
                   }`}
                 >
                   {editingOpenWhenLetters ? <EyeOff className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
@@ -287,12 +287,12 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 onSave={handleOpenWhenLettersSave}
               />
             ) : (
-              <div className="text-center py-12">
-                <p className="text-stone-500 dark:text-stone-400 font-handwriting text-lg mb-4">No sealed letters yet</p>
-                {isEditing && editingOpenWhenLetters && (
-                  <p className="text-stone-500 text-sm">Click "Add New Letter" to create your first letter</p>
-                )}
-              </div>
+          <div className="text-center py-12">
+            <p className="text-muted font-handwriting text-lg mb-4">No sealed letters yet</p>
+            {isEditing && editingOpenWhenLetters && (
+              <p className="text-muted text-sm">Click "Add New Letter" to create your first letter</p>
+            )}
+          </div>
             )}
           </div>
         )
@@ -309,7 +309,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
             transcript: n.transcript,
           }))} />
         ) : (
-          <p className="text-center text-stone-500 dark:text-stone-400 py-12">No voice notes yet</p>
+          <p className="text-center text-muted py-12">No voice notes yet</p>
         )
 
       case 'coffee_date':
@@ -344,7 +344,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-stone-500 dark:text-stone-400 font-handwriting text-lg mb-4">No coffee dates yet</p>
+            <p className="text-muted font-handwriting text-lg mb-4">No coffee dates yet</p>
             {isEditing && (
               <button
                 type="button"
@@ -364,11 +364,11 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           return (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-script text-xl text-sky-700">Edit Letter</h3>
+                <h3 className="font-script text-xl text-accent">Edit Letter</h3>
                 <motion.button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:text-sky-600 transition-colors"
+                  className="p-2 rounded-lg bg-base-2 border-card-border text-text hover:text-accent transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -392,7 +392,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="font-handwriting text-xl leading-relaxed whitespace-pre-wrap text-stone-700 dark:text-stone-300">
+            <div className="font-handwriting text-xl leading-relaxed whitespace-pre-wrap text-text">
               {typeof entry.content === 'object' && entry.content !== null && 'message' in entry.content
                 ? String(entry.content.message)
                 : 'A love letter from my heart to yours'}
@@ -412,7 +412,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                       <img
                         src={media.public_url}
                         alt={media.filename || 'Memory'}
-                        className="w-full h-64 object-cover rounded-xl border border-stone-200 dark:border-stone-700"
+                        className="w-full h-64 object-cover rounded-xl border border-card-border"
                       />
                     )}
                     {media.type === 'audio' && media.public_url && (
@@ -466,12 +466,12 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
   const showEditButton = ['letter', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'bouquet'].includes(entry.type)
 
   return (
-    <div className="min-h-screen romantic-bg">
+    <div className="min-h-screen bg-base">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="absolute text-sky-200/10 dark:text-sky-900/20 text-xl pointer-events-none"
+              className="absolute text-accent/10 text-xl pointer-events-none"
               style={{
                 left: `${10 + i * 15}%`,
                 top: `${20 + (i % 3) * 30}%`,
@@ -490,33 +490,33 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           >
             <button
               onClick={() => back('/')}
-              className="p-2 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+              className="p-2 rounded-lg bg-card border-card-border hover:bg-base-2 transition-colors"
               aria-label="Back"
             >
-              <ArrowLeft className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+              <ArrowLeft className="w-5 h-5 text-text" />
             </button>
 
             <div className="flex items-center gap-4">
-              <span className="font-handwriting text-lg text-stone-600 dark:text-stone-300">
+              <span className="font-handwriting text-lg text-text">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
               </span>
               <button
                 onClick={handleShare}
-                className="p-2 rounded-lg bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                className="p-2 rounded-lg bg-card border-card-border hover:bg-base-2 transition-colors"
                 aria-label="Share"
               >
                 {shareCopied ? (
-                  <span className="text-sky-600 text-xs font-medium">Copied!</span>
+                  <span className="text-accent text-xs font-medium">Copied!</span>
                 ) : (
-                  <Share2 className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+                  <Share2 className="w-5 h-5 text-text" />
                 )}
               </button>
             </div>
           </motion.header>
 
           <motion.article
-            className="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700"
+            className="bg-card rounded-2xl border-card-border"
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -548,14 +548,14 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-sky-700 dark:text-sky-300 mb-4">
+                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-accent mb-4">
                   {entry.title}
                 </h1>
 
-                <div className="flex items-center justify-center gap-4 text-stone-400 dark:text-stone-500">
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-stone-300 dark:via-stone-600 to-transparent" />
-                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-stone-300 dark:via-stone-600 to-transparent" />
+                <div className="flex items-center justify-center gap-4 text-muted">
+                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-card-border to-transparent" />
+                  <Heart className="w-5 h-5 text-accent" />
+                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-card-border to-transparent" />
                 </div>
 
                 {showEditButton && (
@@ -568,10 +568,10 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 <button
                   type="button"
                   onClick={() => { setEditing(true); }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 dark:bg-stone-700 border border-stone-200 dark:border-stone-600 text-stone-600 dark:text-stone-300 text-sm hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors"
                 >
                   {editing ? (
-                    <span className="block w-4 h-4 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                    <span className="block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <Edit3 className="w-4 h-4" />
                   )}
@@ -607,17 +607,17 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
               </motion.div>
 
               <motion.footer
-                className="mt-12 pt-8 border-t border-stone-200 dark:border-stone-700 text-center"
+                className="mt-12 pt-8 border-t border-card-border text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
-                  <span className="font-handwriting text-xl text-stone-700 dark:text-stone-200">With love, always</span>
-                  <Heart className="w-5 h-5 text-sky-600 dark:text-sky-300" />
+                  <Heart className="w-5 h-5 text-accent" />
+                  <span className="font-handwriting text-xl text-text">With love, always</span>
+                  <Heart className="w-5 h-5 text-accent" />
                 </div>
-                <p className="text-stone-500 dark:text-stone-400 text-sm">
+                <p className="text-muted text-sm">
                   {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
                   {' '}
                   · {entry.type.charAt(0).toUpperCase() + entry.type.slice(1).replace('_', ' ')}
