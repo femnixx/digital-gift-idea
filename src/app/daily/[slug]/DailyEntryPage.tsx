@@ -490,36 +490,33 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           >
             <button
               onClick={() => back('/')}
-              className="p-2 rounded-lg bg-card border-card-border hover:bg-base-2 transition-colors"
+              className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
               aria-label="Back"
             >
-              <ArrowLeft className="w-5 h-5 text-text" />
+              <ArrowLeft className="w-5 h-5 text-gray-900" />
             </button>
 
             <div className="flex items-center gap-4">
-              <span className="font-handwriting text-lg text-text">
+              <span className="font-handwriting text-lg text-gray-900">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
               </span>
               <button
                 onClick={handleShare}
-                className="p-2 rounded-lg bg-card border-card-border hover:bg-base-2 transition-colors"
+                className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
                 aria-label="Share"
               >
                 {shareCopied ? (
                   <span className="text-accent text-xs font-medium">Copied!</span>
                 ) : (
-                  <Share2 className="w-5 h-5 text-text" />
+                  <Share2 className="w-5 h-5 text-gray-900" />
                 )}
               </button>
             </div>
           </motion.header>
 
-          <motion.article
-            className="bg-card rounded-2xl border-card-border"
-            initial={{ opacity: 0, y: 30, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5 }}
+          <article
+            className="bg-white rounded-2xl border border-gray-200"
           >
             {entry.media?.find(m => m.type === 'image' && m.sort_order === 0)?.public_url && (
               <div className="relative h-64 md:h-80 overflow-hidden rounded-t-2xl">
@@ -624,7 +621,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 </p>
               </motion.footer>
             </div>
-          </motion.article>
+          </article>
         </div>
       </main>
     </div>
