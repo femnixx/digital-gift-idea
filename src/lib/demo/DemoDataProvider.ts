@@ -13,7 +13,8 @@ export function DemoInitializer() {
     )
 
     if (isDemoMode) {
-      DemoDataProvider.seedDemoData()
+      // Demo data seeding disabled; only real user-created data should appear.
+      // DemoDataProvider.seedDemoData()
     }
   }, [])
 
