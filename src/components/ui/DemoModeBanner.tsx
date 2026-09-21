@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { FlaskConical, X, Heart, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -19,13 +18,7 @@ export function DemoModeBanner() {
   if (!isDemoMode) return null
 
   return (
-    <motion.div
-      className="fixed bottom-4 right-4 z-50 max-w-sm"
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
-    >
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
       <div className="card p-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-card border border-base flex items-center justify-center flex-shrink-0">
@@ -42,7 +35,7 @@ export function DemoModeBanner() {
                 className="btn-primary inline-flex items-center justify-center px-3 py-1.5 text-xs"
               >
                 Try Demo Entry
-                <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="w-3 h-3 ml-1" />
               </Link>
               <button
                 onClick={() => setDismissed(true)}
@@ -66,6 +59,6 @@ export function DemoModeBanner() {
           <span>Made with love for testing</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
