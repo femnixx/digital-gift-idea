@@ -36,12 +36,12 @@ export default function AdminProfilePage() {
     <AdminLayout>
       <div className="space-y-8 max-w-3xl mx-auto">
         <div>
-          <h1 className="font-script text-3xl md:text-4xl text-sky-700">Profile</h1>
-          <p className="text-stone-600 mt-1">Your love story settings</p>
+          <h1 className="font-script text-3xl md:text-4xl text-accent">Profile</h1>
+          <p className="text-text mt-1">Your love story settings</p>
         </div>
 
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-sky-400 to-sky-600 relative">
+        <div className="bg-card rounded-xl border-card-border overflow-hidden">
+          <div className="h-32 bg-gradient-to-r from-accent to-accent-2 relative">
             <div className="absolute inset-0 opacity-20">
               {Array.from({ length: 12 }).map((_, i) => (
                 <span
@@ -57,18 +57,18 @@ export default function AdminProfilePage() {
 
           <div className="px-6 pb-6">
             <div className="relative -mt-16 mb-4">
-              <div className="w-32 h-32 rounded-full border-4 border-white dark:border-stone-800 bg-sky-100 dark:bg-stone-700 flex items-center justify-center shadow-lg">
-                <User className="w-16 h-16 text-sky-400" />
+              <div className="w-32 h-32 rounded-full border-4 border-card bg-accent/10 flex items-center justify-center shadow-lg">
+                <User className="w-16 h-16 text-accent" />
               </div>
               <button
                 onClick={handleAvatarUpload}
                 disabled={uploading}
-                className="absolute bottom-2 right-2 p-2 rounded-full bg-white dark:bg-stone-700 border border-stone-200 dark:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-600 transition-colors"
+                className="absolute bottom-2 right-2 p-2 rounded-full bg-card border-card-border hover:bg-base-2 transition-colors"
               >
                 {uploading ? (
-                  <span className="block w-3 h-3 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+                  <span className="block w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <Upload className="w-4 h-4 text-stone-600" />
+                  <Upload className="w-4 h-4 text-text" />
                 )}
               </button>
             </div>
@@ -76,7 +76,7 @@ export default function AdminProfilePage() {
             <div className="space-y-4 mt-4">
               <div>
                 <label className="label flex items-center gap-2">
-                  <User className="w-4 h-4 text-sky-500" />
+                  <User className="w-4 h-4 text-accent" />
                   Display Name
                 </label>
                 <input
@@ -89,7 +89,7 @@ export default function AdminProfilePage() {
 
               <div>
                 <label className="label flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-sky-500" />
+                  <Mail className="w-4 h-4 text-accent" />
                   Email
                 </label>
                 <input type="email" value="demo@loveletters.app" disabled className="input" />
@@ -97,7 +97,7 @@ export default function AdminProfilePage() {
 
               <div>
                 <label className="label flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-sky-500" />
+                  <MapPin className="w-4 h-4 text-accent" />
                   Location
                 </label>
                 <input
@@ -111,7 +111,7 @@ export default function AdminProfilePage() {
 
               <div>
                 <label className="label flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-sky-500" />
+                  <Clock className="w-4 h-4 text-accent" />
                   Bio
                 </label>
                 <textarea
@@ -143,34 +143,34 @@ export default function AdminProfilePage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4 flex items-center gap-2">
-            <Heart className="w-5 h-5 text-sky-500" />
+        <div className="bg-card rounded-xl border-card-border p-6">
+          <h2 className="font-serif text-xl font-semibold text-text mb-4 flex items-center gap-2">
+            <Heart className="w-5 h-5 text-accent" />
             Relationship Info
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-stone-500">Anniversary</p>
-              <p className="font-medium text-stone-800">Feb 14, 2024</p>
+              <p className="text-sm text-muted">Anniversary</p>
+              <p className="font-medium text-text">Feb 14, 2024</p>
             </div>
             <div>
-              <p className="text-sm text-stone-500">Distance</p>
-              <p className="font-medium text-stone-800">5,567 km</p>
+              <p className="text-sm text-muted">Distance</p>
+              <p className="font-medium text-text">5,567 km</p>
             </div>
             <div>
-              <p className="text-sm text-stone-500">Partner</p>
-              <p className="font-medium text-stone-800">My Love</p>
+              <p className="text-sm text-muted">Partner</p>
+              <p className="font-medium text-text">My Love</p>
             </div>
             <div>
-              <p className="text-sm text-stone-500">Entries</p>
-              <p className="font-medium text-stone-800">4</p>
+              <p className="text-sm text-muted">Entries</p>
+              <p className="font-medium text-text">4</p>
             </div>
           </div>
         </div>
       </div>
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
-          <div className="bg-sky-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+          <div className="btn-primary px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5" />
             <span className="text-sm font-medium">{toast}</span>
           </div>
