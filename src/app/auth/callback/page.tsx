@@ -17,29 +17,8 @@ export default function AuthCallbackPage() {
     async function handleCallback() {
       try {
         const supabase = createClient()
-        const hasHash = searchParams.toString().includes('#')
-        
-        if (hasHash) {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-          
-          if (sessionError || !session) {
-            const { error: urlError } = await supabase.auth.signInWithOtp({
-              email: 'demo@loveletters.app',
-            })
-            if (urlError) {
-              setError(urlError.message)
-            }
-          } else {
-            await ensureProfileExists(session.user.id, session.user.user_metadata?.display_name || session.user.email?.split('@')[0] || 'User')
-            const redirectTo = searchParams.get('redirect') || '/admin'
-            router.push(redirectTo)
-            router.refresh()
-            return
-          }
-        }
-
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (sessionError) {
           setError(sessionError.message)
         } else if (session) {
@@ -60,28 +39,32 @@ export default function AuthCallbackPage() {
     handleCallback()
   }, [router, searchParams])
 
-  if (loading || !error) {
+  if (loading) {
     return (
-      <div className="min-h-screen romantic-bg flex items-center justify-center p-6">
+      <div className="min-h-screen bg-base flex items-center justify-center p-6">
         <div className="text-center">
-          <Heart className="w-12 h-12 text-sky-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-stone-500">Completing sign in...</p>
+          <Heart className="w-12 h-12 accent mx-auto mb-4 animate-pulse" />
+          <p className="muted-foreground">Completing sign in...</p>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen romantic-bg flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl border border-stone-200 p-8 max-w-md text-center">
-        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h1 className="font-script text-3xl text-sky-700 mb-2">Authentication Error</h1>
-        <p className="text-stone-500 mb-6">{error}</p>
-        <Link href="/login" className="btn-primary inline-flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Sign In
-        </Link>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-base flex items-center justify-center p-6">
+        <div className="card p-8 max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-accent mx-auto mb-4" />
+          <h1 className="heading mb-2">Authentication Error</h1>
+          <p className="muted-foreground mb-6">{error}</p>
+          <Link href="/login" className="btn-primary inline-flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Sign In
+          </Link>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
+
+  return null
 }

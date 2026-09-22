@@ -32,10 +32,6 @@ function fromDemoStorage(): DashboardEntry[] {
 
 function readDemoEntries(): DashboardEntry[] {
   const entries = fromDemoStorage()
-  if (entries.length === 0) {
-    DemoDataProvider.seedDemoData()
-    return fromDemoStorage()
-  }
   return entries
 }
 

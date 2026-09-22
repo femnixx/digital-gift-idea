@@ -98,16 +98,16 @@ export default function AdminDashboardPage() {
             <h1 className="heading">Dashboard</h1>
             <p className="muted-foreground mt-1">Track your progress and manage your surprises</p>
             {isDemoMode && (
-              <p className="text-amber-600 text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
+              <p className="text-warning text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
             )}
           </div>
-          <button
-            onClick={() => showToast('Preparing your new entry...')}
-            className="btn-primary w-full sm:w-auto inline-flex items-center gap-2"
+          <Link
+            href="/admin/entries/new"
+            className="btn-primary w-full sm:w-auto inline-flex items-center gap-2 px-5"
           >
             <Sparkles className="w-5 h-5" />
             <span>Create Entry</span>
-          </button>
+          </Link>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Progress Graphs</h2>
+          <h2 className="font-serif text-xl font-semibold text-text mb-4">Progress Graphs</h2>
           <div className="grid gap-6 lg:grid-cols-2">
             <EntriesOverTimeChart entries={entries} />
             <ViewsByEntryChart entries={entries} />
@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
 
         <section className="gsap-section">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">Recent Entries</h2>
+            <h2 className="font-serif text-xl font-semibold text-text">Recent Entries</h2>
             <Link
               href="/admin/entries"
               className="accent text-sm font-medium hover:opacity-80 flex items-center gap-1 transition-colors"
@@ -204,15 +204,15 @@ export default function AdminDashboardPage() {
                            </span>
                          </td>
                          <td className="px-6 py-4">
-                           <span
-                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                               entry.is_published
-                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                 : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                             }`}
-                           >
-                             {entry.is_published ? 'Published' : 'Draft'}
-                           </span>
+                            <span
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                                entry.is_published
+                                  ? 'bg-success/10 text-success'
+                                  : 'bg-warning/10 text-warning'
+                              }`}
+                            >
+                              {entry.is_published ? 'Published' : 'Draft'}
+                            </span>
                          </td>
                          <td className="px-6 py-4 muted-foreground">
                            {format(new Date(entry.publish_at), 'MMM d, yyyy')}
