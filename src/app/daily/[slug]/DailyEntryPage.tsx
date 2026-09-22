@@ -465,21 +465,23 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
 
   const showEditButton = ['letter', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'bouquet'].includes(entry.type)
 
+  const floatingHearts = Array.from({ length: 6 }).map((_, i) => (
+    <div
+      key={i}
+      className="absolute text-accent/10 text-xl pointer-events-none"
+      style={{
+        left: `${10 + i * 15}%`,
+        top: `${20 + (i % 3) * 30}%`,
+      }}
+    >
+      ♡
+    </div>
+  ))
+
   return (
     <div className="min-h-screen bg-base">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute text-accent/10 text-xl pointer-events-none"
-              style={{
-                left: `${10 + i * 15}%`,
-                top: `${20 + (i % 3) * 30}%`,
-              }}
-            >
-              ♡
-            </div>
-          ))}
+          {floatingHearts}
         </div>
       <main className="relative z-10 min-h-screen py-12 px-4" ref={containerRef}>
         <div className="max-w-4xl mx-auto">
