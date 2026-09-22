@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
@@ -93,23 +92,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-base">
-      <AnimatePresence>
-        {sidebarOpen && (
-          <motion.div
-            className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      <motion.aside
-        className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-base lg:translate-x-0"
-        initial={{ x: -280 }}
-        animate={{ x: sidebarOpen ? 0 : -280 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-base transition-transform duration-200 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
       >
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-base">
@@ -167,37 +160,30 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <ChevronDown className="w-4 h-4 muted-foreground" />
               </button>
 
-              <AnimatePresence>
-                {userMenuOpen && (
-                  <motion.div
-                    className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-base rounded-xl py-2 z-50"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+              {userMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-base rounded-xl py-2 z-50">
+                  <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
+                    <Settings className="w-4 h-4" />
+                    Profile
+                  </Link>
+                  <Link href="/" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
+                    <Heart className="w-4 h-4" />
+                    View Site
+                  </Link>
+                  <div className="border-t border-base my-1" />
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 w-full px-4 py-2 muted-foreground hover:bg-base/50 transition-colors"
                   >
-                    <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
-                      <Settings className="w-4 h-4" />
-                      Profile
-                    </Link>
-                    <Link href="/" className="flex items-center gap-3 px-4 py-2 muted hover:bg-base/50">
-                      <Heart className="w-4 h-4" />
-                      View Site
-                    </Link>
-                    <div className="border-t border-base my-1" />
-                    <button
-                      onClick={handleSignOut}
-                      className="flex items-center gap-3 w-full px-4 py-2 muted-foreground hover:bg-base/50 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
       <div className="lg:pl-64 min-h-screen">
         <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-sm border-b border-base lg:hidden">

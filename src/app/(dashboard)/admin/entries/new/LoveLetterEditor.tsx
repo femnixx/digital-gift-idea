@@ -94,7 +94,7 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
 
   if (saved) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-cream-50 to-lavender-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-base flex items-center justify-center p-6">
         <motion.div
           className="text-center card p-8 md:p-12"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -105,22 +105,22 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
             animate={{ scale: 1 }}
             transition={{ type: 'spring', delay: 0.2 }}
           >
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-success mx-auto mb-4" />
           </motion.div>
-          <h2 className="font-script text-3xl gradient-text mb-2">Letter Saved!</h2>
-          <p className="text-slate-500">Redirecting to your letter...</p>
+          <h2 className="font-script text-3xl text-accent mb-2">Letter Saved!</h2>
+          <p className="text-muted">Redirecting to your letter...</p>
         </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-cream-50 to-lavender-50">
+    <div className="min-h-screen bg-base">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <motion.button
           type="button"
           onClick={handleCancel}
-          className="inline-flex items-center gap-2 text-sky-500 hover:text-sky-600 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-accent hover:text-accent-2 mb-6 transition-colors"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
         >
@@ -136,10 +136,10 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
           <div className="flex items-center gap-3">
             <span className="text-4xl">💌</span>
             <div>
-              <h1 className="font-script text-3xl md:text-4xl gradient-text">
+              <h1 className="font-script text-3xl md:text-4xl text-accent">
                 {isEditing ? 'Edit Love Letter' : 'Write a Love Letter'}
               </h1>
-              <p className="text-sky-500 text-sm mt-1">
+              <p className="text-accent text-sm mt-1">
                 {isEditing ? 'Make your letter even more special' : 'Pour your heart out with style'}
               </p>
             </div>
@@ -153,8 +153,8 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h2 className="font-serif text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold-500" />
+            <h2 className="font-serif text-lg font-semibold text-text mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-warning" />
               Letter Details
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -179,13 +179,13 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
                   className="input font-mono text-sm"
                   required
                 />
-                <p className="text-slate-400 text-xs mt-1">
+                <p className="text-muted text-xs mt-1">
                   Your letter will be at: /daily/{slug || 'your-slug'}
                 </p>
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-sky-50 border border-sky-100">
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
               <input
                 type="checkbox"
                 id="published"

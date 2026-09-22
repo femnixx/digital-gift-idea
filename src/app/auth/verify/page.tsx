@@ -64,24 +64,24 @@ export default function VerifyEmailPage() {
   }, [router, searchParams])
 
   return (
-    <div className="min-h-screen romantic-bg flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl border border-stone-200 p-8 max-w-md text-center">
+    <div className="min-h-screen bg-base flex items-center justify-center p-6">
+      <div className="bg-card rounded-2xl border-card-border p-8 max-w-md text-center">
         {status === 'loading' && (
           <>
-            <Loader2 className="w-12 h-12 text-sky-600 mx-auto mb-4 animate-spin" />
-            <p className="text-stone-500">Verifying your email...</p>
+            <Loader2 className="w-12 h-12 text-accent mx-auto mb-4 animate-spin" />
+            <p className="text-muted">Verifying your email...</p>
           </>
         )}
         {status === 'success' && (
           <>
-            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <p className="text-stone-500">{message}</p>
+            <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-4" />
+            <p className="text-muted">{message}</p>
           </>
         )}
         {status === 'error' && (
           <>
-            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-stone-500 mb-6">{message}</p>
+            <AlertTriangle className="w-12 h-12 text-error mx-auto mb-4" />
+            <p className="text-muted mb-6">{message}</p>
             <Link href="/login" className="btn-primary inline-flex items-center gap-2">
               <ArrowLeft className="w-4 h-4" />
               Go to Sign In
