@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
 import { gsap } from 'gsap'
 import { Heart, Edit3, X, EyeOff, CheckCircle2, ArrowLeft, Calendar, Share2 } from 'lucide-react'
@@ -9,15 +9,16 @@ import { format } from 'date-fns'
 import { DigitalBouquet } from '@/components/features/DigitalBouquet'
 import { PolaroidDeck } from '@/components/features/PolaroidDeck'
 import { ScratchCard } from '@/components/features/ScratchCard'
-import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
 import { OpenWhenLetters } from '@/components/features/OpenWhenLetters'
 import { CassettePlayer, MiniCassettePlayer } from '@/components/features/CassettePlayer'
 import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDate'
-import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
 import { LetterEditor } from '@/components/features/LetterEditor'
 import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, BouquetFlower, FlowerType } from '@/types'
 import { FLOWER_CONFIG } from '@/types'
+
+const ScratchCardCustomizer = lazy(() => import('@/components/features/ScratchCardCustomizer').then(mod => ({ default: mod.ScratchCardCustomizer })))
+const CoffeeDateSelector = lazy(() => import('@/components/features/CoffeeDateSelector').then(mod => ({ default: mod.CoffeeDateSelector })))
 
 interface DailyEntryPageProps {
   entry: Entry
@@ -167,23 +168,25 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         if (showScratchCustomizer) {
           return (
             <div className="max-w-2xl mx-auto">
-              <ScratchCardCustomizer
-                entryId={entry.id}
-                card={editingScratchCard}
-                onSave={(saved: ScratchCardType) => {
-                  handleScratchCardsChange(
-                    editingScratchCard
-                      ? (entry.scratch_cards || []).map(c => c.id === saved.id ? saved : c)
-                      : [...(entry.scratch_cards || []), saved]
-                  )
-                  setShowScratchCustomizer(false)
-                  setEditingScratchCard(null)
-                }}
-                onCancel={() => {
-                  setShowScratchCustomizer(false)
-                  setEditingScratchCard(null)
-                }}
-              />
+              <Suspense fallback={<div className="text-center py-8 text-slate-500">Loading customizer...</div>}>
+                <ScratchCardCustomizer
+                  entryId={entry.id}
+                  card={editingScratchCard}
+                  onSave={(saved: ScratchCardType) => {
+                    handleScratchCardsChange(
+                      editingScratchCard
+                        ? (entry.scratch_cards || []).map(c => c.id === saved.id ? saved : c)
+                        : [...(entry.scratch_cards || []), saved]
+                    )
+                    setShowScratchCustomizer(false)
+                    setEditingScratchCard(null)
+                  }}
+                  onCancel={() => {
+                    setShowScratchCustomizer(false)
+                    setEditingScratchCard(null)
+                  }}
+                />
+              </Suspense>
             </div>
           )
         }
@@ -315,15 +318,17 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
       case 'coffee_date':
         if (editingCoffeeDates) {
           return (
-            <CoffeeDateSelector
-              entryId={entry.id}
-              existingDates={entry.coffee_dates || []}
-              onSave={handleCoffeeDatesSave}
-              onCancel={() => {
-                setEditingCoffeeDates(false)
-              }}
-              mode="edit"
-            />
+            <Suspense fallback={<div className="text-center py-8 text-slate-500">Loading coffee date editor...</div>}>
+              <CoffeeDateSelector
+                entryId={entry.id}
+                existingDates={entry.coffee_dates || []}
+                onSave={handleCoffeeDatesSave}
+                onCancel={() => {
+                  setEditingCoffeeDates(false)
+                }}
+                mode="edit"
+              />
+            </Suspense>
           )
         }
         return entry.coffee_dates && entry.coffee_dates.length > 0 ? (

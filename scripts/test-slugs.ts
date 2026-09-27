@@ -11,6 +11,7 @@ type Entry = {
   publish_at: string
   is_published: boolean
   view_count: number
+  created_by: string
   created_at: string
   updated_at: string
 }
