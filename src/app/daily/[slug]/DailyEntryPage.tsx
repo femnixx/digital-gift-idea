@@ -129,7 +129,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                   <button
                     type="button"
                     onClick={() => setShowScratchCustomizer(false)}
-                    className="px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors inline-flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-sm hover:bg-slate-100 transition-colors inline-flex items-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     Done Editing
@@ -150,7 +150,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
         return entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? (
           <DigitalBouquet flowers={entry.bouquet_flowers} />
         ) : (
-          <p className="text-center text-muted py-12">No flowers in this bouquet yet</p>
+          <p className="text-center text-slate-500 py-12">No flowers in this bouquet yet</p>
         )
 
       case 'polaroid':
@@ -228,7 +228,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                         setEditingScratchCard(card)
                         setShowScratchCustomizer(true)
                       }}
-                      className="p-1.5 rounded-full bg-base-2 text-accent hover:bg-base transition-colors"
+                       className="p-1.5 rounded-full bg-slate-50 text-sky-500 hover:bg-slate-100 transition-colors"
                       title="Edit"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -240,7 +240,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted font-handwriting text-lg mb-4">No scratch cards yet</p>
+            <p className="text-center text-slate-500 font-handwriting text-lg mb-4">No scratch cards yet</p>
             {isEditing && (
               <button
                 type="button"
@@ -271,8 +271,8 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                   onClick={() => setEditingOpenWhenLetters(prev => !prev)}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
                     editingOpenWhenLetters
-                      ? 'bg-accent/10 text-accent border border-accent/20'
-                      : 'bg-base-2 border-card-border text-text hover:bg-base'
+                      ? 'bg-sky-50 text-sky-600 border border-sky-200'
+                      : 'bg-slate-50 border border-slate-200 text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   {editingOpenWhenLetters ? <EyeOff className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
@@ -288,9 +288,9 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
               />
             ) : (
           <div className="text-center py-12">
-            <p className="text-muted font-handwriting text-lg mb-4">No sealed letters yet</p>
+            <p className="text-center text-slate-500 font-handwriting text-lg mb-4">No sealed letters yet</p>
             {isEditing && editingOpenWhenLetters && (
-              <p className="text-muted text-sm">Click "Add New Letter" to create your first letter</p>
+              <p className="text-slate-400 text-sm">Click "Add New Letter" to create your first letter</p>
             )}
           </div>
             )}
@@ -309,7 +309,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
             transcript: n.transcript,
           }))} />
         ) : (
-          <p className="text-center text-muted py-12">No voice notes yet</p>
+          <p className="text-center text-slate-500 py-12">No voice notes yet</p>
         )
 
       case 'coffee_date':
@@ -344,7 +344,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted font-handwriting text-lg mb-4">No coffee dates yet</p>
+            <p className="text-center text-slate-500 font-handwriting text-lg mb-4">No coffee dates yet</p>
             {isEditing && (
               <button
                 type="button"
@@ -364,11 +364,11 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           return (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-script text-xl text-accent">Edit Letter</h3>
+                <h3 className="font-script text-xl text-sky-600">Edit Letter</h3>
                 <motion.button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="p-2 rounded-lg bg-base-2 border-card-border text-text hover:text-accent transition-colors"
+                  className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 hover:text-sky-600 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -392,7 +392,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="font-handwriting text-xl leading-relaxed whitespace-pre-wrap text-text">
+            <div className="font-handwriting text-xl leading-relaxed whitespace-pre-wrap text-slate-900">
               {typeof entry.content === 'object' && entry.content !== null && 'message' in entry.content
                 ? String(entry.content.message)
                 : 'A love letter from my heart to yours'}
@@ -412,7 +412,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                       <img
                         src={media.public_url}
                         alt={media.filename || 'Memory'}
-                        className="w-full h-64 object-cover rounded-xl border border-card-border"
+                        className="w-full h-64 object-cover rounded-xl border border-slate-200"
                       />
                     )}
                     {media.type === 'audio' && media.public_url && (
@@ -509,7 +509,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 aria-label="Share"
               >
                 {shareCopied ? (
-                  <span className="text-accent text-xs font-medium">Copied!</span>
+                  <span className="text-sky-600 text-xs font-medium">Copied!</span>
                 ) : (
                   <Share2 className="w-5 h-5 text-gray-900" />
                 )}
@@ -547,14 +547,14 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-accent mb-4">
+                <h1 className="font-script text-3xl md:text-4xl lg:text-5xl text-sky-600 mb-4">
                   {entry.title}
                 </h1>
 
-                <div className="flex items-center justify-center gap-4 text-muted">
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-card-border to-transparent" />
-                  <Heart className="w-5 h-5 text-accent" />
-                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-card-border to-transparent" />
+                <div className="flex items-center justify-center gap-4 text-slate-400">
+                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                  <Heart className="w-5 h-5 text-sky-500" />
+                  <span className="w-16 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
                 </div>
 
                 {showEditButton && (
@@ -567,10 +567,10 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 <button
                   type="button"
                   onClick={() => { setEditing(true); }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 text-sm hover:bg-slate-100 transition-colors"
                 >
                   {editing ? (
-                    <span className="block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    <span className="block w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <Edit3 className="w-4 h-4" />
                   )}
@@ -606,17 +606,17 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
               </motion.div>
 
               <motion.footer
-                className="mt-12 pt-8 border-t border-card-border text-center"
+                className="mt-12 pt-8 border-t border-slate-200 text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <Heart className="w-5 h-5 text-accent" />
-                  <span className="font-handwriting text-xl text-text">With love, always</span>
-                  <Heart className="w-5 h-5 text-accent" />
+                  <Heart className="w-5 h-5 text-sky-500" />
+                  <span className="font-handwriting text-xl text-slate-900">With love, always</span>
+                  <Heart className="w-5 h-5 text-sky-500" />
                 </div>
-                <p className="text-muted text-sm">
+                <p className="text-slate-500 text-sm">
                   {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
                   {' '}
                   · {entry.type.charAt(0).toUpperCase() + entry.type.slice(1).replace('_', ' ')}
