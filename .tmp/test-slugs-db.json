@@ -1,0 +1,88 @@
+{
+  "entries": [
+    {
+      "id": "test-1790478030085",
+      "slug": "hello-from-api",
+      "title": "Hello from API",
+      "type": "letter",
+      "content": {},
+      "publish_at": "2026-09-27T03:00:30.085Z",
+      "is_published": true,
+      "view_count": 0,
+      "created_at": "2026-09-27T03:00:30.085Z",
+      "updated_at": "2026-09-27T03:00:30.085Z"
+    },
+    {
+      "id": "74a082f6-a5d1-4d59-9beb-c968001e1793",
+      "slug": "test-love-letter",
+      "title": "My Test Love Letter",
+      "type": "letter",
+      "content": {
+        "message": "A love letter from my heart to yours - My Test Love Letter"
+      },
+      "publish_at": "2026-09-27T02:59:38.094Z",
+      "is_published": true,
+      "view_count": 0,
+      "created_by": "test-user",
+      "created_at": "2026-09-27T02:59:38.094Z",
+      "updated_at": "2026-09-27T02:59:38.094Z"
+    },
+    {
+      "id": "f01fc04e-9d7e-4b32-a6c2-44fcf3e0fb78",
+      "slug": "2026-09-15",
+      "title": "Good Morning, My Love",
+      "type": "letter",
+      "content": {
+        "message": "Waking up thinking of you..."
+      },
+      "publish_at": "2026-09-27T02:59:37.051Z",
+      "is_published": true,
+      "view_count": 3,
+      "created_by": "demo-user-1",
+      "created_at": "2026-09-27T02:59:37.051Z",
+      "updated_at": "2026-09-27T02:59:37.051Z"
+    },
+    {
+      "id": "d36c3943-2146-42c9-88fe-63b6988f8404",
+      "slug": "sep-14-sunflowers",
+      "title": "Sep 14 Sunflowers",
+      "type": "letter",
+      "content": {
+        "message": "Sunflowers for you..."
+      },
+      "publish_at": "2026-09-27T02:59:37.051Z",
+      "is_published": true,
+      "view_count": 1,
+      "created_by": "demo-user-1",
+      "created_at": "2026-09-27T02:59:37.051Z",
+      "updated_at": "2026-09-27T02:59:37.051Z"
+    }
+  ],
+  "media": [
+    {
+      "id": "d9a0983b-2bd4-4a53-a629-2314a702ce05",
+      "entry_id": "f01fc04e-9d7e-4b32-a6c2-44fcf3e0fb78",
+      "type": "image",
+      "storage_path": "entries/f01fc04e-9d7e-4b32-a6c2-44fcf3e0fb78/cover.jpg",
+      "public_url": "https://demo-storage.example.com/cover.jpg",
+      "filename": "cover.jpg",
+      "mime_type": "image/jpeg",
+      "size_bytes": 1024,
+      "sort_order": 0,
+      "created_at": "2026-09-27T02:59:37.051Z"
+    },
+    {
+      "id": "d49cf0bc-4077-452c-9ef8-af7e0da95313",
+      "entry_id": "d36c3943-2146-42c9-88fe-63b6988f8404",
+      "type": "image",
+      "storage_path": "entries/d36c3943-2146-42c9-88fe-63b6988f8404/cover.jpg",
+      "public_url": "https://demo-storage.example.com/cover.jpg",
+      "filename": "cover.jpg",
+      "mime_type": "image/jpeg",
+      "size_bytes": 1024,
+      "sort_order": 0,
+      "created_at": "2026-09-27T02:59:37.051Z"
+    }
+  ],
+  "profiles": []
+}
