@@ -3,38 +3,23 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
-import { ThemeSwitcher } from '@/components/ThemeSwitcher'
-import { EntryType } from '@/types'
+import { Heart, Plus, Calendar, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { QuickCreate } from '@/components/layout/QuickCreate'
+import { useColorTheme } from '@/lib/theme'
 
 function DarkModeToggle() {
-  const [dark, setDark] = useState(false)
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark') || localStorage.getItem('love-letters-theme') === 'dark'
-    setDark(isDark)
-  }, [])
-
-  const toggle = () => {
-    const next = !dark
-    if (next) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('love-letters-theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('love-letters-theme', 'light')
-    }
-    setDark(next)
-  }
+  const { theme, toggleTheme } = useColorTheme()
+  const isDark = theme === 'dark'
 
   return (
     <button
-      onClick={toggle}
+      onClick={toggleTheme}
       className="p-2 rounded-lg hover:bg-base/50 transition-colors"
-      aria-label="Toggle dark mode"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-pressed={isDark}
     >
-      {dark ? <Sun className="w-5 h-5 accent" /> : <Moon className="w-5 h-5 muted" />}
+      {isDark ? <Sun className="w-5 h-5 gold" /> : <Moon className="w-5 h-5 muted" />}
     </button>
   )
 }
@@ -80,16 +65,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ]
 
-  const entryTypes: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { type: 'letter', label: 'Love Letter', icon: Mail },
-    { type: 'bouquet', label: 'Digital Bouquet', icon: Flower2 },
-    { type: 'polaroid', label: 'Polaroid Deck', icon: Camera },
-    { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
-    { type: 'open_when', label: 'Open When', icon: Mail },
-    { type: 'voice_note', label: 'Voice Note', icon: Music },
-    { type: 'coffee_date', label: 'Coffee Date', icon: Coffee },
-  ]
-
   return (
     <div className="min-h-screen bg-base">
       {sidebarOpen && (
@@ -127,22 +102,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </Link>
             ))}
           </nav>
-
-          <div className="p-4 border-t border-base">
-            <p className="muted-foreground text-xs uppercase tracking-wider mb-3">Quick Create</p>
-            <div className="grid grid-cols-2 gap-2">
-              {entryTypes.slice(0, 4).map((type) => (
-                <Link
-                  key={type.type}
-                  href={`/admin/entries/new?type=${type.type}`}
-                  className="flex flex-col items-center gap-1 p-3 rounded-lg bg-base/50 hover:bg-base transition-colors"
-                >
-                  <type.icon className="w-5 h-5 muted" />
-                  <span className="text-xs font-medium">{type.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
 
           <div className="p-4 border-t border-base">
             <div className="relative">
@@ -202,13 +161,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <span className="font-script text-lg accent">Dashboard</span>
             </Link>
             <div className="flex items-center gap-2">
-              <ThemeSwitcher />
               <DarkModeToggle />
             </div>
           </div>
         </header>
 
-        <main className="p-6 lg:p-8">
+        <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <QuickCreate />
           {children}
         </main>
       </div>

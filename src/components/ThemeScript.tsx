@@ -1,15 +1,11 @@
-'use client'
-
-import { useEffect } from 'react'
+const THEME_SCRIPT = `(function(){try{
+var k='dll-theme';var s=localStorage.getItem(k);
+var t=(s==='light'||s==='dark')?s:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+var e=document.documentElement;
+e.setAttribute('data-theme',t);
+e.classList.toggle('dark',t==='dark');
+}catch(_){}})();`
 
 export function ThemeScript() {
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('dll-theme')
-      const theme = stored === 'romantic' ? 'romantic' : 'light'
-      document.documentElement.setAttribute('data-theme', theme)
-    } catch {}
-  }, [])
-
-  return null
+  return <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
 }

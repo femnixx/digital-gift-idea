@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const THEME_KEY = 'dll-theme'
 
-type Theme = 'light' | 'romantic'
+type Theme = 'light' | 'dark'
 
 function useTheme() {
   const [theme, setTheme] = useState<Theme>('light')
@@ -12,7 +12,7 @@ function useTheme() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(THEME_KEY) as Theme | null
-      if (stored === 'light' || stored === 'romantic') {
+      if (stored === 'light' || stored === 'dark') {
         setTheme(stored)
         document.documentElement.setAttribute('data-theme', stored)
       }
@@ -21,8 +21,9 @@ function useTheme() {
 
   const toggle = () => {
     setTheme(prev => {
-      const next = prev === 'light' ? 'romantic' : 'light'
+      const next = prev === 'light' ? 'dark' : 'light'
       document.documentElement.setAttribute('data-theme', next)
+      document.documentElement.classList.toggle('dark', next === 'dark')
       try {
         localStorage.setItem(THEME_KEY, next)
       } catch {}
@@ -79,15 +80,15 @@ export default function PerformanceLanding() {
           aria-label="Switch to light blue theme"
         >
           <BlueSvg />
-          Sky
+          Light
         </button>
         <button
           onClick={toggle}
-          className={theme === 'romantic' ? 'active' : ''}
-          aria-label="Switch to dark red theme"
+          className={theme === 'dark' ? 'active' : ''}
+          aria-label="Switch to dark navy theme"
         >
           <RedSvg />
-          Romantic
+          Dark
         </button>
       </div>
 

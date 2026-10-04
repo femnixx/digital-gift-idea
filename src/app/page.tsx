@@ -5,9 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
-import { useColorTheme } from '@/lib/theme'
 
-type Theme = 'light' | 'romantic'
 
 function HeartSvg() {
   return (
@@ -83,7 +81,6 @@ function Sparkles() {
 
 export default function HomePage() {
   const router = useRouter()
-  const { theme } = useColorTheme()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
 

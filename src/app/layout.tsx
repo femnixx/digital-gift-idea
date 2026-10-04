@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Playfair_Display, Dancing_Script } from 'next/font/google'
+import { Inter, Playfair_Display, Dancing_Script, Poppins, Great_Vibes } from 'next/font/google'
 import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
 import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { NavProvider } from '@/hooks/useNav'
@@ -24,6 +24,20 @@ const dancing = Dancing_Script({
   variable: '--font-dancing',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
+})
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  variable: '--font-poppins',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
+
+const greatVibes = Great_Vibes({
+  subsets: ['latin'],
+  variable: '--font-great-vibes',
+  display: 'swap',
+  weight: '400',
 })
 
 export const metadata: Metadata = {
@@ -80,12 +94,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dancing.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfair.variable} ${dancing.variable} ${poppins.variable} ${greatVibes.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <ThemeScript />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans antialiased" style={{ backgroundColor: 'rgb(var(--bg))', color: 'rgb(var(--text))', transition: 'background-color 0.6s ease, color 0.6s ease' }}>
         <ThemeProvider>

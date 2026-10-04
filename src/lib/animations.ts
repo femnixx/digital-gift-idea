@@ -2,24 +2,24 @@
 
 import { useEffect, useRef } from 'react'
 
-type Theme = 'light' | 'romantic'
+type Theme = 'light' | 'dark'
 
 const THEME_COLORS = {
   light: {
-    bg: '#f0f9ff',
-    text: '#0c4a6e',
-    accent: '#0ea5e9',
+    bg: '#f8fbff',
+    text: '#1a3a52',
+    accent: '#5b9bd5',
     card: 'rgba(255, 255, 255, 0.85)',
-    border: 'rgba(186, 230, 253, 0.6)',
-    shadow: 'rgba(14, 165, 233, 0.12)',
+    border: 'rgba(212, 230, 247, 0.9)',
+    shadow: 'rgba(91, 155, 213, 0.12)',
   },
-  romantic: {
-    bg: '#1a0a0a',
-    text: '#fecdd3',
-    accent: '#f43f5e',
-    card: 'rgba(42, 16, 16, 0.85)',
-    border: 'rgba(244, 63, 94, 0.25)',
-    shadow: 'rgba(244, 63, 94, 0.18)',
+  dark: {
+    bg: '#0f1b2e',
+    text: '#e8f0f8',
+    accent: '#8db4e8',
+    card: 'rgba(26, 47, 71, 0.85)',
+    border: 'rgba(42, 69, 99, 0.9)',
+    shadow: 'rgba(0, 0, 0, 0.4)',
   },
 }
 

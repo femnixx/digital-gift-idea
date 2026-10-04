@@ -1,16 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Moon, Sun, Save, User, Bell, Shield, Globe, Palette, CheckCircle2 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
+import { useColorTheme } from '@/lib/theme'
 
 export default function AdminSettingsPage() {
-  const [darkMode, setDarkMode] = useState(false)
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark') || localStorage.getItem('love-letters-theme') === 'dark'
-    setDarkMode(isDark)
-  }, [])
+  const { theme, toggleTheme } = useColorTheme()
+  const darkMode = theme === 'dark'
 
   const [notifications, setNotifications] = useState(true)
   const [publicProfile, setPublicProfile] = useState(true)
@@ -110,17 +107,11 @@ export default function AdminSettingsPage() {
                 <span className="text-text">Dark mode</span>
                 <button
                   onClick={() => {
-                    const next = !darkMode
-                    if (next) {
-                      document.documentElement.classList.add('dark')
-                      localStorage.setItem('love-letters-theme', 'dark')
-                    } else {
-                      document.documentElement.classList.remove('dark')
-                      localStorage.setItem('love-letters-theme', 'light')
-                    }
-                    setDarkMode(next)
-                    showToast(next ? 'Dark mode' : 'Light mode')
+                    toggleTheme()
+                    showToast(darkMode ? 'Light mode' : 'Dark mode')
                   }}
+                  aria-pressed={darkMode}
+                  aria-label="Toggle dark mode"
                   className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-accent' : 'bg-base-2'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white mt-1 ml-1 transition-transform ${darkMode ? 'translate-x-6' : ''}`} />
