@@ -7,6 +7,13 @@
       "enabled": true,
       "headers": {
       }
+    },
+    "neon": {
+      "type": "remote",
+      "url": "https://mcp.neon.tech/mcp?projectId=dark-dream-15395595",
+      "enabled": true,
+      "headers": {
+      }
     }
   }
 }
