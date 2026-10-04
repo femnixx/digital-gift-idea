@@ -21,8 +21,9 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { saveEntryToStorage } from '@/lib/entryStorage'
+import { generateTempSlug, getTempEntries, removeTempEntry } from '@/lib/tempStorage'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
 import type { Entry, EntryType } from '@/types'
 
@@ -35,7 +36,10 @@ const ENTRY_TYPES: { type: EntryType; label: string; icon: React.ComponentType<{
   { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
 ]
 
-function generateSlug(title: string): string {
+function generateSlug(title: string, isDemo: boolean): string {
+  if (isDemo) {
+    return generateTempSlug()
+  }
   const base = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
   const timestamp = Date.now().toString(36).slice(-6)
   return `${base}-${timestamp}`
@@ -61,6 +65,26 @@ export default function NewEntryPage() {
   }, [])
 
   async function loadEntries() {
+    const isDemo = !isSupabaseConfigured()
+    if (isDemo) {
+      try {
+        const raw = localStorage.getItem('digital-love-letters-demo')
+        if (raw) {
+          const data = JSON.parse(raw)
+          setEntries(data.entries || [])
+        }
+      } catch {}
+      try {
+        const tempEntries = getTempEntries()
+        setEntries((prev) => {
+          const tempIds = new Set(tempEntries.map((e) => e.id))
+          const filtered = prev.filter((e) => !tempIds.has(e.id))
+          return [...tempEntries, ...filtered]
+        })
+      } catch {}
+      setLoading(false)
+      return
+    }
     try {
       const raw = localStorage.getItem('digital-love-letters-demo')
       if (raw) {
@@ -79,7 +103,8 @@ export default function NewEntryPage() {
     setCreating(true)
     setError(null)
 
-    const slug = generateSlug(title)
+    const isDemo = !isSupabaseConfigured()
+    const slug = generateSlug(title, isDemo)
     const entry: Entry = {
       id: `entry-${Date.now()}`,
       slug,
@@ -97,12 +122,12 @@ export default function NewEntryPage() {
       updated_at: new Date().toISOString(),
     }
 
-    const { success } = await saveEntryToStorage(entry)
+    const { success, entry: saved } = await saveEntryToStorage(entry)
     if (success) {
       showToast('Entry created!')
       setTitle('')
       setSelectedType(null)
-      setEntries((prev) => [entry, ...prev])
+      setEntries((prev) => [saved ?? entry, ...prev])
     } else {
       setError('Failed to create entry')
     }
@@ -110,6 +135,14 @@ export default function NewEntryPage() {
   }
 
   async function handleDelete(entryId: string) {
+    const isDemo = !isSupabaseConfigured()
+    if (isDemo) {
+      removeTempEntry(entryId)
+      setEntries((prev) => prev.filter((e) => e.id !== entryId))
+      showToast('Entry deleted')
+      return
+    }
+
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -122,7 +155,6 @@ export default function NewEntryPage() {
           .eq('created_by', user.id)
 
         if (error) {
-          // Fall back to localStorage deletion
           removeFromLocal(entryId)
         }
       } else {

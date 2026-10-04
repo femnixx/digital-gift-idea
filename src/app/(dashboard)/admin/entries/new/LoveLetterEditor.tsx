@@ -7,6 +7,8 @@ import { useNav } from '@/hooks/useNav'
 import { db } from '@/lib/storage/localStorageDB'
 import { LetterEditor } from '@/components/features/LetterEditor'
 import { useLocalEntries } from '@/hooks/useLocalData'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { addTempEntry, generateTempSlug, isTempSlug, updateTempEntry } from '@/lib/tempStorage'
 import type { EntryType, Entry as AppEntry } from '@/types'
 
 interface LoveLetterEditorProps {
@@ -39,54 +41,79 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
     }
   }
 
-  const handleSave = (content: { message: string }, extra?: Record<string, any>) => {
-    setIsSubmitting(true)
-    setError(null)
+    const handleSave = (content: { message: string }, extra?: Record<string, any>) => {
+      setIsSubmitting(true)
+      setError(null)
 
-    try {
-      const finalSlug = slug || generateSlug(title || 'love-letter')
+      try {
+        const isDemo = !isSupabaseConfigured()
+        const finalSlug = isDemo
+          ? (isTempSlug(slug) ? slug : generateTempSlug())
+          : (slug || generateSlug(title || 'love-letter'))
 
-      if (isEditing && existingEntry) {
-        const lsEntry = db.entries.get(existingEntry.id)
-        if (lsEntry) {
-          db.entries.update(existingEntry.id, {
-            title,
+        if (isEditing && existingEntry) {
+          if (isTempSlug(existingEntry.slug)) {
+            updateTempEntry(existingEntry.id, {
+              title,
+              slug: finalSlug,
+              content: { ...(existingEntry.content || {}), ...content, ...extra },
+              is_published: isPublished,
+            })
+          } else {
+            const lsEntry = db.entries.get(existingEntry.id)
+            if (lsEntry) {
+              db.entries.update(existingEntry.id, {
+                title,
+                slug: finalSlug,
+                content: { ...lsEntry.content, ...content, ...extra },
+                is_published: isPublished,
+                updated_at: new Date().toISOString(),
+              })
+            }
+          }
+          refresh()
+          setSaved(true)
+          setTimeout(() => {
+            push(`/daily/${finalSlug}`)
+          }, 600)
+        } else {
+          const now = new Date().toISOString()
+          const newEntry = {
+            id: Math.random().toString(36).substring(2, 15),
             slug: finalSlug,
-            content: { ...lsEntry.content, ...content, ...extra },
+            title,
+            type: 'letter' as const,
+            content: { message: content.message, ...extra },
+            publish_at: now,
             is_published: isPublished,
-            updated_at: new Date().toISOString(),
-          })
+            view_count: 0,
+            created_at: now,
+            updated_at: now,
+          }
+
+          if (isDemo) {
+            addTempEntry({
+              ...newEntry,
+              is_featured: false,
+              created_by: '',
+              unlock_at: null,
+              unlock_condition: null,
+            })
+          } else {
+            db.entries.insert(newEntry)
+          }
+
+          refresh()
+          setSaved(true)
+          setTimeout(() => {
+            push(`/daily/${finalSlug}`)
+          }, 600)
         }
-        refresh()
-        setSaved(true)
-        setTimeout(() => {
-          push(`/daily/${finalSlug}`)
-        }, 600)
-      } else {
-        const newEntry = {
-          id: Math.random().toString(36).substring(2, 15),
-          slug: finalSlug,
-          title,
-          type: 'letter',
-          content: { message: content.message, ...extra },
-          publish_at: new Date().toISOString(),
-          is_published: isPublished,
-          view_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        db.entries.insert(newEntry)
-        refresh()
-        setSaved(true)
-        setTimeout(() => {
-          push(`/daily/${finalSlug}`)
-        }, 600)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to save letter. Please try again.')
+        setIsSubmitting(false)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save letter. Please try again.')
-      setIsSubmitting(false)
     }
-  }
 
   const handleCancel = () => {
     back('/admin/entries/new')

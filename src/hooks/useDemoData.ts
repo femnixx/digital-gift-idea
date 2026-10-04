@@ -1,33 +1,31 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { getTempEntries } from '@/lib/tempStorage'
 
 export function useDemoEntries() {
   const [entries, setEntries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
-
     const fetchEntries = async () => {
-      const isDemoMode = !(
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_project_url'
-      )
+      const isDemoMode = !isSupabaseConfigured()
 
       if (isDemoMode) {
         try {
           const storage = localStorage.getItem('digital-love-letters-demo')
-          if (storage) {
-            const data = JSON.parse(storage)
-            setEntries(data.entries || [])
-          }
+          const demoEntries = storage ? JSON.parse(storage).entries || [] : []
+          const tempEntries = getTempEntries()
+          const tempIds = new Set(tempEntries.map((e: any) => e.id))
+          const filteredDemo = demoEntries.filter((e: any) => !tempIds.has(e.id))
+          setEntries([...tempEntries, ...filteredDemo])
         } catch {}
         setLoading(false)
         return
       }
+
+      const supabase = createClient()
 
       const { data } = await (supabase as any)
         .from('entries')
@@ -51,17 +49,18 @@ export function useDemoEntry(slug: string) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
-
     const fetchEntry = async () => {
-      const isDemoMode = !(
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_project_url'
-      )
+      const isDemoMode = !isSupabaseConfigured()
 
       if (isDemoMode) {
         try {
+          const tempEntries = getTempEntries()
+          const tempEntry = tempEntries.find((e: any) => e.slug === slug)
+          if (tempEntry) {
+            setEntry(tempEntry)
+            setLoading(false)
+            return
+          }
           const storage = localStorage.getItem('digital-love-letters-demo')
           if (storage) {
             const data = JSON.parse(storage)
@@ -93,6 +92,8 @@ export function useDemoEntry(slug: string) {
         setLoading(false)
         return
       }
+
+      const supabase = createClient()
 
       const { data } = await (supabase as any)
         .from('entries')
