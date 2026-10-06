@@ -7,12 +7,13 @@ type Theme = 'light' | 'romantic'
 interface ThemeContextValue {
   theme: Theme
   setTheme: (theme: Theme) => void
+  toggleTheme: () => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light')
+  const [theme, setTheme] = useState<Theme>('light')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem('dll-theme') as Theme | null
       if (stored === 'light' || stored === 'romantic') {
-        setThemeState(stored)
+        setTheme(stored)
         document.documentElement.setAttribute('data-theme', stored)
       } else {
         document.documentElement.setAttribute('data-theme', 'light')
@@ -28,12 +29,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [])
 
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next)
-    document.documentElement.setAttribute('data-theme', next)
-    try {
-      localStorage.setItem('dll-theme', next)
-    } catch {}
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === 'light' ? 'romantic' : 'light'
+      document.documentElement.setAttribute('data-theme', next)
+      try {
+        localStorage.setItem('dll-theme', next)
+      } catch {}
+      return next
+    })
   }, [])
 
   if (!mounted) {
@@ -41,7 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )
@@ -50,7 +54,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useColorTheme() {
   const context = useContext(ThemeContext)
   if (!context) {
-    return { theme: 'light' as Theme, setTheme: () => {} }
+    return { theme: 'light' as Theme, setTheme: () => {}, toggleTheme: () => {} }
   }
   return context
 }

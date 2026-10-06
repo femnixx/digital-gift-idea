@@ -7,7 +7,7 @@ import { useColorTheme } from '@/lib/theme'
 
 export default function AdminSettingsPage() {
   const { theme, toggleTheme } = useColorTheme()
-  const darkMode = theme === 'dark'
+  const darkMode = theme === 'romantic'
 
   const [notifications, setNotifications] = useState(true)
   const [publicProfile, setPublicProfile] = useState(true)

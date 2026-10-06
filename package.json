@@ -7,23 +7,31 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "neon:tables": "tsx scripts/neon-tables.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
+    "@neondatabase/serverless": "^1.2.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.39.0",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.2.0",
+    "files-sdk": "^2.6.2",
+    "framer-motion": "^11.18.2",
     "gsap": "^3.12.0",
     "lucide-react": "^0.468.0",
     "next": "^14.2.0",
     "react": "18.3.0",
     "react-dom": "18.3.0",
+    "react-easy-crop": "^6.2.4",
     "react-hook-form": "^7.49.0",
     "react-hot-toast": "^2.4.1",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^2.2.0",
     "uuid": "^14.0.2",
     "zod": "^3.23.0"
@@ -31,15 +39,18 @@
   "devDependencies": {
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.11.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
+    "pg": "^8.23.1",
     "postcss": "^8.4.0",
     "prettier": "^3.2.0",
     "prettier-plugin-tailwindcss": "^0.5.0",
     "tailwindcss": "^3.4.0",
+    "tsx": "^4.0.0",
     "typescript": "^5.3.0"
   }
 }
