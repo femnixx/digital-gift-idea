@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { DemoDataProvider } from '@/lib/demo/DemoDataProvider'
+import { getTempEntries } from '@/lib/tempStorage'
 import type { Entry, EntryType } from '@/types'
 
 export interface DashboardEntry {
@@ -32,10 +33,6 @@ function fromDemoStorage(): DashboardEntry[] {
 
 function readDemoEntries(): DashboardEntry[] {
   const entries = fromDemoStorage()
-  if (entries.length === 0) {
-    DemoDataProvider.seedDemoData()
-    return fromDemoStorage()
-  }
   return entries
 }
 
@@ -49,8 +46,14 @@ export function useDashboardData() {
 
     async function load() {
       if (!isSupabaseConfigured()) {
-        setEntries(readDemoEntries())
-        setLoading(false)
+        const demoEntries = readDemoEntries()
+        const tempEntries = getTempEntries()
+        const tempIds = new Set(tempEntries.map((e) => e.id))
+        const filteredDemo = demoEntries.filter((e) => !tempIds.has(e.id))
+        if (!cancelled) {
+          setEntries([...tempEntries, ...filteredDemo])
+          setLoading(false)
+        }
         return
       }
 
