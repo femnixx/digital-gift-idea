@@ -1,3 +1,10 @@
+function sanitizeIdentifier(value: string): string {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)) {
+    throw new Error('Invalid identifier')
+  }
+  return value
+}
+
 import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
 
 export function getNeonClient(): NeonQueryFunction<any, any> {
@@ -30,24 +37,24 @@ async function main() {
 
   switch (command) {
     case 'list': {
-      const rows = await (client as any)`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name`
+      const rows = await (client as any).query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name`)
       console.log('Tables:')
       console.table(rows)
       break
     }
     case 'query': {
-      const table = args[1]
+      const table = sanitizeIdentifier(args[1] || '')
       if (!table) {
         console.error('Missing table name')
         process.exit(1)
       }
-      const rows = await (client as any)`SELECT * FROM ${table} LIMIT 100`
+      const rows = await (client as any).query(`SELECT * FROM ${table} LIMIT 100`)
       console.log(`Rows in ${table}:`)
       console.table(rows)
       break
     }
     case 'insert': {
-      const table = args[1]
+      const table = sanitizeIdentifier(args[1] || '')
       const raw = args[2]
       if (!table || !raw) {
         console.error('Usage: npm run neon:tables insert <table> <json>')
@@ -56,21 +63,25 @@ async function main() {
       const values = JSON.parse(raw)
       const keys = Object.keys(values)
       const vals = Object.values(values)
-      const result = await (client as any)`INSERT INTO ${table} (${keys}) VALUES (${vals}) RETURNING *`
+      const placeholders = vals.map((_, i) => `$${i + 1}`).join(', ')
+      const result = await (client as any).query(
+        `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`,
+        vals
+      )
       console.log('Inserted:')
       console.table(result)
       break
     }
     case 'create-demo': {
-      await (client as any)`CREATE TABLE IF NOT EXISTS neon_demo_entries (id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`
-      await (client as any)`INSERT INTO neon_demo_entries (id, title) VALUES ('demo-1', 'NeonDB demo entry') ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title`
-      const rows = await (client as any)`SELECT * FROM neon_demo_entries`
+      await (client as any).query(`CREATE TABLE IF NOT EXISTS neon_demo_entries (id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`)
+      await (client as any).query(`INSERT INTO neon_demo_entries (id, title) VALUES ('demo-1', 'NeonDB demo entry') ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title`)
+      const rows = await (client as any).query(`SELECT * FROM neon_demo_entries`)
       console.log('Demo table created. Rows:')
       console.table(rows)
       break
     }
     case 'drop-demo': {
-      await (client as any)`DROP TABLE IF EXISTS neon_demo_entries`
+      await (client as any).query(`DROP TABLE IF EXISTS neon_demo_entries`)
       console.log('Dropped neon_demo_entries if it existed.')
       break
     }
