@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Heart, Mail, Lock, ArrowRight, Loader2, CheckCircle2, User, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import { Heart, Mail, Lock, ArrowRight, CheckCircle2, User } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { ensureProfileExists } from '@/lib/auth'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useColorTheme } from '@/lib/theme'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
@@ -21,7 +19,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [success, setSuccess] = useState(false)
   const { theme } = useColorTheme()
 
@@ -31,49 +28,24 @@ export default function SignupPage() {
     setError('')
     setShake(false)
 
-    const supabase = createClient()
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: name || email.split('@')[0],
-        },
-        emailRedirectTo: `${window.location.origin}/auth/verify`,
-      },
-    })
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      })
 
-    if (authError) {
-      setError(authError.message)
-      setShake(true)
-      setLoading(false)
-      setTimeout(() => setShake(false), 500)
-    } else if (data.user) {
-      await ensureProfileExists(data.user.id, name || email.split('@')[0])
-
-      if (!data.user.confirmed_at) {
-        setSuccess(true)
-      } else {
-        router.push(redirect)
-        router.refresh()
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Signup failed')
       }
-    }
-  }
 
-  const handleOAuth = async (provider: 'google' | 'github' | 'apple') => {
-    setLoading(true)
-    setError('')
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      setError(error.message)
+      setSuccess(true)
+    } catch (err: any) {
+      setError(err.message)
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
+    } finally {
       setLoading(false)
     }
   }
@@ -87,9 +59,8 @@ export default function SignupPage() {
         <div className="w-full max-w-md animate-fade-in-up">
           <div className="card p-8 text-center">
             <CheckCircle2 className="w-12 h-12 accent mx-auto mb-4" />
-            <h1 className="heading mb-2">Check Your Email</h1>
-            <p className="muted-foreground mb-2">We sent a verification link to {email}</p>
-            <p className="muted-foreground text-sm">Click the link to verify your account and start creating love letters.</p>
+            <h1 className="heading mb-2">Account Created</h1>
+            <p className="muted-foreground mb-2">Welcome! You can now sign in.</p>
             <Link href="/login" className="btn-primary inline-flex items-center gap-2 mt-6">
               <ArrowRight className="w-4 h-4" />
               Go to Sign In
@@ -167,26 +138,6 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <div className="mt-6 space-y-3">
-            <p className="text-center muted-foreground text-sm">Or sign up with</p>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { name: 'Google', provider: 'google' },
-                { name: 'GitHub', provider: 'github' },
-                { name: 'Apple', provider: 'apple' },
-              ].map(({ name, provider }) => (
-                <button
-                  key={provider}
-                  onClick={() => handleOAuth(provider as 'google' | 'github' | 'apple')}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 py-3 rounded-lg border border-base bg-card hover:bg-base/50 transition-colors disabled:opacity-50"
-                >
-                  <span className="text-sm capitalize">{name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-6 text-center">
             <p className="muted-foreground text-sm">
               Already have an account?{' '}
@@ -195,10 +146,6 @@ export default function SignupPage() {
               </Link>
             </p>
           </div>
-
-          <p className="text-center muted-foreground text-xs mt-6">
-            Demo mode: any email/password works
-          </p>
         </div>
       </div>
     </div>

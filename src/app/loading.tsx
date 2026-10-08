@@ -2,20 +2,15 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function Loading() {
   const router = useRouter()
 
   useEffect(() => {
-    const check = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.replace('/login')
-      }
-    }
-    check()
+    const timer = setTimeout(() => {
+      router.replace('/admin')
+    }, 1500)
+    return () => clearTimeout(timer)
   }, [router])
 
   return (

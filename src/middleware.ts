@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { Database } from '@/types/supabase'
-import { isSupabaseConfigured } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/neon/auth'
+import type { Database } from '@/types/supabase'
 
 const PROTECTED_PATHS = ['/admin']
 const AUTH_PATHS = ['/login', '/signup', '/auth']
@@ -36,51 +35,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  if (!isSupabaseConfigured()) {
-    return response
-  }
-
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          const newResponse = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          newResponse.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          return newResponse
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          const newResponse = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          newResponse.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          return newResponse
-        },
-      },
-    }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUserFromRequest(request)
 
   if (!user) {
     const loginUrl = new URL('/login', request.url)
