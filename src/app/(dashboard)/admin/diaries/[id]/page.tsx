@@ -20,8 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { loadDiaryById, getDiaryMetrics, getDiaryWithMetrics, removeDiary, attachEntriesToDiary } from '@/lib/services/diaryService'
-import { createClient } from '@/lib/supabase/client'
+import { removeDiary } from '@/lib/services/diaryService'
 import type { LoveDiary } from '@/types'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
 import type { EntryType } from '@/types'
@@ -50,15 +49,19 @@ export default function AdminDiaryDetailPage() {
 
   async function loadDiary() {
     try {
-      const data = await loadDiaryById(diaryId)
-      if (!data) {
+      const res = await fetch(`/api/diaries?id=${diaryId}`)
+      if (!res.ok) {
         setError('Diary not found')
         setLoading(false)
         return
       }
-      setDiary(data)
-      const metricsData = await getDiaryMetrics(diaryId)
-      setMetrics(metricsData)
+      const data = await res.json()
+      setDiary(data.data)
+      const metricsRes = await fetch(`/api/diaries/${diaryId}?action=metrics`)
+      if (metricsRes.ok) {
+        const metricsData = await metricsRes.json()
+        setMetrics(metricsData.data)
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -275,7 +278,7 @@ export default function AdminDiaryDetailPage() {
                         Are you sure?
                       </p>
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">
-                        This will permanently delete &quot;{diary.title}&quot;. This action cannot be undone.
+                        This will permanently delete "{diary.title}". This action cannot be undone.
                       </p>
                     </div>
                   </div>
@@ -315,9 +318,7 @@ export default function AdminDiaryDetailPage() {
               <button
                 onClick={async () => {
                   try {
-                    const supabase = createClient()
-                    const { data: { user } } = await supabase.auth.getUser()
-                    const result = await attachEntriesToDiary(diaryId, [])
+                    const result = await removeDiary(diaryId)
                     if (result.success) {
                       showToast('Entries updated')
                     }

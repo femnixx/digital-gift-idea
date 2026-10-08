@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { getTempEntries } from '@/lib/tempStorage'
 
 export function useDemoEntries() {
@@ -10,31 +9,27 @@ export function useDemoEntries() {
 
   useEffect(() => {
     const fetchEntries = async () => {
-      const isDemoMode = !isSupabaseConfigured()
-
-      if (isDemoMode) {
-        try {
+      try {
+        const res = await fetch('/api/public/entries')
+        if (res.ok) {
+          const data = await res.json()
+          setEntries(data.entries || [])
+        } else {
           const storage = localStorage.getItem('digital-love-letters-demo')
           const demoEntries = storage ? JSON.parse(storage).entries || [] : []
           const tempEntries = getTempEntries()
           const tempIds = new Set(tempEntries.map((e: any) => e.id))
           const filteredDemo = demoEntries.filter((e: any) => !tempIds.has(e.id))
           setEntries([...tempEntries, ...filteredDemo])
-        } catch {}
-        setLoading(false)
-        return
+        }
+      } catch {
+        const storage = localStorage.getItem('digital-love-letters-demo')
+        const demoEntries = storage ? JSON.parse(storage).entries || [] : []
+        const tempEntries = getTempEntries()
+        const tempIds = new Set(tempEntries.map((e: any) => e.id))
+        const filteredDemo = demoEntries.filter((e: any) => !tempIds.has(e.id))
+        setEntries([...tempEntries, ...filteredDemo])
       }
-
-      const supabase = createClient()
-
-      const { data } = await (supabase as any)
-        .from('entries')
-        .select('*')
-        .eq('is_published', true)
-        .lte('publish_at', new Date().toISOString())
-        .order('publish_at', { ascending: false })
-
-      setEntries(data || [])
       setLoading(false)
     }
 
@@ -50,10 +45,12 @@ export function useDemoEntry(slug: string) {
 
   useEffect(() => {
     const fetchEntry = async () => {
-      const isDemoMode = !isSupabaseConfigured()
-
-      if (isDemoMode) {
-        try {
+      try {
+        const res = await fetch(`/api/public/entries/${slug}`)
+        if (res.ok) {
+          const data = await res.json()
+          setEntry(data.entry)
+        } else {
           const tempEntries = getTempEntries()
           const tempEntry = tempEntries.find((e: any) => e.slug === slug)
           if (tempEntry) {
@@ -88,31 +85,8 @@ export function useDemoEntry(slug: string) {
               setEntry(found)
             }
           }
-        } catch {}
-        setLoading(false)
-        return
-      }
-
-      const supabase = createClient()
-
-      const { data } = await (supabase as any)
-        .from('entries')
-        .select(`
-          *,
-          media (*),
-          bouquet_flowers (*),
-          polaroid_cards (*),
-          scratch_cards (*),
-          open_when_letters (*),
-          coffee_dates (*),
-          voice_notes (*, media (*))
-        `)
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .lte('publish_at', new Date().toISOString())
-        .single()
-
-      setEntry(data)
+        }
+      } catch {}
       setLoading(false)
     }
 

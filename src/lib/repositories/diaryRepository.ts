@@ -1,4 +1,6 @@
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+'use client'
+
+import { getDiaries as getDiariesNeon, getDiaryById as getDiaryByIdNeon, createDiary as createDiaryNeon, deleteDiary as deleteDiaryNeon, addEntriesToDiary as addEntriesToDiaryNeon } from '@/lib/neon/db'
 import { DemoDataProvider } from '@/lib/demo/DemoDataProvider'
 import type { LoveDiary, CreateDiaryForm } from '@/types'
 
@@ -20,51 +22,18 @@ function readDemoDiaries(): LoveDiary[] {
 }
 
 export async function getDiaries(): Promise<LoveDiary[]> {
-  if (!isSupabaseConfigured()) {
-    return readDemoDiaries()
-  }
-
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return readDemoDiaries()
-
-    const { data, error } = await (supabase as any)
-      .from('love_diaries')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-
-    if (error || !data) return readDemoDiaries()
-    return data as LoveDiary[]
+    return await getDiariesNeon('')
   } catch {
     return readDemoDiaries()
   }
 }
 
 export async function getDiaryById(id: string): Promise<LoveDiary | null> {
-  if (!isSupabaseConfigured()) {
-    return readDemoDiaries().find((d) => d.id === id) || null
-  }
-
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return null
-
-    const { data, error } = await (supabase as any)
-      .from('love_diaries')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single()
-
-    if (error || !data) return null
-    return data as LoveDiary
+    return await getDiaryByIdNeon(id)
   } catch {
-    return null
+    return readDemoDiaries().find((d) => d.id === id) || null
   }
 }
 
@@ -82,7 +51,10 @@ export async function createDiary(form: CreateDiaryForm, userId: string): Promis
     total_views: 0,
   }
 
-  if (!isSupabaseConfigured()) {
+  try {
+    const result = await createDiaryNeon(diary)
+    return result as LoveDiary
+  } catch (err: any) {
     const storage = DemoDataProvider.getStorage()
     const diaries: LoveDiary[] = storage.love_diaries || []
     diaries.unshift(diary)
@@ -90,30 +62,13 @@ export async function createDiary(form: CreateDiaryForm, userId: string): Promis
     DemoDataProvider.setStorage(storage)
     return diary
   }
-
-  try {
-    const supabase = createClient()
-    const { data, error } = await (supabase as any)
-      .from('love_diaries')
-      .insert({
-        user_id: userId,
-        title: form.title,
-        description: form.description || '',
-        entry_ids: form.entry_ids || [],
-        cover_image: form.cover_image || null,
-      })
-      .select()
-      .single()
-
-    if (error || !data) return { success: false, error: error?.message || 'Failed to create diary' }
-    return data as LoveDiary
-  } catch (err: any) {
-    return { success: false, error: err.message }
-  }
 }
 
 export async function deleteDiary(id: string): Promise<{ success: boolean; error?: string }> {
-  if (!isSupabaseConfigured()) {
+  try {
+    await deleteDiaryNeon(id)
+    return { success: true }
+  } catch (err: any) {
     const storage = DemoDataProvider.getStorage()
     const diaries: LoveDiary[] = storage.love_diaries || []
     const filtered = diaries.filter((d) => d.id !== id)
@@ -121,28 +76,13 @@ export async function deleteDiary(id: string): Promise<{ success: boolean; error
     DemoDataProvider.setStorage(storage)
     return { success: true }
   }
-
-  try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { success: false, error: 'Not authenticated' }
-
-    const { error } = await (supabase as any)
-      .from('love_diaries')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
-
-    if (error) return { success: false, error: error.message }
-    return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
-  }
 }
 
 export async function addEntriesToDiary(diaryId: string, entryIds: string[]): Promise<{ success: boolean; error?: string }> {
-  if (!isSupabaseConfigured()) {
+  try {
+    const result = await addEntriesToDiaryNeon(diaryId, entryIds)
+    return result
+  } catch (err: any) {
     const storage = DemoDataProvider.getStorage()
     const diaries: LoveDiary[] = storage.love_diaries || []
     const diary = diaries.find((d) => d.id === diaryId)
@@ -154,23 +94,6 @@ export async function addEntriesToDiary(diaryId: string, entryIds: string[]): Pr
       DemoDataProvider.setStorage(storage)
     }
     return { success: true }
-  }
-
-  try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Not authenticated' }
-
-    const { error } = await (supabase as any)
-      .from('love_diaries')
-      .update({ entry_ids: entryIds })
-      .eq('id', diaryId)
-      .eq('user_id', user.id)
-
-    if (error) return { success: false, error: error.message }
-    return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
   }
 }
 

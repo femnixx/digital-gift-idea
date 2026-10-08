@@ -14,8 +14,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { createNewDiary } from '@/lib/services/diaryService'
-import { createClient } from '@/lib/supabase/client'
+import { createDiary } from '@/lib/repositories/diaryRepository'
 import type { EntryType } from '@/types'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
 
@@ -42,9 +41,9 @@ export default function NewDiaryPage() {
 
   async function loadEntries() {
     try {
-      const raw = localStorage.getItem('digital-love-letters-demo')
-      if (raw) {
-        const data = JSON.parse(raw)
+      const res = await fetch('/api/entries')
+      if (res.ok) {
+        const data = await res.json()
         setEntries(data.entries || [])
       }
     } catch {}
@@ -63,14 +62,21 @@ export default function NewDiaryPage() {
     setLoading(true)
 
     try {
-      const { data: { user } } = await createClient().auth.getUser()
+      const res = await fetch('/api/auth/me')
+      let userId = 'demo-user'
+      if (res.ok) {
+        const data = await res.json()
+        if (data.user?.id) {
+          userId = data.user.id
+        }
+      }
 
-      const result = await createNewDiary(
+      const result = await createDiary(
         { title, description, entry_ids: selectedEntries },
-        user?.id || 'demo-user'
+        userId
       )
 
-      if ('success' in result && !result.success) {
+      if (result && 'success' in result && !result.success) {
         setError(result.error)
         setLoading(false)
         return

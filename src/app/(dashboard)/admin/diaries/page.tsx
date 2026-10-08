@@ -15,8 +15,6 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { listDiaries } from '@/lib/services/diaryService'
-import { createClient } from '@/lib/supabase/client'
 import type { LoveDiary } from '@/types'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
 import type { EntryType } from '@/types'
@@ -36,8 +34,13 @@ export default function AdminDiariesPage() {
   }, [])
 
   async function loadDiaries() {
-    const data = await listDiaries()
-    setDiaries(data)
+    try {
+      const res = await fetch('/api/diaries')
+      if (res.ok) {
+        const data = await res.json()
+        setDiaries(data.data || [])
+      }
+    } catch {}
     setLoading(false)
   }
 

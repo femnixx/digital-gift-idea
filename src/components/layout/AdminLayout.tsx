@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { EntryType } from '@/types'
-import { createClient } from '@/lib/supabase/client'
 
 function DarkModeToggle() {
   const [dark, setDark] = useState(false)
@@ -53,12 +52,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     async function loadUser() {
       try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user?.user_metadata?.display_name) {
-          setUserName(user.user_metadata.display_name)
-        } else if (user?.email) {
-          setUserName(user.email.split('@')[0])
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user?.name) {
+            setUserName(data.user.name)
+          } else if (data.user?.email) {
+            setUserName(data.user.email.split('@')[0])
+          }
         }
       } catch {}
     }
@@ -66,8 +67,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [])
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await fetch('/api/auth/logout', { method: 'POST' })
     setUserMenuOpen(false)
     router.push('/login')
     router.refresh()

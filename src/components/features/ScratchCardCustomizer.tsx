@@ -16,7 +16,6 @@ import {
   RotateCcw,
   Eye,
 } from 'lucide-react'
-import { db } from '@/lib/storage/localStorageDB'
 import type { ScratchCard } from '@/types'
 
 interface ScratchCardCustomizerProps {
@@ -138,20 +137,7 @@ export function ScratchCardCustomizer({
     try {
       let finalCoverImageUrl = coverImageUrl
       if (coverImageUrl && (!card?.cover_image_url || coverImageUrl !== card.cover_image_url)) {
-        const mediaId = `media-${Date.now()}`
-        const mediaItem = {
-          id: mediaId,
-          entry_id: entryId,
-          type: 'image' as const,
-          storage_path: `scratch-cover/${mediaId}.jpg`,
-          public_url: coverImageUrl,
-          filename: `scratch-cover-${Date.now()}.jpg`,
-          mime_type: 'image/jpeg',
-          size_bytes: null,
-          sort_order: 0,
-          created_at: new Date().toISOString(),
-        }
-        db.media.insert(mediaItem as any)
+        finalCoverImageUrl = coverImageUrl
       }
 
       const savedCard: ScratchCard = {

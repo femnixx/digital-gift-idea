@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/neon/auth'
+import { getDiaries, getDiaryById, createDiary, deleteDiary } from '@/lib/neon/db'
 import { z } from 'zod'
-import { getDiaries, getDiaryById, createDiary, deleteDiary } from '@/lib/repositories/diaryRepository'
 import type { CreateDiaryForm } from '@/types'
 
 const createDiarySchema = z.object({
@@ -13,9 +13,7 @@ const createDiarySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -30,9 +28,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: diary })
     }
 
-    const diaries = await getDiaries()
-    const userDiaries = diaries.filter((d) => d.user_id === user.id)
-    return NextResponse.json({ data: userDiaries })
+    const diaries = await getDiaries(user.id)
+    return NextResponse.json({ data: diaries })
   } catch (error) {
     console.error('Error fetching diaries:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -41,16 +38,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const validation = createDiarySchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
@@ -64,11 +59,13 @@ export async function POST(request: NextRequest) {
       diaryForm.cover_image = validation.data.cover_image
     }
 
-    const result = await createDiary(diaryForm, user.id)
-
-    if ('success' in result && !result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 })
-    }
+    const result = await createDiary({
+      user_id: user.id,
+      title: diaryForm.title,
+      description: diaryForm.description,
+      entry_ids: diaryForm.entry_ids,
+      cover_image: diaryForm.cover_image,
+    })
 
     return NextResponse.json({ data: result })
   } catch (err: any) {
@@ -79,9 +76,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -97,11 +92,7 @@ export async function DELETE(request: NextRequest) {
     if (!diary) return NextResponse.json({ error: 'Diary not found' }, { status: 404 })
     if (diary.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const result = await deleteDiary(id)
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 })
-    }
+    await deleteDiary(id)
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/neon/auth'
+import { getEntryBySlug, updateEntry, deleteEntry, getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry } from '@/lib/neon/db'
 import { z } from 'zod'
 
 const updateEntrySchema = z.object({
@@ -18,35 +19,40 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUserFromRequest(request)
     const { id } = await params
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data, error } = await supabase
-      .from('entries')
-      .select(`
-        *,
-        media (*),
-        bouquet_flowers (*),
-        polaroid_cards (*),
-        scratch_cards (*),
-        open_when_letters (*),
-        coffee_dates (*),
-        voice_notes (*)
-      `)
-      .eq('id', id)
-      .eq('created_by', user.id)
-      .single()
-
-    if (error) {
+    const entry = await getEntryBySlug(id)
+    if (!entry) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ entry: data })
+    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
+      getMediaByEntry(entry.id),
+      getBouquetFlowersByEntry(entry.id),
+      getPolaroidCardsByEntry(entry.id),
+      getScratchCardsByEntry(entry.id),
+      getOpenWhenLettersByEntry(entry.id),
+      getCoffeeDatesByEntry(entry.id),
+      getVoiceNotesByEntry(entry.id),
+    ])
+
+    return NextResponse.json({
+      entry: {
+        ...entry,
+        media,
+        bouquet_flowers: bouquetFlowers,
+        polaroid_cards: polaroidCards,
+        scratch_cards: scratchCards,
+        open_when_letters: openWhenLetters,
+        coffee_dates: coffeeDates,
+        voice_notes: voiceNotes,
+      },
+    })
   } catch (error) {
     console.error('Error fetching entry:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -58,56 +64,35 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUserFromRequest(request)
     const { id } = await params
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const validation = updateEntrySchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
-    // Check ownership
-    const { data: existing } = await supabase
-      .from('entries')
-      .select('id')
-      .eq('id', id)
-      .eq('created_by', user.id)
-      .single()
-
+    const existing = await getEntryBySlug(id)
     if (!existing) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    // Check slug uniqueness if changing
-    if (validation.data.slug) {
-      const { data: slugExists } = await supabase
-        .from('entries')
-        .select('id')
-        .eq('slug', validation.data.slug)
-        .neq('id', id)
-        .single()
-
+    if (validation.data.slug && validation.data.slug !== id) {
+      const slugExists = await getEntryBySlug(validation.data.slug)
       if (slugExists) {
         return NextResponse.json({ error: 'Slug already exists' }, { status: 409 })
       }
     }
 
-    const { data: entry, error } = await supabase
-      .from('entries')
-      .update(validation.data)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const entry = await updateEntry(id, validation.data)
+    if (!entry) {
+      return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
     return NextResponse.json({ entry })
@@ -122,23 +107,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getUserFromRequest(request)
     const { id } = await params
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { error } = await supabase
-      .from('entries')
-      .delete()
-      .eq('id', id)
-      .eq('created_by', user.id)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const existing = await getEntryBySlug(id)
+    if (!existing) {
+      return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
+
+    await deleteEntry(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

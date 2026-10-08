@@ -8,7 +8,6 @@ import { AdminLayout } from '@/components/layout/AdminLayout'
 import { SkeletonEntryTable } from '@/components/ui/Skeleton'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
-import { createClient } from '@/lib/supabase/client'
 import type { EntryType } from '@/types'
 
 export default function AdminEntriesPage() {
@@ -151,28 +150,11 @@ export default function AdminEntriesPage() {
                                 if (!confirm('Delete this entry? This cannot be undone.')) return
                                 setDeleting(entry.id)
                                 try {
-                                  const supabase = createClient()
-                                  const { data: { user } } = await supabase.auth.getUser()
-                                  if (!user) {
-                                    showToast('You must be logged in to delete entries')
-                                    setDeleting(null)
+                                  const res = await fetch(`/api/entries/${entry.slug}`, { method: 'DELETE' })
+                                  if (!res.ok) {
+                                    showToast('Failed to delete entry')
                                     return
                                   }
-                                  const { data: existing } = await supabase
-                                    .from('entries')
-                                    .select('id')
-                                    .eq('id', entry.id)
-                                    .eq('created_by', user.id)
-                                    .single()
-
-                                  if (!existing) {
-                                    showToast('You can only delete your own entries')
-                                    setDeleting(null)
-                                    return
-                                  }
-                                  const query = supabase.from('entries').delete() as any
-                                  const { error } = await query.eq('id', entry.id)
-                                  if (error) throw error
                                   showToast('Entry deleted successfully')
                                   router.refresh()
                                 } catch (err) {

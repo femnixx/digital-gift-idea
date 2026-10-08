@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/neon/auth'
+import { getEntries, createEntry as dbCreateEntry, getEntriesByType } from '@/lib/neon/db'
 import { z } from 'zod'
 
 const createEntrySchema = z.object({
@@ -15,9 +16,7 @@ const createEntrySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -29,48 +28,29 @@ export async function GET(request: NextRequest) {
     const published = searchParams.get('published')
     const search = searchParams.get('search')
 
-    let query = supabase
-      .from('entries')
-      .select(`
-        *,
-        media (*),
-        bouquet_flowers (*),
-        polaroid_cards (*),
-        scratch_cards (*),
-        open_when_letters (*),
-        coffee_dates (*),
-        voice_notes (*)
-      `)
-      .eq('created_by', user.id)
-      .order('created_at', { ascending: false })
+    let entries = await getEntries()
 
     if (type) {
-      query = query.eq('type', type)
+      entries = entries.filter((e) => e.type === type)
     }
     if (published !== null) {
-      query = query.eq('is_published', published === 'true')
+      entries = entries.filter((e) => e.is_published === (published === 'true'))
     }
     if (search) {
-      query = query.ilike('title', `%${search}%`)
+      entries = entries.filter((e) => e.title.toLowerCase().includes(search.toLowerCase()))
     }
 
     const from = (page - 1) * limit
-    const to = from + limit - 1
-    query = query.range(from, to)
-
-    const { data, error, count } = await query
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    const to = from + limit
+    const paginated = entries.slice(from, to)
 
     return NextResponse.json({
-      entries: data,
+      entries: paginated,
       pagination: {
         page,
         limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
+        total: entries.length,
+        totalPages: Math.ceil(entries.length / limit),
       },
     })
   } catch (error) {
@@ -81,56 +61,49 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const validation = createEntrySchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
     const { title, type, slug, content, publish_at, unlock_at, unlock_condition, is_published } = validation.data
 
-    // Check if slug already exists
-    const { data: existing } = await supabase
-      .from('entries')
-      .select('id')
-      .eq('slug', slug)
-      .single()
-
+    const existing = await getEntryBySlug(slug)
     if (existing) {
       return NextResponse.json({ error: 'Slug already exists' }, { status: 409 })
     }
 
-    const { data: entry, error } = await supabase
-      .from('entries')
-      .insert({
-        title,
-        type,
-        slug,
-        content,
-        publish_at: publish_at || new Date().toISOString(),
-        unlock_at,
-        unlock_condition,
-        is_published,
-        created_by: user.id,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    const entry = await dbCreateEntry({
+      slug,
+      title,
+      type,
+      content: content || {},
+      publish_at: publish_at || new Date().toISOString(),
+      unlock_at: unlock_at || null,
+      unlock_condition: unlock_condition || null,
+      is_published: is_published || false,
+      is_featured: false,
+      view_count: 0,
+      created_by: user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
 
     return NextResponse.json({ entry }, { status: 201 })
   } catch (error) {
     console.error('Error creating entry:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+async function getEntryBySlug(slug: string) {
+  const result = await import('@/lib/neon/db').then((m) => m.getEntryBySlug(slug))
+  return result
 }

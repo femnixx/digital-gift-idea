@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
 if (!connectionString) throw new Error('Missing NEON_DATABASE_URL')
 
-export const sql = neon(connectionString, { fullResults: true })
+export const sql = neon(connectionString)
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production'
 const JWT_EXPIRY = '7d'
@@ -36,7 +36,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 export async function createUser(email: string, password: string, name?: string): Promise<User> {
   const existing = await sql`select id from users where email = ${email.toLowerCase()}`
-  if (existing.rows.length > 0) {
+  if (existing.length > 0) {
     throw new Error('Email already registered')
   }
   const passwordHash = await hashPassword(password)
@@ -45,17 +45,17 @@ export async function createUser(email: string, password: string, name?: string)
     values (${email.toLowerCase()}, ${passwordHash}, ${name || null}, now(), now())
     returning id, email, name, avatar_url, created_at, updated_at
   `
-  return result.rows[0] as User
+  return result[0] as unknown as User
 }
 
 export async function getUserByEmail(email: string): Promise<(User & { password_hash: string }) | null> {
   const result = await sql`select * from users where email = ${email.toLowerCase()}`
-  return result.rows[0] || null
+  return (result[0] as unknown as (User & { password_hash: string })) || null
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   const result = await sql`select id, email, name, avatar_url, created_at, updated_at from users where id = ${id}`
-  return result.rows[0] || null
+  return (result[0] as unknown as User) || null
 }
 
 export async function updateUser(id: string, patch: Partial<Pick<User, 'name' | 'avatar_url'>>): Promise<User | null> {
@@ -63,7 +63,7 @@ export async function updateUser(id: string, patch: Partial<Pick<User, 'name' | 
     update users set name = ${patch.name}, avatar_url = ${patch.avatar_url}, updated_at = now()
     where id = ${id} returning id, email, name, avatar_url, created_at, updated_at
   `
-  return result.rows[0] || null
+  return (result[0] as unknown as User) || null
 }
 
 export async function createSession(userId: string): Promise<string> {
@@ -77,7 +77,7 @@ export async function verifySession(token: string): Promise<User | null> {
     const payload = jwt.verify(token, JWT_SECRET) as { sub: string; typ: string }
     if (payload.typ !== 'session') return null
     const result = await sql`select user_id, expires_at from sessions where token = ${token} and expires_at > now()`
-    if (result.rows.length === 0) return null
+    if (result.length === 0) return null
     return getUserById(payload.sub)
   } catch {
     return null
@@ -103,5 +103,13 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
     return await verifySession(match[1])
   } catch {
     return null
+  }
+}
+
+export async function ensureProfileExists(userId: string, displayName: string) {
+  try {
+    await sql`insert into profiles (id, display_name, created_at, updated_at) values (${userId}, ${displayName}, now(), now())`
+  } catch {
+    // ignore duplicate
   }
 }

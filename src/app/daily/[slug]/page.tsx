@@ -1,9 +1,9 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { DailyEntryPage } from './DailyEntryPage'
 import { DailyEntryPageClient } from './DailyEntryPageClient'
+import { getEntryBySlug } from '@/lib/neon/db'
+import { getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry } from '@/lib/neon/db'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -24,24 +24,12 @@ async function getDemoEntry(slug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
 
-  if (!isSupabaseConfigured()) {
+  const entry = await getEntryBySlug(slug)
+  if (!entry || !entry.is_published) {
     return {
       title: `Digital Love Letter: ${slug}`,
       description: 'A romantic digital space for long-distance love',
     }
-  }
-
-  const supabase = createClient()
-
-  const { data: entry } = await supabase
-    .from('entries')
-    .select('title, content')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .single()
-
-  if (!entry) {
-    return { title: 'Entry Not Found' }
   }
 
   return {
@@ -60,32 +48,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DailyEntryRoute({ params }: PageProps) {
   const { slug } = await params
 
-  if (!isSupabaseConfigured()) {
+  const entry = await getEntryBySlug(slug)
+  if (!entry || !entry.is_published || new Date(entry.publish_at) > new Date()) {
     return <DailyEntryPageClient slug={slug} />
   }
 
-  const supabase = createClient()
+  const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
+    getMediaByEntry(entry.id),
+    getBouquetFlowersByEntry(entry.id),
+    getPolaroidCardsByEntry(entry.id),
+    getScratchCardsByEntry(entry.id),
+    getOpenWhenLettersByEntry(entry.id),
+    getCoffeeDatesByEntry(entry.id),
+    getVoiceNotesByEntry(entry.id),
+  ])
 
-  const { data: entry } = await supabase
-    .from('entries')
-    .select(`
-      *,
-      media (*),
-      bouquet_flowers (*),
-      polaroid_cards (*),
-      scratch_cards (*),
-      open_when_letters (*),
-      coffee_dates (*),
-      voice_notes (*, media (*))
-    `)
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .lte('publish_at', new Date().toISOString())
-    .single()
-
-  if (!entry) {
-    notFound()
+  const enrichedEntry = {
+    ...entry,
+    media,
+    bouquet_flowers: bouquetFlowers,
+    polaroid_cards: polaroidCards,
+    scratch_cards: scratchCards,
+    open_when_letters: openWhenLetters,
+    coffee_dates: coffeeDates,
+    voice_notes: voiceNotes,
   }
 
-  return <DailyEntryPage entry={entry} />
+  return <DailyEntryPage entry={enrichedEntry} />
 }

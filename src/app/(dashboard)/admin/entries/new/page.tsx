@@ -21,7 +21,6 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { saveEntryToStorage } from '@/lib/entryStorage'
 import { generateTempSlug, getTempEntries, removeTempEntry } from '@/lib/tempStorage'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
@@ -61,39 +60,10 @@ export default function NewEntryPage() {
   }, [])
 
   useEffect(() => {
-    loadEntries()
-  }, [])
-
-  async function loadEntries() {
-    const isDemo = !isSupabaseConfigured()
-    if (isDemo) {
-      try {
-        const raw = localStorage.getItem('digital-love-letters-demo')
-        if (raw) {
-          const data = JSON.parse(raw)
-          setEntries(data.entries || [])
-        }
-      } catch {}
-      try {
-        const tempEntries = getTempEntries()
-        setEntries((prev) => {
-          const tempIds = new Set(tempEntries.map((e) => e.id))
-          const filtered = prev.filter((e) => !tempIds.has(e.id))
-          return [...tempEntries, ...filtered]
-        })
-      } catch {}
-      setLoading(false)
-      return
-    }
-    try {
-      const raw = localStorage.getItem('digital-love-letters-demo')
-      if (raw) {
-        const data = JSON.parse(raw)
-        setEntries(data.entries || [])
-      }
-    } catch {}
+    const tempEntries = getTempEntries()
+    setEntries(tempEntries)
     setLoading(false)
-  }
+  }, [])
 
   async function handleCreate() {
     if (!title.trim() || !selectedType) {
@@ -103,8 +73,7 @@ export default function NewEntryPage() {
     setCreating(true)
     setError(null)
 
-    const isDemo = !isSupabaseConfigured()
-    const slug = generateSlug(title, isDemo)
+    const slug = generateSlug(title, true)
     const entry: Entry = {
       id: `entry-${Date.now()}`,
       slug,
@@ -135,45 +104,9 @@ export default function NewEntryPage() {
   }
 
   async function handleDelete(entryId: string) {
-    const isDemo = !isSupabaseConfigured()
-    if (isDemo) {
-      removeTempEntry(entryId)
-      setEntries((prev) => prev.filter((e) => e.id !== entryId))
-      showToast('Entry deleted')
-      return
-    }
-
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        const { error } = await (supabase as any)
-          .from('entries')
-          .delete()
-          .eq('id', entryId)
-          .eq('created_by', user.id)
-
-        if (error) {
-          removeFromLocal(entryId)
-        }
-      } else {
-        removeFromLocal(entryId)
-      }
-    } catch {
-      removeFromLocal(entryId)
-    }
-  }
-
-  function removeFromLocal(entryId: string) {
-    const raw = localStorage.getItem('digital-love-letters-demo')
-    if (raw) {
-      const data = JSON.parse(raw)
-      data.entries = data.entries.filter((e: Entry) => e.id !== entryId)
-      localStorage.setItem('digital-love-letters-demo', JSON.stringify(data))
-      setEntries((prev) => prev.filter((e) => e.id !== entryId))
-      showToast('Entry deleted')
-    }
+    removeTempEntry(entryId)
+    setEntries((prev) => prev.filter((e) => e.id !== entryId))
+    showToast('Entry deleted')
   }
 
   const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {

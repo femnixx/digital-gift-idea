@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Mic, Square, Play, Pause, Upload, RotateCcw, Music, Trash2 } from 'lucide-react'
-import { db } from '@/lib/storage/localStorageDB'
 
 export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave?: () => void }) {
   const [mode, setMode] = useState<'idle' | 'recording' | 'preview'>('idle')
@@ -108,18 +107,6 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
       })
       finalUrl = dataUrl
       mediaId = 'media-' + Date.now()
-      db.media.insert({
-        id: mediaId,
-        entry_id: entryId,
-        type: 'audio',
-        storage_path: '',
-        public_url: dataUrl,
-        filename: uploadedFile.name,
-        mime_type: uploadedFile.type,
-        size_bytes: uploadedFile.size,
-        sort_order: 0,
-        created_at: new Date().toISOString()
-      })
     }
 
     const voiceNote = {
@@ -132,13 +119,6 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
       duration_seconds: duration,
       cassette_side: 'A' as const,
       created_at: new Date().toISOString()
-    }
-
-    const entry = db.entries.getBySlug(entryId)
-    if (entry) {
-      db.entries.update(entry.id, {
-        voice_notes: [...(entry.voice_notes || []), voiceNote]
-      })
     }
 
     cleanup()

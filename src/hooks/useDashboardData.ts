@@ -1,9 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
-import { DemoDataProvider } from '@/lib/demo/DemoDataProvider'
-import { getTempEntries } from '@/lib/tempStorage'
 import type { Entry, EntryType } from '@/types'
 
 export interface DashboardEntry {
@@ -39,46 +36,20 @@ function readDemoEntries(): DashboardEntry[] {
 export function useDashboardData() {
   const [entries, setEntries] = useState<DashboardEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDemoMode] = useState(() => !isSupabaseConfigured())
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      if (!isSupabaseConfigured()) {
-        const demoEntries = readDemoEntries()
-        const tempEntries = getTempEntries()
-        const tempIds = new Set(tempEntries.map((e) => e.id))
-        const filteredDemo = demoEntries.filter((e) => !tempIds.has(e.id))
-        if (!cancelled) {
-          setEntries([...tempEntries, ...filteredDemo])
-          setLoading(false)
-        }
-        return
-      }
-
       try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (!user) {
+        const res = await fetch('/api/entries')
+        if (!res.ok) {
           setEntries(readDemoEntries())
-          setLoading(false)
           return
         }
-
-        const { data, error } = await (supabase as any)
-          .from('entries')
-          .select('id, slug, title, type, content, publish_at, is_published, is_featured, view_count, created_at, updated_at')
-          .eq('created_by', user.id)
-          .order('created_at', { ascending: false })
-
+        const data = await res.json()
         if (cancelled) return
-        if (error || !data) {
-          setEntries(readDemoEntries())
-        } else {
-          setEntries(data as DashboardEntry[])
-        }
+        setEntries(data.entries as DashboardEntry[])
       } catch {
         if (cancelled) return
         setEntries(readDemoEntries())
@@ -92,5 +63,5 @@ export function useDashboardData() {
     }
   }, [])
 
-  return { entries, loading, isDemoMode }
+  return { entries, loading, isDemoMode: false }
 }

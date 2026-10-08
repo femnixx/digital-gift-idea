@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Cropper from 'react-easy-crop'
 import { Area } from 'react-easy-crop'
 import { Heart, Type, Palette, Sticker, Eye, Edit3, X, Sparkles, Upload, Image, Shuffle, Trash2, Check, ChevronUp, ChevronDown, Plus } from 'lucide-react'
-import { db } from '@/lib/storage/localStorageDB'
 import type { PolaroidCard as PolaroidCardType, Media } from '@/types'
 
 const PRESET_EMOJIS = [
@@ -171,20 +170,6 @@ export function PolaroidCustomizer({
       const finalImage = croppedImage || imageSrc || card?.image_url || ''
 
       if (finalImage && (!card?.image_url || finalImage !== card.image_url)) {
-        const mediaId = `media-${Date.now()}`
-        const mediaItem = {
-          id: mediaId,
-          entry_id: entryId,
-          type: 'image',
-          storage_path: `polaroid/${mediaId}.jpg`,
-          public_url: finalImage,
-          filename: `polaroid-${Date.now()}.jpg`,
-          mime_type: 'image/jpeg',
-          size_bytes: null,
-          sort_order: 0,
-          created_at: new Date().toISOString(),
-        }
-        db.media.insert(mediaItem as any)
       }
 
       const savedCard: PolaroidCardType = {

@@ -1,59 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getEntryBySlug, getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry } from '@/lib/neon/db'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const supabase = createClient()
     const { slug } = await params
 
-    const { data: entry, error } = await supabase
-      .from('entries')
-      .select(`
-        *,
-        media (*),
-        bouquet_flowers (*),
-        polaroid_cards (*),
-        scratch_cards (*),
-        open_when_letters (*),
-        coffee_dates (*),
-        voice_notes (
-          *,
-          media (*)
-        )
-      `)
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .lte('publish_at', new Date().toISOString())
-      .single()
-
-    if (error || !entry) {
+    const entry = await getEntryBySlug(slug)
+    if (!entry || !entry.is_published || new Date(entry.publish_at) > new Date()) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    // Check unlock conditions for open_when letters
+    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
+      getMediaByEntry(entry.id),
+      getBouquetFlowersByEntry(entry.id),
+      getPolaroidCardsByEntry(entry.id),
+      getScratchCardsByEntry(entry.id),
+      getOpenWhenLettersByEntry(entry.id),
+      getCoffeeDatesByEntry(entry.id),
+      getVoiceNotesByEntry(entry.id),
+    ])
+
     const now = new Date()
-    const unlockedLetters = entry.open_when_letters?.map((letter: any) => {
+    const unlockedLetters = (openWhenLetters || []).map((letter: any) => {
       let isUnlocked = letter.is_unlocked
       if (!isUnlocked && letter.unlock_at) {
         isUnlocked = new Date(letter.unlock_at) <= now
       }
       return { ...letter, is_unlocked: isUnlocked }
-    }) || []
+    })
 
-    // Increment view count
-    await supabase
-      .from('entries')
-      .update({ view_count: (entry.view_count || 0) + 1 })
-      .eq('id', entry.id)
-
-    return NextResponse.json({ 
-      entry: { 
-        ...entry, 
-        open_when_letters: unlockedLetters 
-      } 
+    return NextResponse.json({
+      entry: {
+        ...entry,
+        media,
+        bouquet_flowers: bouquetFlowers,
+        polaroid_cards: polaroidCards,
+        scratch_cards: scratchCards,
+        open_when_letters: unlockedLetters,
+        coffee_dates: coffeeDates,
+        voice_notes: voiceNotes,
+      },
     })
   } catch (error) {
     console.error('Error fetching public entry:', error)

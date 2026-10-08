@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { gsap } from 'gsap'
 import { Coffee, Heart, Gift, Sparkles, Check, Box } from 'lucide-react'
 import { DRINK_CONFIG, type DrinkType, type CoffeeDate as AppCoffeeDate, type CoffeeDateFormData } from '@/types'
-import { db } from '@/lib/storage/localStorageDB'
 import type { Entry } from '@/types'
 import { Coffee3DPreview } from '@/components/features/Coffee3DPreview'
 
@@ -294,22 +293,8 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
 
     if (mode === 'edit' && existingDates.length > 0) {
       const updated = { ...existingDates[0], ...newCoffeeDate }
-      if (entryId) {
-        const entry = db.entries.get(entryId)
-        if (entry) {
-          const updatedDates = entry.coffee_dates?.map((d: AppCoffeeDate) => d.id === updated.id ? updated : d) || [updated]
-          db.entries.update(entryId, { coffee_dates: updatedDates })
-        }
-      }
       onSave?.([updated])
     } else {
-      if (entryId) {
-        const entry = db.entries.get(entryId)
-        if (entry) {
-          const updatedDates = [...(entry.coffee_dates || []), newCoffeeDate]
-          db.entries.update(entryId, { coffee_dates: updatedDates })
-        }
-      }
       onSave?.([newCoffeeDate])
     }
 

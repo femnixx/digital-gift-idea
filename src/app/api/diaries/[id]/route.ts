@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  getDiaryById,
-  createDiary,
-  deleteDiary,
-  addEntriesToDiary,
-} from '@/lib/repositories/diaryRepository'
-import { getDiaryWithMetrics, getDiaryMetrics } from '@/lib/services/diaryService'
-import { createClient } from '@/lib/supabase/server'
-import type { LoveDiary, CreateDiaryForm } from '@/types'
+import { getUserFromRequest } from '@/lib/neon/auth'
+import { getDiaryById, deleteDiary, updateDiary, addEntriesToDiary, getDiaryWithMetrics, getDiaryMetrics } from '@/lib/neon/db'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(req)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -31,9 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(req)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -43,8 +32,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (!diary) return NextResponse.json({ error: 'Diary not found' }, { status: 404 })
     if (diary.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const result = await deleteDiary(id)
-    if (!result.success) return NextResponse.json({ error: result.error }, { status: 500 })
+    await deleteDiary(id)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting diary:', error)
@@ -54,9 +42,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(req)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -84,9 +70,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getUserFromRequest(req)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

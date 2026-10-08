@@ -4,10 +4,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, ArrowLeft, Sparkles, Loader2, CheckCircle2 } from 'lucide-react'
 import { useNav } from '@/hooks/useNav'
-import { db } from '@/lib/storage/localStorageDB'
 import { LetterEditor } from '@/components/features/LetterEditor'
 import { useLocalEntries } from '@/hooks/useLocalData'
-import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { addTempEntry, generateTempSlug, isTempSlug, updateTempEntry } from '@/lib/tempStorage'
 import type { EntryType, Entry as AppEntry } from '@/types'
 
@@ -46,10 +44,7 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
       setError(null)
 
       try {
-        const isDemo = !isSupabaseConfigured()
-        const finalSlug = isDemo
-          ? (isTempSlug(slug) ? slug : generateTempSlug())
-          : (slug || generateSlug(title || 'love-letter'))
+        const finalSlug = isTempSlug(slug) ? slug : generateTempSlug()
 
         if (isEditing && existingEntry) {
           if (isTempSlug(existingEntry.slug)) {
@@ -59,17 +54,6 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
               content: { ...(existingEntry.content || {}), ...content, ...extra },
               is_published: isPublished,
             })
-          } else {
-            const lsEntry = db.entries.get(existingEntry.id)
-            if (lsEntry) {
-              db.entries.update(existingEntry.id, {
-                title,
-                slug: finalSlug,
-                content: { ...lsEntry.content, ...content, ...extra },
-                is_published: isPublished,
-                updated_at: new Date().toISOString(),
-              })
-            }
           }
           refresh()
           setSaved(true)
@@ -91,17 +75,13 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
             updated_at: now,
           }
 
-          if (isDemo) {
-            addTempEntry({
-              ...newEntry,
-              is_featured: false,
-              created_by: '',
-              unlock_at: null,
-              unlock_condition: null,
-            })
-          } else {
-            db.entries.insert(newEntry)
-          }
+          addTempEntry({
+            ...newEntry,
+            is_featured: false,
+            created_by: '',
+            unlock_at: null,
+            unlock_condition: null,
+          })
 
           refresh()
           setSaved(true)
