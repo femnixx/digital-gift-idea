@@ -313,23 +313,6 @@ export default function LoginPage() {
               <span className="font-medium">Continue with Google</span>
             </a>
 
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-card-border" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-card muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <a
-              href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/auth/google`}
-              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
-            >
-              <Chrome className="w-5 h-5" />
-              <span className="font-medium">Continue with Google</span>
-            </a>
-
           {activeTab === 'signin' && !showReset && (
             <>
               <div className="flex items-center justify-between text-sm">
