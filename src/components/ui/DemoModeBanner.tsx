@@ -11,9 +11,8 @@ export function DemoModeBanner() {
   if (dismissed) return null
 
   const isDemoMode = !(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_project_url'
+    process.env.NEXT_PUBLIC_NEON_AUTH_URL &&
+    process.env.NEXT_PUBLIC_NEON_AUTH_URL !== 'https://your-neon-project.neonauth.c-6.us-east-2.aws.neon.tech/neondb/auth'
   )
 
   if (!isDemoMode) return null
