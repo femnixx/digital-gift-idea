@@ -1,53 +1,31 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { getUserFromRequest } from '@/lib/neon/auth'
-import type { Database } from '@/types/supabase'
 
-const PROTECTED_PATHS = ['/admin']
-const AUTH_PATHS = ['/login', '/signup', '/auth']
+const PUBLIC_PATHS = ['/login', '/signup', '/auth', '/_next', '/favicon', '/api/auth']
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  const { pathname } = request.nextUrl
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path))
 
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-
-  if (process.env.NODE_ENV === 'production') {
-    response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';")
+  if (pathname.startsWith('/api/auth')) {
+    return NextResponse.next()
   }
 
-  const { pathname } = request.nextUrl
-
-  const isProtected = PROTECTED_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  )
-  const isAuthPath = AUTH_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  )
-
-  if (!isProtected || isAuthPath) {
-    return response
+  if (isPublicPath) {
+    return NextResponse.next()
   }
 
   const user = await getUserFromRequest(request)
-
   if (!user) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+    const url = new URL('/login', request.url)
+    url.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(url)
   }
 
-  return response
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|api/public).*)'],
 }

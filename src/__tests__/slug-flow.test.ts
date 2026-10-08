@@ -71,6 +71,6 @@ describe('Slug creation and validation flow', () => {
     expect(createEntrySchema.title(invalidEntry.title)).toBe(false)
     expect(createEntrySchema.type(invalidEntry.type)).toBe(false)
     expect(createEntrySchema.slug(invalidEntry.slug)).toBe(false)
-    expect(createEntrySchema.is_published(invalidEntry.is_published)).toBe(false)
+    expect(createEntrySchema.is_published('not-a-boolean' as any)).toBe(false)
   })
 })

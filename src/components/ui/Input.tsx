@@ -15,10 +15,10 @@ export function Input({ label, icon: Icon, isPassword, error, className, ...prop
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : (props.type ?? 'text')
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-2 w-full">
       <label className="label">{label}</label>
       <div className="relative flex items-center">
-        {Icon && <Icon className="absolute left-3.5 w-5 h-5 muted-foreground" />}
+        {Icon && <Icon className="absolute left-3.5 w-5 h-5 muted-foreground pointer-events-none" />}
         <input
           type={inputType}
           className={`input bg-base-2/50 border-card-border rounded-xl h-12 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20 ${Icon ? 'pl-10' : 'pl-3.5'} ${error ? 'border-accent' : ''} ${className || ''}`}

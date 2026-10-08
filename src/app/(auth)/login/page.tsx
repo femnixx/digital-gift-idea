@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, Mail, Lock, ArrowRight, User, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { Heart, Mail, Lock, ArrowRight, User, Eye, EyeOff, CheckCircle2, Chrome } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
@@ -28,6 +28,22 @@ export default function LoginPage() {
   const { theme } = useColorTheme()
 
   const redirect = searchParams.get('redirect') || '/admin'
+  const authError = searchParams.get('error')
+
+  const getErrorMessage = (error: string | null) => {
+    switch (error) {
+      case 'no_token':
+        return 'Authentication failed. Please try again.'
+      case 'invalid_token':
+        return 'Invalid authentication token. Please try again.'
+      case 'auth_failed':
+        return 'Authentication failed. Please try again.'
+      default:
+        return ''
+    }
+  }
+
+  const displayError = authError ? getErrorMessage(authError) : error
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -158,11 +174,11 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {error && (
+          {displayError && (
             <div
               className="p-4 rounded-lg text-sm mb-6 border border-card-border bg-card/80 text-accent animate-fade-in-down"
             >
-              {error}
+              {displayError}
             </div>
           )}
 
@@ -208,77 +224,111 @@ export default function LoginPage() {
                 </>
               )}
             </form>
-          ) : activeTab === 'signup' ? (
-            <form onSubmit={handleSignUp} className="space-y-6 mb-6">
-              <Input
-                label="Name"
-                icon={User}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                required
-              />
-              <Input
-                label="Email"
-                icon={Mail}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-              <Input
-                label="Password"
-                icon={Lock}
-                isPassword
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                autoComplete="new-password"
-              />
-              <Button
-                type="submit"
-                disabled={loading}
-                loading={loading}
-                icon={ArrowRight}
-              >
-                Create Account
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignIn} className="space-y-6 mb-6">
-              <Input
-                label="Email"
-                icon={Mail}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-              <Input
-                label="Password"
-                icon={Lock}
-                isPassword
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
-              <Button
-                type="submit"
-                disabled={loading}
-                loading={loading}
-                icon={ArrowRight}
-              >
-                Sign In
-              </Button>
-            </form>
-          )}
+            ) : activeTab === 'signup' ? (
+              <form onSubmit={handleSignUp} className="space-y-6 mb-6">
+                <Input
+                  label="Name"
+                  icon={User}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  required
+                />
+                <Input
+                  label="Email"
+                  icon={Mail}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+                <Input
+                  label="Password"
+                  icon={Lock}
+                  isPassword
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                />
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  loading={loading}
+                  icon={ArrowRight}
+                >
+                  Create Account
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleSignIn} className="space-y-6 mb-6">
+                <Input
+                  label="Email"
+                  icon={Mail}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+                <Input
+                  label="Password"
+                  icon={Lock}
+                  isPassword
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  loading={loading}
+                  icon={ArrowRight}
+                >
+                  Sign In
+                </Button>
+              </form>
+            )}
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-card-border" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <a
+              href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/auth/google`}
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
+            >
+              <Chrome className="w-5 h-5" />
+              <span className="font-medium">Continue with Google</span>
+            </a>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-card-border" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <a
+              href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/auth/google`}
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
+            >
+              <Chrome className="w-5 h-5" />
+              <span className="font-medium">Continue with Google</span>
+            </a>
 
           {activeTab === 'signin' && !showReset && (
             <>

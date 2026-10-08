@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOrCreateUserFromNeonAuth, getUserFromRequest, ensureProfileExists } from '@/lib/neon/auth'
+import { getOrCreateUserFromNeonAuth, ensureProfileExists } from '@/lib/neon/auth'
 import jwt from 'jsonwebtoken'
 
 const NEON_AUTH_JWKS_URL = process.env.NEON_AUTH_JWKS_URL || process.env.NEXT_PUBLIC_NEON_AUTH_JWKS_URL || ''
@@ -32,51 +32,25 @@ async function verifyNeonAuthToken(token: string) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email, password, name } = body
-
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
-    }
-
-    const neonAuthEndpoint = process.env.NEON_AUTH_ENDPOINT
-    if (!neonAuthEndpoint) {
-      return NextResponse.json({ error: 'NEON_AUTH_ENDPOINT is not configured' }, { status: 500 })
-    }
-
-    const res = await fetch(`${neonAuthEndpoint}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    })
-
-    if (!res.ok) {
-      const data = await res.json()
-      return NextResponse.json({ error: data.error || 'Signup failed' }, { status: res.status })
-    }
-
-    const data = await res.json()
-    const token = data.access_token || data.token
+    const token = request.cookies.get('neon_auth_token')?.value || ''
     if (!token) {
-      return NextResponse.json({ error: 'Signup succeeded but no token was returned' }, { status: 500 })
+      return NextResponse.redirect(new URL('/login?error=no_token', request.url))
     }
 
     const userId = await verifyNeonAuthToken(token)
     if (!userId) {
-      return NextResponse.json({ error: 'Invalid signup token' }, { status: 401 })
+      return NextResponse.redirect(new URL('/login?error=invalid_token', request.url))
     }
 
     const user = await getOrCreateUserFromNeonAuth({
       sub: userId,
-      email,
-      name: name || undefined,
     })
 
     await ensureProfileExists(user.id, user.name || user.email)
 
-    const response = NextResponse.json({ user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url } })
+    const response = NextResponse.redirect(new URL('/admin', request.url))
     response.cookies.set('session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -84,9 +58,10 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
+    response.cookies.delete('neon_auth_token')
     return response
   } catch (error) {
-    console.error('Error in signup:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error in OAuth callback:', error)
+    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 }

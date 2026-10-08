@@ -1,57 +1,29 @@
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifySession, deleteSession } from '@/lib/neon/auth'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('session')?.value
+    const token = request.cookies.get('session')?.value || ''
+    if (!token) {
+      return NextResponse.json({ success: true })
+    }
 
-    if (token) {
-      await deleteSession(token)
+    const neonAuthEndpoint = process.env.NEON_AUTH_ENDPOINT
+    if (neonAuthEndpoint) {
+      try {
+        await fetch(`${neonAuthEndpoint}/auth/signout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        })
+      } catch {
+        // ignore logout errors
+      }
     }
 
     const response = NextResponse.json({ success: true })
-    response.cookies.set('session', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 0,
-      path: '/',
-    })
-
+    response.cookies.delete('session')
     return response
-  } catch (error: any) {
-    console.error('Logout error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-export async function GET() {
-  try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('session')?.value
-
-    if (!token) {
-      return NextResponse.json({ user: null })
-    }
-
-    const user = await verifySession(token)
-    if (!user) {
-      const response = NextResponse.json({ user: null })
-      response.cookies.set('session', '', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-        path: '/',
-      })
-      return response
-    }
-
-    return NextResponse.json({ user })
-  } catch (error: any) {
-    console.error('Session check error:', error)
-    return NextResponse.json({ user: null })
+  } catch (error) {
+    console.error('Error in logout:', error)
+    return NextResponse.json({ success: true })
   }
 }
