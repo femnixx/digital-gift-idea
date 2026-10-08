@@ -16,6 +16,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  const sessionCookie = request.cookies.get('session')?.value || ''
+  if (!sessionCookie) {
+    const url = new URL('/login', request.url)
+    url.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(url)
+  }
+
   const user = await getUserFromRequest(request)
   if (!user) {
     const url = new URL('/login', request.url)

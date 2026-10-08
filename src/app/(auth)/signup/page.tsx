@@ -37,7 +37,9 @@ export default function SignupPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || 'Signup failed')
+        const status = res.status
+        const message = data.error || `Signup failed (${status})`
+        throw new Error(message)
       }
 
       setSuccess(true)

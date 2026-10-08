@@ -148,7 +148,15 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
   const bearerMatch = authorization.match(/^Bearer\s+(.+)$/i)
   const token = bearerMatch?.[1] || ''
 
-  if (!token) return null
+  if (!token) {
+    const cookie = request.headers.get('cookie') || ''
+    const match = cookie.match(/session=([^;]+)/)
+    if (match) {
+      return verifySession(match[1])
+    }
+    return null
+  }
+
   return verifyNeonAuthToken(token)
 }
 

@@ -7,35 +7,61 @@ const loginSchema = z.object({
   password: z.string().min(1),
 })
 
+function userFriendlyMessage(code: number, fallback: string): string {
+  switch (code) {
+    case 400:
+      return 'Please check your email and password.'
+    case 401:
+      return 'Invalid email or password.'
+    case 403:
+      return 'Your account is not allowed to sign in.'
+    case 404:
+      return 'Account not found.'
+    case 409:
+      return 'Email already registered.'
+    case 422:
+      return 'Please enter a valid email and password.'
+    case 429:
+      return 'Too many attempts. Please wait a moment and try again.'
+    case 500:
+      return 'Server error. Please try again later.'
+    default:
+      return fallback || 'Something went wrong. Please try again.'
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validation = loginSchema.safeParse(body)
 
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: userFriendlyMessage(400, 'Invalid request'), details: validation.error.flatten() },
+        { status: 400 }
+      )
     }
 
     const { email, password } = validation.data
 
     const userRecord = await getUserByEmail(email)
     if (!userRecord) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
+      return NextResponse.json({ error: userFriendlyMessage(401, 'Invalid email or password') }, { status: 401 })
     }
 
     const passwordHash = (userRecord as any).password_hash as string | undefined
     if (!passwordHash) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
+      return NextResponse.json({ error: userFriendlyMessage(401, 'Invalid email or password') }, { status: 401 })
     }
 
     const valid = await verifyPassword(password, passwordHash)
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
+      return NextResponse.json({ error: userFriendlyMessage(401, 'Invalid email or password') }, { status: 401 })
     }
 
     const user = await getUserById(userRecord.id)
     if (!user) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
+      return NextResponse.json({ error: userFriendlyMessage(401, 'Invalid email or password') }, { status: 401 })
     }
 
     await ensureProfileExists(user.id, user.name || user.email)
@@ -53,6 +79,6 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Error in login:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: userFriendlyMessage(500, 'Internal server error') }, { status: 500 })
   }
 }

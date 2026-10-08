@@ -60,7 +60,9 @@ export default function LoginPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || 'Login failed')
+        const status = res.status
+        const message = data.error || `Login failed (${status})`
+        throw new Error(message)
       }
 
       router.push(redirect)
@@ -88,7 +90,9 @@ export default function LoginPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || 'Signup failed')
+        const status = res.status
+        const message = data.error || `Signup failed (${status})`
+        throw new Error(message)
       }
 
       setError('Account created! Signing you in...')
