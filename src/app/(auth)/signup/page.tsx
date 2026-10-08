@@ -1,16 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, Mail, Lock, ArrowRight, CheckCircle2, User, Chrome } from 'lucide-react'
+import { Heart, Mail, Lock, ArrowRight, User, Chrome } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useColorTheme } from '@/lib/theme'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
 export default function SignupPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/admin'
   const [name, setName] = useState('')
@@ -19,7 +18,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
-  const [success, setSuccess] = useState(false)
   const { theme } = useColorTheme()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +40,10 @@ export default function SignupPage() {
         throw new Error(message)
       }
 
-      setSuccess(true)
+      const target = (redirect && redirect !== '/login') ? redirect : '/admin'
+      setTimeout(() => {
+        window.location.assign(target)
+      }, 50)
     } catch (err: any) {
       setError(err.message)
       setShake(true)
@@ -50,27 +51,6 @@ export default function SignupPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-base flex items-center justify-center p-6">
-        <div className="absolute top-4 right-4">
-          <ThemeSwitcher />
-        </div>
-        <div className="w-full max-w-md animate-fade-in-up">
-          <div className="card p-8 text-center">
-            <CheckCircle2 className="w-12 h-12 accent mx-auto mb-4" />
-            <h1 className="heading mb-2">Account Created</h1>
-            <p className="muted-foreground mb-2">Welcome! You can now sign in.</p>
-            <Link href="/login" className="btn-primary inline-flex items-center gap-2 mt-6">
-              <ArrowRight className="w-4 h-4" />
-              Go to Sign In
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -149,13 +129,15 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <a
-            href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/auth/google`}
-            className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
-          >
-            <Chrome className="w-5 h-5" />
-            <span className="font-medium">Continue with Google</span>
-          </a>
+          {process.env.NEXT_PUBLIC_NEON_AUTH_GOOGLE_ENABLED === 'true' && (
+            <a
+              href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/oauth2/authorization/google`}
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
+            >
+              <Chrome className="w-5 h-5" />
+              <span className="font-medium">Continue with Google</span>
+            </a>
+          )}
 
           <div className="mt-6 text-center">
             <p className="muted-foreground text-sm">

@@ -66,11 +66,9 @@ export default function LoginPage() {
       }
 
       const target = (redirect && redirect !== '/login') ? redirect : '/admin'
-      if (typeof window !== 'undefined') {
+      setTimeout(() => {
         window.location.assign(target)
-      } else {
-        router.push(target)
-      }
+      }, 50)
     } catch (err: any) {
       setError(err.message)
       setShake(true)
@@ -100,11 +98,9 @@ export default function LoginPage() {
       }
 
       const target = (redirect && redirect !== '/login') ? redirect : '/admin'
-      if (typeof window !== 'undefined') {
+      setTimeout(() => {
         window.location.assign(target)
-      } else {
-        router.push(target)
-      }
+      }, 50)
     } catch (err: any) {
       setError(err.message)
       setShake(true)
@@ -314,13 +310,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <a
-              href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/auth/google`}
-              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
-            >
-              <Chrome className="w-5 h-5" />
-              <span className="font-medium">Continue with Google</span>
-            </a>
+            {process.env.NEXT_PUBLIC_NEON_AUTH_GOOGLE_ENABLED === 'true' && (
+              <a
+                href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/oauth2/authorization/google`}
+                className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
+              >
+                <Chrome className="w-5 h-5" />
+                <span className="font-medium">Continue with Google</span>
+              </a>
+            )}
 
           {activeTab === 'signin' && !showReset && (
             <>
