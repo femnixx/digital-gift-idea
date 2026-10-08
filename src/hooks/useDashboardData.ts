@@ -17,22 +17,6 @@ export interface DashboardEntry {
   updated_at: string
 }
 
-function fromDemoStorage(): DashboardEntry[] {
-  try {
-    const raw = localStorage.getItem('digital-love-letters-demo')
-    if (!raw) return []
-    const data = JSON.parse(raw)
-    return (data.entries || []) as DashboardEntry[]
-  } catch {
-    return []
-  }
-}
-
-function readDemoEntries(): DashboardEntry[] {
-  const entries = fromDemoStorage()
-  return entries
-}
-
 export function useDashboardData() {
   const [entries, setEntries] = useState<DashboardEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +28,7 @@ export function useDashboardData() {
       try {
         const res = await fetch('/api/entries')
         if (!res.ok) {
-          setEntries(readDemoEntries())
+          setEntries([])
           return
         }
         const data = await res.json()
@@ -52,7 +36,7 @@ export function useDashboardData() {
         setEntries(data.entries as DashboardEntry[])
       } catch {
         if (cancelled) return
-        setEntries(readDemoEntries())
+        setEntries([])
       }
       setLoading(false)
     }

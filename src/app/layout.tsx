@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display, Dancing_Script } from 'next/font/google'
-import { DemoInitializer } from '@/lib/demo/DemoDataProvider'
-import { DemoModeBanner } from '@/components/ui/DemoModeBanner'
 import { NavProvider } from '@/hooks/useNav'
 import { ThemeScript } from '@/components/ThemeScript'
 import { ThemeProvider } from '@/lib/theme'
@@ -89,12 +87,10 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased" style={{ backgroundColor: 'rgb(var(--bg))', color: 'rgb(var(--text))', transition: 'background-color 0.6s ease, color 0.6s ease' }}>
         <ThemeProvider>
-          <DemoInitializer />
           <NavProvider>
             {children}
           </NavProvider>
         </ThemeProvider>
-        <DemoModeBanner />
       </body>
     </html>
   )

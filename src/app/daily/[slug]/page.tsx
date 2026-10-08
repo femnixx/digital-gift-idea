@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import { DailyEntryPage } from './DailyEntryPage'
 import { DailyEntryPageClient } from './DailyEntryPageClient'
 import { getEntryBySlug } from '@/lib/neon/db'
@@ -7,18 +6,6 @@ import { getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, get
 
 interface PageProps {
   params: Promise<{ slug: string }>
-}
-
-async function getDemoEntry(slug: string) {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem('digital-love-letters-demo')
-    if (!raw) return null
-    const data = JSON.parse(raw)
-    return (data.entries || []).find((e: any) => e.slug === slug) || null
-  } catch {
-    return null
-  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

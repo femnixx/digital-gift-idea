@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { DemoDataProvider } from '@/lib/demo/DemoDataProvider'
 import type { Media } from '@/types'
 
-export function useVoiceNoteUpload(entryId: string) {
+export function useVoiceNoteUpload(_entryId: string) {
   const [uploading, setUploading] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const uploadAudio = async (file: File): Promise<string | null> => {
+  const uploadAudio = async (_file: File): Promise<string | null> => {
     setUploading(true)
     setError(null)
 
@@ -17,17 +16,18 @@ export function useVoiceNoteUpload(entryId: string) {
       const reader = new FileReader()
       const dataUrl = await new Promise<string>((resolve) => {
         reader.onloadend = () => resolve(reader.result as string)
-        reader.readAsDataURL(file)
+        reader.readAsDataURL(_file)
       })
+
       const mediaItem: Media = {
         id: `media-${Date.now()}`,
-        entry_id: entryId,
+        entry_id: _entryId,
         type: 'audio',
         storage_path: '',
         public_url: dataUrl,
-        filename: file.name,
-        mime_type: file.type,
-        size_bytes: file.size,
+        filename: _file.name,
+        mime_type: _file.type,
+        size_bytes: _file.size,
         width: null,
         height: null,
         duration_seconds: null,
@@ -35,10 +35,6 @@ export function useVoiceNoteUpload(entryId: string) {
         created_at: new Date().toISOString(),
       }
 
-      const storage = DemoDataProvider.getStorage()
-      storage.media = storage.media || []
-      storage.media.push(mediaItem)
-      DemoDataProvider.setStorage(storage)
       setAudioUrl(dataUrl)
       setUploading(false)
       return dataUrl

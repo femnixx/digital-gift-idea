@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, ArrowLeft, Sparkles, Loader2, CheckCircle2 } from 'lucide-react'
 import { useNav } from '@/hooks/useNav'
 import { LetterEditor } from '@/components/features/LetterEditor'
-import { useLocalEntries } from '@/hooks/useLocalData'
-import { addTempEntry, generateTempSlug, isTempSlug, updateTempEntry } from '@/lib/tempStorage'
 import type { EntryType, Entry as AppEntry } from '@/types'
 
 interface LoveLetterEditorProps {
@@ -17,7 +15,6 @@ interface LoveLetterEditorProps {
 
 export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existingEntry }: LoveLetterEditorProps) {
   const { push, back } = useNav()
-  const { refresh } = useLocalEntries()
 
   const [title, setTitle] = useState(initialTitle || existingEntry?.title || '')
   const [slug, setSlug] = useState(initialSlug || existingEntry?.slug || '')
@@ -39,61 +36,22 @@ export function LoveLetterEditor({ initialTitle = '', initialSlug = '', existing
     }
   }
 
-    const handleSave = (content: { message: string }, extra?: Record<string, any>) => {
-      setIsSubmitting(true)
-      setError(null)
+  const handleSave = (_content: { message: string }, _extra?: Record<string, any>) => {
+    setIsSubmitting(true)
+    setError(null)
 
-      try {
-        const finalSlug = isTempSlug(slug) ? slug : generateTempSlug()
+    try {
+      const finalSlug = slug || generateSlug(title)
 
-        if (isEditing && existingEntry) {
-          if (isTempSlug(existingEntry.slug)) {
-            updateTempEntry(existingEntry.id, {
-              title,
-              slug: finalSlug,
-              content: { ...(existingEntry.content || {}), ...content, ...extra },
-              is_published: isPublished,
-            })
-          }
-          refresh()
-          setSaved(true)
-          setTimeout(() => {
-            push(`/daily/${finalSlug}`)
-          }, 600)
-        } else {
-          const now = new Date().toISOString()
-          const newEntry = {
-            id: Math.random().toString(36).substring(2, 15),
-            slug: finalSlug,
-            title,
-            type: 'letter' as const,
-            content: { message: content.message, ...extra },
-            publish_at: now,
-            is_published: isPublished,
-            view_count: 0,
-            created_at: now,
-            updated_at: now,
-          }
-
-          addTempEntry({
-            ...newEntry,
-            is_featured: false,
-            created_by: '',
-            unlock_at: null,
-            unlock_condition: null,
-          })
-
-          refresh()
-          setSaved(true)
-          setTimeout(() => {
-            push(`/daily/${finalSlug}`)
-          }, 600)
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save letter. Please try again.')
-        setIsSubmitting(false)
-      }
+      setSaved(true)
+      setTimeout(() => {
+        push(`/daily/${finalSlug}`)
+      }, 600)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save letter. Please try again.')
+      setIsSubmitting(false)
     }
+  }
 
   const handleCancel = () => {
     back('/admin/entries/new')

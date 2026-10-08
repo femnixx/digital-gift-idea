@@ -22,7 +22,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { saveEntryToStorage } from '@/lib/entryStorage'
-import { generateTempSlug, getTempEntries, removeTempEntry } from '@/lib/tempStorage'
 import { TYPE_COLORS, EntryTypeIcon } from '@/components/ui/DashboardCharts'
 import type { Entry, EntryType } from '@/types'
 
@@ -35,10 +34,7 @@ const ENTRY_TYPES: { type: EntryType; label: string; icon: React.ComponentType<{
   { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
 ]
 
-function generateSlug(title: string, isDemo: boolean): string {
-  if (isDemo) {
-    return generateTempSlug()
-  }
+function generateSlug(title: string): string {
   const base = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
   const timestamp = Date.now().toString(36).slice(-6)
   return `${base}-${timestamp}`
@@ -60,8 +56,7 @@ export default function NewEntryPage() {
   }, [])
 
   useEffect(() => {
-    const tempEntries = getTempEntries()
-    setEntries(tempEntries)
+    setEntries([])
     setLoading(false)
   }, [])
 
@@ -73,7 +68,7 @@ export default function NewEntryPage() {
     setCreating(true)
     setError(null)
 
-    const slug = generateSlug(title, true)
+    const slug = generateSlug(title)
     const entry: Entry = {
       id: `entry-${Date.now()}`,
       slug,
@@ -104,7 +99,6 @@ export default function NewEntryPage() {
   }
 
   async function handleDelete(entryId: string) {
-    removeTempEntry(entryId)
     setEntries((prev) => prev.filter((e) => e.id !== entryId))
     showToast('Entry deleted')
   }

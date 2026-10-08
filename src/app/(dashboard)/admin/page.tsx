@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { format, startOfMonth } from 'date-fns'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { DemoDataManager } from '@/components/ui/DemoDataManager'
 import { SkeletonStatCard, SkeletonEntryTable } from '@/components/ui/Skeleton'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import {
@@ -97,9 +96,6 @@ export default function AdminDashboardPage() {
           <div>
             <h1 className="heading">Dashboard</h1>
             <p className="muted-foreground mt-1">Track your progress and manage your surprises</p>
-            {isDemoMode && (
-              <p className="text-amber-600 text-xs mt-1 font-medium">Demo mode — data lives in your browser</p>
-            )}
           </div>
           <button
             onClick={() => showToast('Preparing your new entry...')}
@@ -243,8 +239,6 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </section>
-
-        <DemoDataManager />
 
           {toast && (
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
