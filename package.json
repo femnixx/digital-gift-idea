@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "neon:tables": "tsx scripts/neon-tables.ts",
-    "neon:storage": "tsx scripts/neon-storage.ts"
+    "neon:storage": "tsx scripts/neon-storage.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
@@ -60,6 +61,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
@@ -69,6 +71,8 @@
     "prettier-plugin-tailwindcss": "^0.5.0",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
   }
 }
