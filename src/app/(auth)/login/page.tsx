@@ -65,8 +65,12 @@ export default function LoginPage() {
         throw new Error(message)
       }
 
-      router.push(redirect)
-      router.refresh()
+      const target = (redirect && redirect !== '/login') ? redirect : '/admin'
+      if (typeof window !== 'undefined') {
+        window.location.assign(target)
+      } else {
+        router.push(target)
+      }
     } catch (err: any) {
       setError(err.message)
       setShake(true)
@@ -95,11 +99,12 @@ export default function LoginPage() {
         throw new Error(message)
       }
 
-      setError('Account created! Signing you in...')
-      setTimeout(() => {
-        router.push(redirect)
-        router.refresh()
-      }, 800)
+      const target = (redirect && redirect !== '/login') ? redirect : '/admin'
+      if (typeof window !== 'undefined') {
+        window.location.assign(target)
+      } else {
+        router.push(target)
+      }
     } catch (err: any) {
       setError(err.message)
       setShake(true)
