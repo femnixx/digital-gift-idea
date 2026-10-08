@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, getUserByEmail, ensureProfileExists, createSession } from '@/lib/neon/auth'
+import { ensureProfileExists, getOrCreateUserFromNeonAuth, verifyNeonAuthToken } from '@/lib/neon/auth'
 import { z } from 'zod'
 
 const signupSchema = z.object({
@@ -45,6 +45,43 @@ export async function POST(request: NextRequest) {
 
     const { email, password, name } = validation.data
 
+    const neonAuthEndpoint = process.env.NEON_AUTH_ENDPOINT
+    if (neonAuthEndpoint) {
+      try {
+        const res = await fetch(`${neonAuthEndpoint}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        })
+
+        const data = await res.json()
+        if (res.ok && (data.access_token || data.token)) {
+        const token = ((data.access_token || data.token) as unknown) as string
+        const userId = await verifyNeonAuthToken(token)
+          if (userId) {
+            const user = await getOrCreateUserFromNeonAuth({
+              sub: userId,
+              email,
+              name: name || undefined,
+            })
+            await ensureProfileExists(user.id, user.name || user.email)
+            const response = NextResponse.json({ user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url } })
+            response.cookies.set('session', token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              maxAge: 60 * 60 * 24 * 7,
+              path: '/',
+            })
+            return response
+          }
+        }
+      } catch {
+        // fall through to direct DB
+      }
+    }
+
+    const { createUser, getUserByEmail, createSession } = await import('@/lib/neon/auth')
     const existing = await getUserByEmail(email)
     if (existing) {
       return NextResponse.json({ error: userFriendlyMessage(409, 'Email already registered') }, { status: 409 })
@@ -52,9 +89,7 @@ export async function POST(request: NextRequest) {
 
     const user = await createUser(email, password, name)
     await ensureProfileExists(user.id, user.name || user.email)
-
     const token = await createSession(user.id)
-
     const response = NextResponse.json({ user: { id: user.id, email: user.email, name: user.name, avatar_url: user.avatar_url } })
     response.cookies.set('session', token, {
       httpOnly: true,

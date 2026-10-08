@@ -109,7 +109,7 @@ export async function refreshSession(oldToken: string): Promise<string | null> {
   return createSession(session.id)
 }
 
-export async function verifyNeonAuthToken(token: string): Promise<User | null> {
+export async function verifyNeonAuthToken(token: string): Promise<string | null> {
   try {
     if (!NEON_AUTH_JWKS_URL) {
       return null
@@ -136,8 +136,7 @@ export async function verifyNeonAuthToken(token: string): Promise<User | null> {
     const userId = payload.sub as string
     if (!userId) return null
 
-    const result = await sql`select id, email, name, avatar_url, created_at, updated_at from users where id = ${userId} limit 1`
-    return (result[0] as User) || null
+    return userId
   } catch {
     return null
   }
@@ -157,7 +156,9 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
     return null
   }
 
-  return verifyNeonAuthToken(token)
+  const userId = await verifyNeonAuthToken(token)
+  if (!userId) return null
+  return getUserById(userId)
 }
 
 export async function getOrCreateUserFromNeonAuth(payload: {
