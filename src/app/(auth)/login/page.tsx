@@ -312,7 +312,7 @@ export default function LoginPage() {
 
             {process.env.NEXT_PUBLIC_NEON_AUTH_GOOGLE_ENABLED === 'true' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || ''}/oauth2/authorization/google`}
+                href={`${process.env.NEXT_PUBLIC_NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL || ''}/oauth2/authorization/google`}
                 className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-card-border bg-base-2/50 text-text hover:bg-base-2 transition-colors mb-6"
               >
                 <Chrome className="w-5 h-5" />
