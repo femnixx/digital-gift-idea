@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromRequest } from '@/lib/neon/auth'
-import { getEntryBySlug, updateEntry, deleteEntry, getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry } from '@/lib/neon/db'
+import { getNeonClient } from '@/lib/neon'
 import { z } from 'zod'
+import { getEntryById, updateEntry as repoUpdateEntry, deleteEntry as repoDeleteEntry, slugExists } from '@/lib/repositories/entryRepository'
 
 const updateEntrySchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -14,45 +14,38 @@ const updateEntrySchema = z.object({
   is_published: z.boolean().optional(),
 })
 
+async function getUserIdFromToken(request: NextRequest): Promise<string | null> {
+  const token = request.cookies.get('auth-token')?.value
+  if (!token) return null
+
+  try {
+    const client = getNeonClient()
+    const userId = Buffer.from(token, 'base64').toString('utf-8').split(':')[0]
+    const result = await (client as any).query(`SELECT id FROM profiles WHERE id = $1`, [userId])
+    return result.rows.length > 0 ? userId : null
+  } catch {
+    return null
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromRequest(request)
-    const { id } = await params
-
-    if (!user) {
+    const userId = await getUserIdFromToken(request)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const entry = await getEntryBySlug(id)
-    if (!entry) {
+    const { id } = await params
+    const entry = await getEntryById(id)
+
+    if (!entry || entry.created_by !== userId) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
-      getMediaByEntry(entry.id),
-      getBouquetFlowersByEntry(entry.id),
-      getPolaroidCardsByEntry(entry.id),
-      getScratchCardsByEntry(entry.id),
-      getOpenWhenLettersByEntry(entry.id),
-      getCoffeeDatesByEntry(entry.id),
-      getVoiceNotesByEntry(entry.id),
-    ])
-
-    return NextResponse.json({
-      entry: {
-        ...entry,
-        media,
-        bouquet_flowers: bouquetFlowers,
-        polaroid_cards: polaroidCards,
-        scratch_cards: scratchCards,
-        open_when_letters: openWhenLetters,
-        coffee_dates: coffeeDates,
-        voice_notes: voiceNotes,
-      },
-    })
+    return NextResponse.json({ entry })
   } catch (error) {
     console.error('Error fetching entry:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -64,13 +57,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromRequest(request)
-    const { id } = await params
-
-    if (!user) {
+    const userId = await getUserIdFromToken(request)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validation = updateEntrySchema.safeParse(body)
 
@@ -78,21 +70,21 @@ export async function PUT(
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
-    const existing = await getEntryBySlug(id)
-    if (!existing) {
+    const existing = await getEntryById(id)
+    if (!existing || existing.created_by !== userId) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    if (validation.data.slug && validation.data.slug !== id) {
-      const slugExists = await getEntryBySlug(validation.data.slug)
-      if (slugExists) {
+    if (validation.data.slug) {
+      const exists = await slugExists(validation.data.slug, id)
+      if (exists) {
         return NextResponse.json({ error: 'Slug already exists' }, { status: 409 })
       }
     }
 
-    const entry = await updateEntry(id, validation.data)
+    const entry = await repoUpdateEntry(id, validation.data)
     if (!entry) {
-      return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Failed to update entry' }, { status: 500 })
     }
 
     return NextResponse.json({ entry })
@@ -107,20 +99,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromRequest(request)
-    const { id } = await params
-
-    if (!user) {
+    const userId = await getUserIdFromToken(request)
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const existing = await getEntryBySlug(id)
-    if (!existing) {
+    const { id } = await params
+    const existing = await getEntryById(id)
+
+    if (!existing || existing.created_by !== userId) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    await deleteEntry(id)
-
+    await repoDeleteEntry(id)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting entry:', error)
