@@ -54,6 +54,14 @@ export async function GET(
       return { ...letter, is_unlocked: isUnlocked }
     })
 
+    // Point every media row at the permanent streaming route. Uploaded files
+    // have public_url null, which made <img src={public_url}> render nothing.
+    // These paths never expire because they carry no signature.
+    const publicMedia = (media || []).map((m: any) => ({
+      ...m,
+      public_url: m.public_url || `/api/public/entries/${slug}/media/${m.id}`,
+    }))
+
     // Atomic increment: a read-modify-write loses concurrent increments.
     await sql`UPDATE entries SET view_count = coalesce(view_count, 0) + 1 WHERE id = ${entry.id}`
 
@@ -61,7 +69,7 @@ export async function GET(
       {
         entry: {
           ...entry,
-          media,
+          media: publicMedia,
           bouquet_flowers: bouquetFlowers,
           polaroid_cards: polaroidCards,
           scratch_cards: scratchCards,

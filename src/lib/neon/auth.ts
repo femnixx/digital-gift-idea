@@ -1,6 +1,7 @@
 'use server'
 
 import { neon } from '@neondatabase/serverless'
+import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify, createRemoteJWKSet } from 'jose'
 import { ADMIN_USER_ID, SESSION_MAX_AGE_DAYS } from '@/lib/constants'
 import { resolveConnectionString } from '@/lib/neon/connection'
@@ -49,6 +50,44 @@ function getNeonAuthIssuer(): string {
     return match[1]
   }
   return NEON_AUTH_ISSUER
+}
+
+/**
+ * Public self-service account primitives.
+ *
+ * Visitors sign up and sign in themselves, with no admin approval. Passwords are
+ * hashed with bcrypt; only the hash is ever stored. The admin account is
+ * separate and is not reachable through these functions.
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 12)
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash)
+}
+
+export async function getUserByEmail(email: string): Promise<(User & { password_hash: string }) | null> {
+  const result = await sql`
+    select id, email, name, avatar_url, password_hash, created_at, updated_at
+    from users where email = ${email.toLowerCase()} limit 1
+  `
+  return (result[0] as unknown as (User & { password_hash: string })) || null
+}
+
+export async function createUser(email: string, password: string, name?: string): Promise<User> {
+  const existing = await sql`select id from users where email = ${email.toLowerCase()} limit 1`
+  if (existing.length > 0) {
+    throw new Error('Email already registered')
+  }
+
+  const passwordHash = await hashPassword(password)
+  const result = await sql`
+    insert into users (email, password_hash, name, created_at, updated_at)
+    values (${email.toLowerCase()}, ${passwordHash}, ${name || null}, now(), now())
+    returning id, email, name, avatar_url, created_at, updated_at
+  `
+  return result[0] as unknown as User
 }
 
 export async function getUserById(id: string): Promise<User | null> {

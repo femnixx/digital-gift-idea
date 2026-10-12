@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { useDashboardData, formatBytes } from '@/hooks/useDashboardData'
+import { ServiceHealthPanel } from '@/components/admin/ServiceHealthPanel'
 import { StatCard } from '@/components/ui/DashboardCharts'
 import type { Stat } from '@/components/ui/DashboardCharts'
 import {
@@ -150,6 +151,11 @@ export default function AdminDashboardPage() {
             <StatCard key={stat.label} stat={stat} index={index} />
           ))}
         </div>
+
+        <section className="gsap-section">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Service Health</h2>
+          <ServiceHealthPanel />
+        </section>
 
         <section className="gsap-section">
           <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Content &amp; Storage</h2>

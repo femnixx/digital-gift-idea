@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useColorTheme } from '@/lib/theme'
@@ -99,12 +100,13 @@ export default function HomePage() {
   }, [])
 
   const features = [
-    { title: 'Love Letters', desc: 'Write heartfelt messages with beautiful typography and animations.', Icon: HeartSvg },
-    { title: 'Digital Bouquets', desc: 'Send flowers that never wilt, crafted with color and motion.', Icon: HeartSvg },
-    { title: 'Voice Notes', desc: 'Record audio memories with waveform visuals and cassette styling.', Icon: HeartSvg },
-    { title: 'Polaroids', desc: 'Share photo memories with tilt, stickers, and hidden notes.', Icon: HeartSvg },
-    { title: 'Scratch Cards', desc: 'Reveal surprises underneath interactive scratch-off covers.', Icon: HeartSvg },
-    { title: 'Coffee Dates', desc: 'Schedule virtual coffee moments with drink pickers and timers.', Icon: HeartSvg },
+    { title: 'Love Letters', desc: 'Write heartfelt messages with beautiful typography and animations.', href: '/create?type=letter' },
+    { title: 'Digital Bouquets', desc: 'Send flowers that never wilt, crafted with color and motion.', href: '/create?type=bouquet' },
+    { title: 'Voice Notes', desc: 'Record audio memories with waveform visuals and cassette styling.', href: '/create?type=voice_note' },
+    { title: 'Polaroids', desc: 'Share photo memories with tilt, stickers, and hidden notes.', href: '/create?type=polaroid' },
+    { title: 'Scratch Cards', desc: 'Reveal surprises underneath interactive scratch-off covers.', href: '/create?type=scratch_card' },
+    { title: 'Coffee Dates', desc: 'Schedule virtual coffee moments with drink pickers and timers.', href: '/create?type=coffee_date' },
+    { title: 'Open When', desc: 'Sealed envelopes that open on the moment that needs them.', href: '/create?type=open_when' },
   ]
 
   return (
@@ -134,8 +136,8 @@ export default function HomePage() {
       <section className="section" style={{ position: 'relative', zIndex: 10 }}>
         <div className="container">
           <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map(({ title, desc, Icon }) => (
-              <div key={title} className="card">
+            {features.map(({ title, desc, href }) => (
+              <Link key={title} href={href} className="card transition-transform hover:-translate-y-0.5">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{
                     width: 36,
@@ -146,13 +148,16 @@ export default function HomePage() {
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}>
-                    <Icon />
+                    <HeartSvg />
                   </div>
                   <h3 style={{ fontSize: 16, fontWeight: 600 }}>{title}</h3>
                 </div>
                 <p style={{ fontSize: 14, color: 'rgb(var(--muted))', lineHeight: 1.55 }}>{desc}</p>
-              </div>
+              </Link>
             ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <Link href="/create" className="btn btn-primary">Start creating</Link>
           </div>
         </div>
       </section>

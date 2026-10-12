@@ -9,8 +9,9 @@ export const SESSION_COOKIE_NAME = 'session'
 /**
  * Resolve the acting user's id from a request.
  *
- * The admin account resolves to the canonical ADMIN_USER_ID so it can be stored
- * in `uuid` columns. Previously this mapping was duplicated in each route.
+ * Any authenticated visitor may own rows, so this returns the caller's own id.
+ * The admin account resolves to the canonical ADMIN_USER_ID so it satisfies the
+ * `uuid` columns on `entries.created_by` and `love_diaries.user_id`.
  */
 export async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
   const user = await getUserFromRequest(request)
@@ -18,14 +19,22 @@ export async function getUserIdFromRequest(request: NextRequest): Promise<string
   return user.id
 }
 
-export async function isAdminRequest(request: NextRequest): Promise<boolean> {
+/**
+ * Resolve the acting user only if they are the admin account.
+ *
+ * The admin panel is metrics and health only, so its API routes must reject
+ * ordinary visitors. Middleware guards the /admin pages, but defence in depth
+ * here means a misconfigured matcher cannot expose the metrics.
+ */
+export async function requireAdmin(request: NextRequest): Promise<string | null> {
   const user = await getUserFromRequest(request)
-  return user?.id === ADMIN_USER_ID
+  if (!user || user.id !== ADMIN_USER_ID) return null
+  return ADMIN_USER_ID
 }
 
 /**
  * Write the session cookie with the project's single set of security flags and
- * lifetime, so the login route and the OAuth callback cannot diverge.
+ * lifetime, so no two routes can diverge on them.
  */
 export function setSessionCookie(response: NextResponse, token: string): void {
   response.cookies.set(SESSION_COOKIE_NAME, token, {

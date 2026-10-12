@@ -12,6 +12,8 @@ const createEntrySchema = z.object({
   unlock_at: z.string().datetime().optional().nullable(),
   unlock_condition: z.enum(['date', 'manual', 'location', 'mood']).optional().nullable(),
   is_published: z.boolean().default(false),
+  // Optional lifetime. Omitted or null means the gift is permanent.
+  expires_at: z.string().datetime().optional().nullable(),
 })
 
 // Valid `type` values for list filtering. The column is a Postgres enum, so an
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
-    const { title, type, slug, content, publish_at, unlock_at, unlock_condition, is_published } = validation.data
+    const { title, type, slug, content, publish_at, unlock_at, unlock_condition, is_published, expires_at } = validation.data
 
     const exists = await slugExists(slug)
     if (exists) {
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
       is_published,
       is_featured: false,
       view_count: 0,
+      expires_at: expires_at ?? null,
       created_by: userId,
       created_at: now,
       updated_at: now,

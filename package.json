@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "neon:tables": "tsx scripts/neon-tables.ts",
     "neon:storage": "tsx scripts/neon-storage.ts",
-    "db:migrate": "tsx scripts/run-migrations.ts"
+    "db:migrate": "tsx scripts/run-migrations.ts",
+    "db:expire": "tsx scripts/expire-entries.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
@@ -35,6 +36,7 @@
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.39.0",
     "@types/bcryptjs": "^2.4.6",
+    "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.0",
@@ -47,6 +49,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.468.0",
     "next": "^14.2.0",
+    "qrcode": "^1.5.4",
     "react": "18.3.0",
     "react-dom": "18.3.0",
     "react-easy-crop": "^6.2.4",

@@ -72,3 +72,22 @@ export function recordFailedAttempt(
 export function clearFailedAttempts(request: NextRequest, action: string): void {
   buckets.delete(clientKey(request, action))
 }
+
+/**
+ * Return a 429 if the caller is currently blocked, otherwise null. Unlike
+ * recordFailedAttempt this does not increment, so it is safe to call at the
+ * start of a handler to short-circuit before doing any work.
+ */
+export function checkRateLimit(request: NextRequest, action: string): NextResponse | null {
+  const now = Date.now()
+  sweep(now)
+
+  const bucket = buckets.get(clientKey(request, action))
+  if (!bucket || bucket.blockedUntil <= now) return null
+
+  const retryAfter = Math.ceil((bucket.blockedUntil - now) / 1000)
+  return NextResponse.json(
+    { error: 'Too many attempts. Please wait a moment before trying again.' },
+    { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+  )
+}

@@ -12,6 +12,8 @@ const updateEntrySchema = z.object({
   unlock_at: z.string().datetime().optional().nullable(),
   unlock_condition: z.enum(['date', 'manual', 'location', 'mood']).optional().nullable(),
   is_published: z.boolean().optional(),
+  // Set to null to make the gift permanent again.
+  expires_at: z.string().datetime().optional().nullable(),
 })
 
 export async function GET(

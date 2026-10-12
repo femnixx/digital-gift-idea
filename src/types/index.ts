@@ -34,6 +34,8 @@ export interface Entry {
   publish_at: string
   unlock_at: string | null
   unlock_condition: UnlockCondition | null
+  /** When set, the gift is deleted after this time. Null means permanent. */
+  expires_at?: string | null
   is_published: boolean
   is_featured: boolean
   view_count: number

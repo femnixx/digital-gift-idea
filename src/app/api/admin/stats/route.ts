@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { unstable_noStore as noStore } from 'next/cache'
 import { sql } from '@/lib/neon/auth'
-import { getUserIdFromRequest } from '@/lib/api/authGuard'
+import { requireAdmin } from '@/lib/api/authGuard'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,25 +18,25 @@ export async function GET(request: NextRequest) {
   noStore()
 
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
+    const adminId = await requireAdmin(request)
+    if (!adminId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const [diaries, media, interactions, voiceNotes] = await Promise.all([
-      sql`select count(*)::int as total from love_diaries where user_id = ${userId}`,
+      sql`select count(*)::int as total from love_diaries where user_id = ${adminId}`,
       sql`select count(*)::int as files, coalesce(sum(size_bytes), 0)::bigint as bytes
           from media m
           join entries e on e.id = m.entry_id
-          where e.created_by = ${userId}`,
+          where e.created_by = ${adminId}`,
       sql`select count(*)::int as total
           from partner_interactions p
           join entries e on e.id = p.entry_id
-          where e.created_by = ${userId}`,
+          where e.created_by = ${adminId}`,
       sql`select count(*)::int as total, coalesce(sum(duration_seconds), 0)::int as seconds
           from voice_notes v
           join entries e on e.id = v.entry_id
-          where e.created_by = ${userId}`,
+          where e.created_by = ${adminId}`,
     ])
 
     return NextResponse.json(

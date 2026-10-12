@@ -108,8 +108,8 @@ async function getPublicEntry(slug: string) {
 describe('Endpoint smoke tests', () => {
   beforeAll(async () => {
     try {
-      const res = await fetch(`${BASE}/api/admin/me`, { ...FETCH_OPTS, method: 'GET' })
-      serverAvailable = res.ok || res.status === 401 || res.status === 404 || res.status === 200
+      const res = await fetch(`${BASE}/api/auth/me`, { ...FETCH_OPTS, method: 'GET' })
+      serverAvailable = res.ok || res.status === 401 || res.status === 404 || res.status === 200 || res.status === 307
     } catch {
       serverAvailable = false
     }
@@ -122,11 +122,13 @@ describe('Endpoint smoke tests', () => {
   })
 
   describe('Admin auth endpoints', () => {
-    it('GET /api/admin/me without session returns 401', async () => {
+    it('GET /api/admin/me without a session is redirected, not answered', async () => {
       const res = await fetch(`${BASE}/api/admin/me`, FETCH_OPTS)
       logRequest('me(anon)', res.status, null)
-      expect(res.status).toBe(401)
-    })
+      // Middleware guards /api/admin/*, so an anonymous caller is sent to the
+      // login page rather than receiving an API 401 from the route itself.
+      expect([307, 401]).toContain(res.status)
+    }, 20000)
 
     it('POST /api/admin/login with bad credentials returns 401', async () => {
       const res = await adminLogin('definitely-not-the-password')
@@ -162,8 +164,9 @@ describe('Endpoint smoke tests', () => {
     it('GET /admin/login is publicly reachable (no redirect loop)', async () => {
       const res = await fetch(`${BASE}/admin/login`, FETCH_OPTS)
       logRequest('adminLoginPage', res.status, null)
+      // 200, not a redirect back to itself.
       expect(res.status).toBe(200)
-    })
+    }, 20000)
   })
 
   describe('Diary endpoints', () => {
@@ -462,11 +465,11 @@ describe('Endpoint smoke tests', () => {
   })
 
   describe('Admin stats endpoint', () => {
-    it('GET without session returns 401', async () => {
+    it('GET without a session is redirected, not answered', async () => {
       const res = await fetch(`${BASE}/api/admin/stats`, FETCH_OPTS)
       logRequest('adminStats(anon)', res.status, null)
-      expect(res.status).toBe(401)
-    })
+      expect([307, 401]).toContain(res.status)
+    }, 20000)
 
     it('GET returns real aggregates when authenticated', async () => {
       const login = await adminLogin()

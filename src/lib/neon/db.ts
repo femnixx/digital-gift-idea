@@ -41,9 +41,9 @@ export async function getPublishedEntries(limit = 100, offset = 0) {
 export async function createEntry(entry: Omit<Entry, 'id'> & { created_by?: string }) {
   const now = new Date().toISOString()
   const result = await sql`
-    insert into entries (slug, title, type, content, publish_at, unlock_at, unlock_condition, is_published, is_featured, view_count, created_by, created_at, updated_at)
-    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at ?? now}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by || null}, ${entry.created_at}, ${entry.updated_at})
-    returning id, slug, title, type, content, publish_at, unlock_at, unlock_condition, is_published, is_featured, view_count, created_by, created_at, updated_at
+    insert into entries (slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, is_published, is_featured, view_count, created_by, created_at, updated_at)
+    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at ?? now}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.expires_at ?? null}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by || null}, ${entry.created_at}, ${entry.updated_at})
+    returning id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, is_published, is_featured, view_count, created_by, created_at, updated_at
   `
   return result[0] as Entry
 }
@@ -55,8 +55,8 @@ export async function updateEntry(id: string, patch: Partial<Entry>) {
 
   const fieldMap: Record<string, string> = {
     title: 'title', slug: 'slug', type: 'type', content: 'content', publish_at: 'publish_at',
-    unlock_at: 'unlock_at', unlock_condition: 'unlock_condition', is_published: 'is_published',
-    is_featured: 'is_featured', view_count: 'view_count',
+    unlock_at: 'unlock_at', unlock_condition: 'unlock_condition', expires_at: 'expires_at',
+    is_published: 'is_published', is_featured: 'is_featured', view_count: 'view_count',
   }
 
   for (const [key, col] of Object.entries(fieldMap)) {
