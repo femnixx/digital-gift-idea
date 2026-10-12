@@ -150,7 +150,7 @@ export default function CreateEntryPage() {
         )
       case 'open_when':
         return (
-          <div className="card p-6 space-y-3">
+          <div className="card card-lg space-y-3">
             <h2 className="font-serif text-lg">Open When envelopes</h2>
             <p className="text-sm muted-foreground">
               Add your envelopes from the gift builder. Each one is sealed until its moment arrives.
@@ -169,19 +169,19 @@ export default function CreateEntryPage() {
 
   return (
     <PublicShell>
-      <div className="container py-8 space-y-6">
+      <div className="container-wide py-8 lg:py-12 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <Link href="/create" className="text-sm underline muted-foreground">All options</Link>
             <h1 className="heading">{label}</h1>
-            <p className="text-sm muted-foreground">/daily/{slug}</p>
+            <p className="text-sm muted-foreground font-mono">/daily/{slug}</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={publish} disabled={publishing || !entry} className="btn btn-primary">
               {publishing ? 'Publishing...' : entry?.is_published ? 'Published' : 'Publish'}
             </button>
             {entry?.is_published ? (
-              <Link href={`/daily/${slug}`} className="btn btn-ghost">View public page</Link>
+              <Link href={`/daily/${slug}`} className="btn btn-secondary">View public page</Link>
             ) : null}
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function CreateEntryPage() {
         {!loading && entry?.is_published ? <SharePanel slug={slug} token={token} /> : null}
 
         {loading ? (
-          <div className="card p-6 space-y-3">
+          <div className="card card-lg space-y-3">
             <div className="animate-pulse h-4 w-1/3 bg-stone-200 dark:bg-stone-700 rounded" />
             <div className="animate-pulse h-32 w-full bg-stone-200 dark:bg-stone-700 rounded" />
           </div>

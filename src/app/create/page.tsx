@@ -26,14 +26,14 @@ const OPTIONS: Option[] = [
   { type: 'voice_note', label: 'Voice Note', blurb: 'Your voice, on a cassette', icon: AudioLines, accent: 'pink' },
 ]
 
-const ACCENT_CLASSES: Record<string, { bg: string; text: string; ring: string }> = {
-  sky: { bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-600 dark:text-sky-400', ring: 'ring-sky-500' },
-  green: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', ring: 'ring-green-500' },
-  amber: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', ring: 'ring-amber-500' },
-  purple: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', ring: 'ring-purple-500' },
-  rose: { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600 dark:text-rose-400', ring: 'ring-rose-500' },
-  blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', ring: 'ring-blue-500' },
-  pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400', ring: 'ring-pink-500' },
+const ACCENT_CLASSES: Record<string, { bg: string; text: string }> = {
+  sky: { bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-600 dark:text-sky-400' },
+  green: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400' },
+  amber: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400' },
+  purple: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400' },
+  rose: { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600 dark:text-rose-400' },
+  blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
+  pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400' },
 }
 
 function slugify(value: string): string {
@@ -56,11 +56,6 @@ export default function CreatePage() {
 
   const slugPreview = useMemo(() => slug || slugify(title), [slug, title])
 
-  function choose(option: Option) {
-    setSelected(option)
-    setError('')
-  }
-
   async function handleCreate() {
     if (!selected) return
     setSubmitting(true)
@@ -81,8 +76,8 @@ export default function CreatePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not create')
 
-      // The edit token is shown exactly once, at creation. Carry it in the URL
-      // so the creator can keep editing; the public link never contains it.
+      // The edit token is shown exactly once, at creation, and is the only way
+      // back in. The public link never carries it.
       const token = data.entry?.edit_token || ''
       router.push(`/create/${selected.type}/${data.entry.slug}${token ? `?token=${token}` : ''}`)
     } catch (err: any) {
@@ -93,90 +88,106 @@ export default function CreatePage() {
 
   return (
     <PublicShell>
-      <div className="container py-10 space-y-8">
-      <div className="flex items-center gap-3">
-        <button onClick={() => (selected ? setSelected(null) : router.push('/'))} className="btn btn-ghost p-2" aria-label="Back">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <div>
-          <h1 className="heading">{selected ? `Name your ${selected.label.toLowerCase()}` : 'What would you like to make?'}</h1>
-          <p className="muted-foreground text-sm">
-            {selected
-              ? 'This is what you will see in your dashboard. Your public link uses it too.'
-              : 'Pick a gift. You can change anything later.'}
-          </p>
+      <div className="container-wide py-8 lg:py-12">
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => (selected ? setSelected(null) : router.push('/'))}
+            className="btn btn-secondary btn-sm"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="sr-only">Back</span>
+          </button>
+          <div>
+            <h1 className="heading">
+              {selected ? `Name your ${selected.label.toLowerCase()}` : 'What would you like to make?'}
+            </h1>
+            <p className="muted-foreground mt-1">
+              {selected
+                ? 'This is what you will see in your dashboard. Your public link uses it too.'
+                : 'Pick a gift. You can change anything later.'}
+            </p>
+          </div>
         </div>
-      </div>
 
-      {!selected ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {OPTIONS.map((option) => {
-            const Icon = option.icon
-            const accent = ACCENT_CLASSES[option.accent]
-            return (
-              <button
-                key={option.type}
-                onClick={() => choose(option)}
-                className="card p-6 text-left hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-accent"
-              >
-                <div className={`w-11 h-11 rounded-xl ${accent.bg} flex items-center justify-center mb-3`}>
-                  <Icon className={`w-5 h-5 ${accent.text}`} />
-                </div>
-                <h2 className="font-medium">{option.label}</h2>
-                <p className="text-sm muted-foreground mt-1">{option.blurb}</p>
-              </button>
-            )
-          })}
-        </div>
-      ) : (
-        <div className="card p-6 space-y-5 max-w-xl">
-          <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-xl ${ACCENT_CLASSES[selected.accent].bg} flex items-center justify-center`}>
-              <selected.icon className={`w-5 h-5 ${ACCENT_CLASSES[selected.accent].text}`} />
+        {/* Options: one column on a phone, two on a tablet, three on a laptop,
+            four on a wide display, so nothing is squeezed into an unreadable column. */}
+        {!selected ? (
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {OPTIONS.map((option) => {
+              const Icon = option.icon
+              const accent = ACCENT_CLASSES[option.accent]
+              return (
+                <button
+                  key={option.type}
+                  onClick={() => setSelected(option)}
+                  className="card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-2xl ${accent.bg} flex items-center justify-center mb-4`}>
+                    <Icon className={`w-6 h-6 lg:w-7 lg:h-7 ${accent.text}`} />
+                  </div>
+                  <h2 className="text-lg font-medium">{option.label}</h2>
+                  <p className="text-sm muted-foreground mt-1">{option.blurb}</p>
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          /* The form widens as the viewport grows rather than staying phone-width. */
+          <div className="card card-lg max-w-2xl xl:max-w-3xl space-y-6">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-2xl ${ACCENT_CLASSES[selected.accent].bg} flex items-center justify-center shrink-0`}>
+                <selected.icon className={`w-6 h-6 lg:w-7 lg:h-7 ${ACCENT_CLASSES[selected.accent].text}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium">{selected.label}</p>
+                <p className="text-sm muted-foreground">{selected.blurb}</p>
+              </div>
+              <Check className="w-5 h-5 text-green-600 ml-auto shrink-0" />
             </div>
+
             <div>
-              <p className="font-medium">{selected.label}</p>
-              <p className="text-sm muted-foreground">{selected.blurb}</p>
-            </div>
-            <Check className="w-5 h-5 text-green-600 ml-auto" />
-          </div>
-
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-1">Name</label>
-            <input
-              id="title" value={title} onChange={(e) => setTitle(e.target.value)}
-              placeholder={selected.label} maxLength={200}
-              className="w-full px-3 py-2 rounded-xl bg-base border border-base focus:outline-none focus:ring-2 focus:ring-accent text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="slug" className="block text-sm font-medium mb-1">
-              Public link name <span className="muted-foreground">(optional)</span>
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-sm muted-foreground whitespace-nowrap">/daily/</span>
+              <label htmlFor="title" className="label">Name</label>
               <input
-                id="slug" value={slugPreview}
-                onChange={(e) => setSlug(slugify(e.target.value))}
-                placeholder={slugify(title) || 'my-gift'}
-                maxLength={60}
-                className="flex-1 px-3 py-2 rounded-xl bg-base border border-base focus:outline-none focus:ring-2 focus:ring-accent text-sm font-mono"
+                id="title"
+                className="input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={selected.label}
+                maxLength={200}
               />
             </div>
-            <p className="text-xs muted-foreground mt-1">Lowercase letters, numbers and dashes only.</p>
-          </div>
 
-          {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : null}
+            <div>
+              <label htmlFor="slug" className="label">
+                Public link name <span className="muted-foreground font-normal">(optional)</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm muted-foreground whitespace-nowrap hidden sm:inline">/daily/</span>
+                <input
+                  id="slug"
+                  className="input font-mono"
+                  value={slugPreview}
+                  onChange={(e) => setSlug(slugify(e.target.value))}
+                  placeholder={slugify(title) || 'my-gift'}
+                  maxLength={60}
+                />
+              </div>
+              <p className="hint mt-1">Lowercase letters, numbers and dashes only.</p>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSelected(null)} className="btn btn-ghost" disabled={submitting}>Back</button>
-            <button onClick={handleCreate} className="btn btn-primary" disabled={submitting || !slugPreview}>
-              {submitting ? 'Creating...' : 'Create'}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </button>
+            {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : null}
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button onClick={() => setSelected(null)} className="btn btn-secondary" disabled={submitting}>
+                Back
+              </button>
+              <button onClick={handleCreate} className="btn btn-primary btn-lg" disabled={submitting || !slugPreview}>
+                {submitting ? 'Creating...' : 'Create'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
         )}
       </div>
     </PublicShell>
