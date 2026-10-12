@@ -10,7 +10,7 @@ const ADMIN_PATHS = ['/admin', '/api/admin']
 
 // Routes that must be reachable without a session. /admin/login is included
 // because it matches /admin and would otherwise redirect to itself forever.
-const PUBLIC_PATHS = ['/admin/login', '/api/admin/login', '/api/auth/signup', '/api/auth/login', '/api/auth/me', '/api/auth/logout']
+const PUBLIC_PATHS = ['/admin/login', '/api/admin/login']
 
 export const runtime = 'nodejs'
 

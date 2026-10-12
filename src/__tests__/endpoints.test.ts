@@ -68,31 +68,40 @@ async function deleteDiary(cookie: string, id: string) {
   return { status: res.status, data }
 }
 
-async function createEntry(cookie: string, slug = `smoke-${Date.now().toString(36)}`, title = 'Smoke Entry', isPublished = false) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json', Cookie: cookie }
+/**
+ * Gifts are anonymous: creation takes no credentials and returns an edit token
+ * that is the only proof of authorship.
+ */
+async function createEntry(slug = `smoke-${Date.now().toString(36)}`, title = 'Smoke Entry', isPublished = false) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   const res = await fetch(`${BASE}/api/entries`, { ...FETCH_OPTS, method: 'POST', headers, body: JSON.stringify({ title, type: 'letter', slug, content: {}, is_published: isPublished }) })
   const data = await res.json().catch(() => ({}))
+  const token = data.entry?.edit_token as string | undefined
   logRequest('createEntry', res.status, data)
-  return { status: res.status, data }
+  return { status: res.status, data, token }
 }
 
-async function getEntry(cookie: string, slug: string) {
-  const res = await fetch(`${BASE}/api/entries/${encodeURIComponent(slug)}`, { ...FETCH_OPTS, headers: { Cookie: cookie } })
+function entryApi(slug: string, token?: string) {
+  return `${BASE}/api/entries/${encodeURIComponent(slug)}${token ? `?token=${encodeURIComponent(token)}` : ''}`
+}
+
+async function getEntry(slug: string, token?: string) {
+  const res = await fetch(entryApi(slug, token), FETCH_OPTS)
   const data = await res.json().catch(() => ({}))
   logRequest('getEntry', res.status, data)
   return { status: res.status, data }
 }
 
-async function updateEntry(cookie: string, slug: string, title = 'Updated Smoke Entry') {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json', Cookie: cookie }
-  const res = await fetch(`${BASE}/api/entries/${encodeURIComponent(slug)}`, { ...FETCH_OPTS, method: 'PUT', headers, body: JSON.stringify({ title }) })
+async function updateEntry(slug: string, token: string, title = 'Updated Smoke Entry') {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const res = await fetch(entryApi(slug, token), { ...FETCH_OPTS, method: 'PUT', headers, body: JSON.stringify({ title }) })
   const data = await res.json().catch(() => ({}))
   logRequest('updateEntry', res.status, data)
   return { status: res.status, data }
 }
 
-async function deleteEntry(cookie: string, slug: string) {
-  const res = await fetch(`${BASE}/api/entries/${encodeURIComponent(slug)}`, { ...FETCH_OPTS, method: 'DELETE', headers: { Cookie: cookie } })
+async function deleteEntry(slug: string, token: string) {
+  const res = await fetch(entryApi(slug, token), { ...FETCH_OPTS, method: 'DELETE' })
   const data = await res.json().catch(() => ({}))
   logRequest('deleteEntry', res.status, data)
   return { status: res.status, data }
@@ -108,7 +117,7 @@ async function getPublicEntry(slug: string) {
 describe('Endpoint smoke tests', () => {
   beforeAll(async () => {
     try {
-      const res = await fetch(`${BASE}/api/auth/me`, { ...FETCH_OPTS, method: 'GET' })
+      const res = await fetch(`${BASE}/api/admin/me`, { ...FETCH_OPTS, method: 'GET' })
       serverAvailable = res.ok || res.status === 401 || res.status === 404 || res.status === 200 || res.status === 307
     } catch {
       serverAvailable = false
@@ -220,40 +229,33 @@ describe('Endpoint smoke tests', () => {
   })
 
   describe('Entry endpoints', () => {
-    it('GET/POST /api/entries without session returns 401', async () => {
+    it('GET /api/entries needs the admin account, but POST is anonymous', async () => {
       const get = await fetch(`${BASE}/api/entries`, FETCH_OPTS)
-      const getData = await get.json()
-      logRequest('entries(anon-get)', get.status, getData)
-      expect(get.status).toBe(401)
+      logRequest('entries(anon-get)', get.status, '(expect 307/403)')
+      expect([307, 403]).toContain(get.status)
 
-      const post = await fetch(`${BASE}/api/entries`, {
-        ...FETCH_OPTS,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'X', type: 'letter', slug: 'x' }),
-      })
-      const postData = await post.json()
-      logRequest('entries(anon-post)', post.status, postData)
-      expect(post.status).toBe(401)
-    })
+      const post = await createEntry(`anonpost-${Date.now().toString(36)}`, 'Anonymous', true)
+      logRequest('entries(anon-post)', post.status, '(expect 201)')
+      expect(post.status).toBe(201)
+      expect(post.token).toBeTruthy()
+    }, 20000)
 
-    it('GET/PUT/DELETE /api/entries/:slug with session succeeds', async () => {
-      const login = await adminLogin()
-      expect(login.status).toBe(200)
+    it('GET/PUT/DELETE /api/entries/:slug with the edit token succeeds', async () => {
       const slug = `smoke-${Date.now().toString(36)}`
 
-      const created = await createEntry(login.cookie, slug, 'Smoke Entry')
+      const created = await createEntry(slug, 'Smoke Entry')
       expect([200, 201]).toContain(created.status)
+      expect(created.token).toBeTruthy()
 
-      const got = await getEntry(login.cookie, slug)
+      const got = await getEntry(slug, created.token)
       expect(got.status).toBe(200)
 
-      const updated = await updateEntry(login.cookie, slug, 'Updated Smoke Entry')
+      const updated = await updateEntry(slug, created.token!, 'Updated Smoke Entry')
       expect(updated.status).toBe(200)
 
-      const deleted = await deleteEntry(login.cookie, slug)
+      const deleted = await deleteEntry(slug, created.token!)
       expect(deleted.status).toBe(200)
-    }, 30000)
+    }, 40000)
 
     it('GET /api/entries rejects invalid pagination without a 500', async () => {
       const login = await adminLogin()
@@ -277,7 +279,7 @@ describe('Endpoint smoke tests', () => {
       const slug = `stale-${Date.now().toString(36)}`
 
       // Must be published, otherwise the public route 404s it before we ever delete.
-      const created = await createEntry(login.cookie, slug, 'Stale Read Check', true)
+      const created = await createEntry(slug, 'Stale Read Check', true)
       expect([200, 201]).toContain(created.status)
       expect(created.data.entry?.is_published).toBe(true)
 
@@ -286,7 +288,7 @@ describe('Endpoint smoke tests', () => {
       const beforeDelete = await getPublicEntry(slug)
       expect(beforeDelete.status).toBe(200)
 
-      await deleteEntry(login.cookie, slug)
+      await deleteEntry(slug, created.token!)
 
       const afterDelete = await getPublicEntry(slug)
       expect(afterDelete.status).toBe(404)
@@ -297,51 +299,42 @@ describe('Endpoint smoke tests', () => {
       expect(login.status).toBe(200)
       const slug = `draft-${Date.now().toString(36)}`
 
-      const created = await createEntry(login.cookie, slug, 'Unpublished Check')
+      const created = await createEntry(slug, 'Unpublished Check')
       expect([200, 201]).toContain(created.status)
 
       // createEntry posts is_published: false in this suite, so it must stay hidden.
       const res = await getPublicEntry(slug)
       expect(res.status).toBe(404)
 
-      await deleteEntry(login.cookie, slug)
+      await deleteEntry(slug, created.token!)
     }, 30000)
   })
 
   describe('Media endpoints', () => {
-    it('GET/DELETE /api/media without session returns 401', async () => {
+    it('GET/DELETE /api/media without the edit token is refused', async () => {
       const get = await fetch(`${BASE}/api/media?entry_id=abc`, FETCH_OPTS)
-      const getData = await get.json()
-      logRequest('media(anon-get)', get.status, getData)
-      expect(get.status).toBe(401)
+      logRequest('media(anon-get)', get.status, '(expect 404)')
+      expect(get.status).toBe(404)
 
       const del = await fetch(`${BASE}/api/media?id=abc`, { ...FETCH_OPTS, method: 'DELETE' })
-      const delData = await del.json()
-      logRequest('media(anon-delete)', del.status, delData)
-      expect(del.status).toBe(401)
-    })
+      logRequest('media(anon-delete)', del.status, '(expect 404)')
+      expect(del.status).toBe(404)
+    }, 20000)
 
-    it('DELETE /api/media for an unknown id returns 404 when authenticated', async () => {
-      const login = await adminLogin()
-      expect(login.status).toBe(200)
-      const res = await fetch(`${BASE}/api/media?id=00000000-0000-0000-0000-000000000009`, {
-        ...FETCH_OPTS,
-        method: 'DELETE',
-        headers: { Cookie: login.cookie },
+    it('DELETE /api/media for an unknown id returns 404 with a token', async () => {
+      const created = await createEntry(`media-${Date.now().toString(36)}`, 'Media Host')
+      expect(created.token).toBeTruthy()
+      const res = await fetch(`${BASE}/api/media?id=00000000-0000-0000-0000-000000000009&token=${created.token}`, {
+        ...FETCH_OPTS, method: 'DELETE',
       })
       const data = await res.json()
       logRequest('media(delete-missing)', res.status, data)
       expect(res.status).toBe(404)
-    }, 20000)
+      await deleteEntry(created.data.entry.slug, created.token!)
+    }, 30000)
 
     it('DELETE /api/media without an id returns 400', async () => {
-      const login = await adminLogin()
-      expect(login.status).toBe(200)
-      const res = await fetch(`${BASE}/api/media`, {
-        ...FETCH_OPTS,
-        method: 'DELETE',
-        headers: { Cookie: login.cookie },
-      })
+      const res = await fetch(`${BASE}/api/media`, { ...FETCH_OPTS, method: 'DELETE' })
       logRequest('media(delete-no-id)', res.status, null)
       expect(res.status).toBe(400)
     }, 20000)
@@ -356,8 +349,8 @@ describe('Endpoint smoke tests', () => {
         body: JSON.stringify({ title: 'x' }),
       })
       const data = await res.json()
-      logRequest('voiceNote(anon)', res.status, data)
-      expect(res.status).toBe(401)
+      logRequest('voiceNote(no-token)', res.status, data)
+      expect(res.status).toBe(404)
     })
 
     it('POST with an invalid payload returns 400 when authenticated', async () => {
@@ -366,13 +359,13 @@ describe('Endpoint smoke tests', () => {
       // A real entry is required: the route resolves the entry before it
       // validates the body, so a missing slug would only produce a 404.
       const slug = `voice-bad-${Date.now().toString(36)}`
-      const created = await createEntry(login.cookie, slug, 'Voice Bad Payload', true)
+      const created = await createEntry(slug, 'Voice Bad Payload', true)
       expect([200, 201]).toContain(created.status)
 
-      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes`, {
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${created.token}`, {
         ...FETCH_OPTS,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: login.cookie },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       })
       const data = await res.json()
@@ -387,13 +380,13 @@ describe('Endpoint smoke tests', () => {
       expect(login.status).toBe(200)
       const slug = `voice-${Date.now().toString(36)}`
 
-      const created = await createEntry(login.cookie, slug, 'Voice Host', true)
+      const created = await createEntry(slug, 'Voice Host', true)
       expect([200, 201]).toContain(created.status)
 
-      const post = await fetch(`${BASE}/api/entries/${slug}/voice-notes`, {
+      const post = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${created.token}`, {
         ...FETCH_OPTS,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: login.cookie },
+        headers: { 'Content-Type': 'application/json' },
         // The array must survive the JSONB round-trip; passing it raw used to
         // make Postgres reject it as invalid JSON.
         body: JSON.stringify({ title: 'Note A', duration_seconds: 12, waveform_data: [1, 2, 3] }),
@@ -406,25 +399,23 @@ describe('Endpoint smoke tests', () => {
       expect(postData.voice_note?.waveform_data).toEqual([1, 2, 3])
 
       // The id is a query param: the path has no [voiceId] segment.
-      const del = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}`, {
+      const del = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}&token=${created.token}`, {
         ...FETCH_OPTS,
         method: 'DELETE',
-        headers: { Cookie: login.cookie },
       })
       const delData = await del.json()
       logRequest('voiceNote(delete)', del.status, delData)
       expect(del.status).toBe(200)
 
       // Deleting again proves it actually removed the row rather than matching none.
-      const delAgain = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}`, {
+      const delAgain = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}&token=${created.token}`, {
         ...FETCH_OPTS,
         method: 'DELETE',
-        headers: { Cookie: login.cookie },
       })
       logRequest('voiceNote(delete-again)', delAgain.status, null)
       expect(delAgain.status).toBe(200)
 
-      await deleteEntry(login.cookie, slug)
+      await deleteEntry(slug, created.token!)
     }, 40000)
   })
 

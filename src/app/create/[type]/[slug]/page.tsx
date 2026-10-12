@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { PublicShell } from '@/components/layout/PublicShell'
 import { LetterEditor } from '@/components/features/LetterEditor'
@@ -21,8 +21,12 @@ import type { Entry, EntryType } from '@/types'
  */
 export default function CreateEntryPage() {
   const params = useParams<{ type: string; slug: string }>()
+  const searchParams = useSearchParams()
   const type = (params?.type || 'letter') as EntryType
   const slug = String(params?.slug || '')
+  // Unguessable edit token proving this visitor created the gift. It is not
+  // present on the public /daily/<slug> page.
+  const token = searchParams?.get('token') || ''
 
   const [entry, setEntry] = useState<Entry | null>(null)
   const [loading, setLoading] = useState(true)
@@ -36,7 +40,7 @@ export default function CreateEntryPage() {
 
     async function load() {
       try {
-        const res = await fetch(`/api/entries/${encodeURIComponent(slug)}`)
+        const res = await fetch(entryUrl())
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
           throw new Error(body.error || 'Could not load this gift')
@@ -56,11 +60,16 @@ export default function CreateEntryPage() {
     }
   }, [slug])
 
+  // Every write to a gift carries its edit token, since there is no session.
+  function entryUrl(suffix = '') {
+    return `/api/entries/${encodeURIComponent(slug)}${suffix}${token ? `?token=${encodeURIComponent(token)}` : ''}`
+  }
+
   async function saveLetterContent(content: Record<string, any>) {
     setSaving(true)
     setError('')
     try {
-      const res = await fetch(`/api/entries/${encodeURIComponent(slug)}`, {
+      const res = await fetch(entryUrl(), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
@@ -81,7 +90,7 @@ export default function CreateEntryPage() {
     setPublishing(true)
     setError('')
     try {
-      const res = await fetch(`/api/entries/${encodeURIComponent(slug)}`, {
+      const res = await fetch(entryUrl(), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_published: true }),
@@ -181,7 +190,7 @@ export default function CreateEntryPage() {
         {notice ? <p className="text-sm text-green-600">{notice}</p> : null}
         {saving ? <p className="text-sm muted-foreground">Saving...</p> : null}
 
-        {!loading && entry?.is_published ? <SharePanel slug={slug} /> : null}
+        {!loading && entry?.is_published ? <SharePanel slug={slug} token={token} /> : null}
 
         {loading ? (
           <div className="card p-6 space-y-3">

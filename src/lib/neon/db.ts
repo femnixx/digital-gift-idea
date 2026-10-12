@@ -3,7 +3,7 @@ import type { Entry, Media } from '@/types'
 
 export async function getEntries() {
   const result = await sql`
-    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition,
+    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, edit_token,
            is_published, is_featured, view_count, created_by, created_at, updated_at
     from entries order by created_at desc
   `
@@ -12,7 +12,7 @@ export async function getEntries() {
 
 export async function getEntryBySlug(slug: string) {
   const result = await sql`
-    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition,
+    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, edit_token,
            is_published, is_featured, view_count, created_by, created_at, updated_at
     from entries where slug = ${slug} limit 1
   `
@@ -38,12 +38,12 @@ export async function getPublishedEntries(limit = 100, offset = 0) {
   return result as Entry[]
 }
 
-export async function createEntry(entry: Omit<Entry, 'id'> & { created_by?: string }) {
+export async function createEntry(entry: Omit<Entry, 'id'> & { created_by?: string | null }) {
   const now = new Date().toISOString()
   const result = await sql`
     insert into entries (slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, is_published, is_featured, view_count, created_by, created_at, updated_at)
-    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at ?? now}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.expires_at ?? null}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by || null}, ${entry.created_at}, ${entry.updated_at})
-    returning id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, is_published, is_featured, view_count, created_by, created_at, updated_at
+    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at ?? now}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.expires_at ?? null}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by ?? null}, ${entry.created_at}, ${entry.updated_at})
+    returning id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, edit_token, is_published, is_featured, view_count, created_by, created_at, updated_at
   `
   return result[0] as Entry
 }

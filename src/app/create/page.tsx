@@ -81,7 +81,10 @@ export default function CreatePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not create')
 
-      router.push(`/create/${selected.type}/${data.entry.slug}`)
+      // The edit token is shown exactly once, at creation. Carry it in the URL
+      // so the creator can keep editing; the public link never contains it.
+      const token = data.entry?.edit_token || ''
+      router.push(`/create/${selected.type}/${data.entry.slug}${token ? `?token=${token}` : ''}`)
     } catch (err: any) {
       setError(err.message)
       setSubmitting(false)

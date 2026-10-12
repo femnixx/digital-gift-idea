@@ -9,8 +9,9 @@ import { resolveBaseUrlLocal } from '@/lib/shareLink'
  * and the QR code that encodes that same link. The QR is a PNG served from the
  * permanent route, so it never goes stale.
  */
-export function SharePanel({ slug }: { slug: string }) {
+export function SharePanel({ slug, token }: { slug: string; token?: string }) {
   const [copied, setCopied] = useState(false)
+  const [editCopied, setEditCopied] = useState(false)
   const [url, setUrl] = useState('')
 
   useEffect(() => {
@@ -18,6 +19,8 @@ export function SharePanel({ slug }: { slug: string }) {
   }, [slug])
 
   const qrSrc = `/api/public/entries/${encodeURIComponent(slug)}/qr?size=512`
+  // The edit link is the only way back in: there is no sign-in to recover it.
+  const editUrl = token ? `${resolveBaseUrlLocal()}/create/letter/${slug}?token=${encodeURIComponent(token)}` : ''
 
   const copy = useCallback(async () => {
     try {
@@ -28,6 +31,17 @@ export function SharePanel({ slug }: { slug: string }) {
       setCopied(false)
     }
   }, [url])
+
+  const copyEdit = useCallback(async () => {
+    if (!editUrl) return
+    try {
+      await navigator.clipboard.writeText(editUrl)
+      setEditCopied(true)
+      setTimeout(() => setEditCopied(false), 2000)
+    } catch {
+      setEditCopied(false)
+    }
+  }, [editUrl])
 
   return (
     <div className="card p-6 space-y-4">
@@ -63,6 +77,25 @@ export function SharePanel({ slug }: { slug: string }) {
           </p>
         </div>
       </div>
+
+      {editUrl ? (
+        <div className="border-t border-base pt-4 space-y-2">
+          <p className="text-sm font-medium">Keep your edit link</p>
+          <p className="text-xs muted-foreground">
+            There is no sign-in, so this link is the only way back to edit. Save it somewhere safe.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              readOnly value={editUrl} aria-label="Edit link"
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 px-3 py-2 rounded-xl bg-base border border-base text-xs font-mono"
+            />
+            <button onClick={copyEdit} className="btn btn-ghost" aria-label="Copy edit link">
+              {editCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

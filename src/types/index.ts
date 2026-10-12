@@ -36,10 +36,13 @@ export interface Entry {
   unlock_condition: UnlockCondition | null
   /** When set, the gift is deleted after this time. Null means permanent. */
   expires_at?: string | null
+  /** Unguessable token granting edit and delete rights. Returned once at creation. */
+  edit_token?: string | null
   is_published: boolean
   is_featured: boolean
   view_count: number
-  created_by: string
+  /** Null for anonymously created gifts. */
+  created_by: string | null
   created_at: string
   updated_at: string
   // Relations

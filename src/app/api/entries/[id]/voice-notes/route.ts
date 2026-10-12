@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/neon/auth'
 import { createVoiceNote, deleteVoiceNote } from '@/lib/neon/db'
 import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
-import { getUserIdFromRequest } from '@/lib/api/authGuard'
+import { authorisedByEditToken } from '@/lib/api/editToken'
 import { z } from 'zod'
 
 const voiceNoteSchema = z.object({
@@ -19,15 +19,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserIdFromRequest(request)
     const { id } = await params
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const entry = await resolveEntryByIdOrSlug(id)
-    if (!entry || entry.created_by !== userId) {
+    const token = new URL(request.url).searchParams.get('token') || ''
+
+    if (!entry || !authorisedByEditToken(entry, token)) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
@@ -60,12 +56,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserIdFromRequest(request)
     const { id } = await params
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const token = new URL(request.url).searchParams.get('token') || ''
 
     // The voice note id arrives as a query parameter: the path has no [voiceId]
     // segment. Destructuring a non-existent route param left it undefined, so the
@@ -76,7 +68,7 @@ export async function DELETE(
     }
 
     const entry = await resolveEntryByIdOrSlug(id)
-    if (!entry || entry.created_by !== userId) {
+    if (!entry || !authorisedByEditToken(entry, token)) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 

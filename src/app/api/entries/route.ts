@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { unstable_noStore as noStore } from 'next/cache'
 import { z } from 'zod'
 import { listEntries, countEntries, createEntry, slugExists } from '@/lib/repositories/entryRepository'
-import { getUserIdFromRequest } from '@/lib/api/authGuard'
+import { requireAdmin } from '@/lib/api/authGuard'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const createEntrySchema = z.object({
   title: z.string().min(1).max(200),
@@ -25,11 +29,19 @@ function parseEntryType(raw: string | null): string | undefined {
   return (ENTRY_TYPES as readonly string[]).includes(raw) ? raw : undefined
 }
 
+/**
+ * Every gift on the site, site-wide.
+ *
+ * This is an admin metrics view, so it is deliberately not scoped to one owner:
+ * with anonymous creation there are no owners to scope to.
+ */
 export async function GET(request: NextRequest) {
+  noStore()
+
   try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const adminId = await requireAdmin(request)
+    if (!adminId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -38,25 +50,19 @@ export async function GET(request: NextRequest) {
     const type = parseEntryType(searchParams.get('type'))
     const search = searchParams.get('search') || undefined
 
-    const page = Number.isNaN(parsedPage) ? 1 : parsedPage
-    const limit = Number.isNaN(parsedLimit) ? 10 : parsedLimit
-
-    const filters = { created_by: userId, type, search }
-
-    // A single count query alongside the page; the previous implementation re-ran
-    // listEntries, which capped `total` at the default page size of 10.
+    const filters = { type, search }
     const [entries, total] = await Promise.all([
-      listEntries({ ...filters, page, limit }),
+      listEntries({ ...filters, page: parsedPage, limit: parsedLimit }),
       countEntries(filters),
     ])
 
     return NextResponse.json({
       entries,
       pagination: {
-        page,
-        limit,
+        page: 1,
+        limit: 10,
         total,
-        totalPages: Math.ceil(total / limit) || 1,
+        totalPages: Math.ceil(total / 10) || 1,
       },
     })
   } catch (error) {
@@ -65,24 +71,29 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Creates a gift anonymously.
+ *
+ * No account is needed and nothing is approved by anyone: the backend mints the
+ * id and the edit token, and the caller keeps the token to manage the gift.
+ * The token is returned exactly once, here, and is not recoverable afterwards.
+ */
 export async function POST(request: NextRequest) {
-  try {
-    const userId = await getUserIdFromRequest(request)
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  noStore()
 
-    const body = await request.json()
+  try {
+    const body = await request.json().catch(() => null)
     const validation = createEntrySchema.safeParse(body)
 
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
-    const { title, type, slug, content, publish_at, unlock_at, unlock_condition, is_published, expires_at } = validation.data
+    const {
+      title, type, slug, content, publish_at, unlock_at, unlock_condition, is_published, expires_at,
+    } = validation.data
 
-    const exists = await slugExists(slug)
-    if (exists) {
+    if (await slugExists(slug)) {
       return NextResponse.json({ error: 'Slug already exists' }, { status: 409 })
     }
 
@@ -95,11 +106,11 @@ export async function POST(request: NextRequest) {
       publish_at: publish_at ?? now,
       unlock_at: unlock_at ?? null,
       unlock_condition: unlock_condition ?? null,
+      expires_at: expires_at ?? null,
       is_published,
       is_featured: false,
       view_count: 0,
-      expires_at: expires_at ?? null,
-      created_by: userId,
+      created_by: null,
       created_at: now,
       updated_at: now,
     })

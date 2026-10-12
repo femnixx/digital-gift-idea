@@ -19,7 +19,7 @@ function isUuid(value: string): boolean {
 export async function resolveEntryByIdOrSlug(identifier: string) {
   if (isUuid(identifier)) {
     const result = await sql`
-      select id, slug, title, type, content, publish_at, unlock_at, unlock_condition,
+      select id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, edit_token,
              is_published, is_featured, view_count, created_by, created_at, updated_at
       from entries where id = ${identifier} limit 1
     `
@@ -78,7 +78,7 @@ export async function listEntries(params: EntryListFilters & { page?: number; li
   const filters = buildEntryFilters(params)
 
   const result = await sql`
-    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition,
+    select id, slug, title, type, content, publish_at, unlock_at, unlock_condition, expires_at, edit_token,
            is_published, is_featured, view_count, created_by, created_at, updated_at
     from entries
     where ${filters}
