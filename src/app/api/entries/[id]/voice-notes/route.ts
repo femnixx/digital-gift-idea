@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/neon/auth'
-import { getEntryBySlug, createVoiceNote, deleteVoiceNote } from '@/lib/neon/db'
+import { createVoiceNote, deleteVoiceNote } from '@/lib/neon/db'
+import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
+import { getUserIdFromRequest } from '@/lib/api/authGuard'
 import { z } from 'zod'
 
 const voiceNoteSchema = z.object({
@@ -17,15 +19,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromRequest(request)
+    const userId = await getUserIdFromRequest(request)
     const { id } = await params
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const entry = await getEntryBySlug(id)
-    if (!entry) {
+    const entry = await resolveEntryByIdOrSlug(id)
+    if (!entry || entry.created_by !== userId) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
@@ -55,22 +57,30 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; voiceId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromRequest(request)
-    const { id, voiceId } = await params
+    const userId = await getUserIdFromRequest(request)
+    const { id } = await params
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const entry = await getEntryBySlug(id)
-    if (!entry) {
+    // The voice note id arrives as a query parameter: the path has no [voiceId]
+    // segment. Destructuring a non-existent route param left it undefined, so the
+    // delete silently matched no rows.
+    const voiceNoteId = new URL(request.url).searchParams.get('id')
+    if (!voiceNoteId) {
+      return NextResponse.json({ error: 'Voice note ID required' }, { status: 400 })
+    }
+
+    const entry = await resolveEntryByIdOrSlug(id)
+    if (!entry || entry.created_by !== userId) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    await deleteVoiceNote(voiceId, entry.id)
+    await deleteVoiceNote(voiceNoteId, entry.id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

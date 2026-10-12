@@ -1,5 +1,3 @@
-'use server'
-
 import { sql } from '@/lib/neon/auth'
 import type { Entry, Media } from '@/types'
 
@@ -41,9 +39,10 @@ export async function getPublishedEntries(limit = 100, offset = 0) {
 }
 
 export async function createEntry(entry: Omit<Entry, 'id'> & { created_by?: string }) {
+  const now = new Date().toISOString()
   const result = await sql`
     insert into entries (slug, title, type, content, publish_at, unlock_at, unlock_condition, is_published, is_featured, view_count, created_by, created_at, updated_at)
-    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by || null}, ${entry.created_at}, ${entry.updated_at})
+    values (${entry.slug}, ${entry.title}, ${entry.type}, ${entry.content}::jsonb, ${entry.publish_at ?? now}, ${entry.unlock_at}, ${entry.unlock_condition}, ${entry.is_published}, ${entry.is_featured}, ${entry.view_count}, ${entry.created_by || null}, ${entry.created_at}, ${entry.updated_at})
     returning id, slug, title, type, content, publish_at, unlock_at, unlock_condition, is_published, is_featured, view_count, created_by, created_at, updated_at
   `
   return result[0] as Entry
@@ -76,6 +75,14 @@ export async function updateEntry(id: string, patch: Partial<Entry>) {
 
 export async function deleteEntry(id: string) {
   await sql`delete from entries where id = ${id}`
+}
+
+export async function getMediaById(id: string) {
+  const result = await sql`
+    select id, entry_id, type, storage_path, public_url, filename, mime_type, size_bytes, width, height, duration_seconds, sort_order, created_at
+    from media where id = ${id} limit 1
+  `
+  return (result[0] as Media) || null
 }
 
 export async function getMediaByEntry(entryId: string) {
@@ -177,7 +184,7 @@ export async function getVoiceNotesByEntry(entryId: string) {
 export async function createVoiceNote(note: any) {
   const result = await sql`
     insert into voice_notes (entry_id, media_id, title, transcript, waveform_data, duration_seconds, cassette_side)
-    values (${note.entry_id}, ${note.media_id || null}, ${note.title}, ${note.transcript || null}, ${note.waveform_data || null}, ${note.duration_seconds || null}, ${note.cassette_side || 'A'})
+    values (${note.entry_id}, ${note.media_id || null}, ${note.title}, ${note.transcript || null}, ${note.waveform_data ? JSON.stringify(note.waveform_data) : null}, ${note.duration_seconds || null}, ${note.cassette_side || 'A'})
     returning *
   `
   return result[0]

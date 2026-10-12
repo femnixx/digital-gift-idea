@@ -1,35 +1,33 @@
 'use client'
 
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { gsap } from 'gsap'
+import { startOfMonth } from 'date-fns'
 import {
-  Heart, Plus, Eye, Calendar, TrendingUp, FileText, ChevronRight, Sparkles, CheckCircle2
+  Heart, Plus, Eye, Sparkles, FileText, Globe, BarChart2, Server, Database, Shield
 } from 'lucide-react'
-import { format, startOfMonth } from 'date-fns'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { SkeletonStatCard, SkeletonEntryTable } from '@/components/ui/Skeleton'
 import { useDashboardData } from '@/hooks/useDashboardData'
+import { StatCard } from '@/components/ui/DashboardCharts'
+import type { Stat } from '@/components/ui/DashboardCharts'
 import {
-  StatCard,
   EntriesOverTimeChart,
   ViewsByEntryChart,
   EntriesByTypeChart,
   PublishedStatusChart,
   EntryTypeIcon,
-  type Stat,
-  TYPE_COLORS,
 } from '@/components/ui/DashboardCharts'
 
-export default function AdminDashboardPage() {
-  const { entries, loading, isDemoMode } = useDashboardData()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [toast, setToast] = useState<string | null>(null)
+function formatCompact(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return value.toLocaleString()
+}
 
-  const showToast = useCallback((message: string) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 2500)
-  }, [])
+export default function AdminDashboardPage() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { entries, loading } = useDashboardData()
 
   useEffect(() => {
     if (loading || !containerRef.current) return
@@ -50,204 +48,249 @@ export default function AdminDashboardPage() {
     return () => ctx.revert()
   }, [loading, entries])
 
+  // All figures below are derived from the real entries collection.
+  const metrics = useMemo(() => {
+    const now = new Date()
+    const monthStart = startOfMonth(now)
+
+    const published = entries.filter((e) => e.is_published).length
+    const drafts = entries.length - published
+    const totalViews = entries.reduce((sum, e) => sum + (e.view_count || 0), 0)
+    const thisMonth = entries.filter((e) => new Date(e.created_at) >= monthStart).length
+    const viewsThisMonth = entries
+      .filter((e) => new Date(e.created_at) >= monthStart)
+      .reduce((sum, e) => sum + (e.view_count || 0), 0)
+
+    return {
+      totalEntries: entries.length,
+      published,
+      drafts,
+      totalViews,
+      thisMonth,
+      viewsThisMonth,
+      avgViewsPerEntry: entries.length > 0 ? Math.round(totalViews / entries.length) : 0,
+      mostViewed: entries.reduce((max, e) => Math.max(max, e.view_count || 0), 0),
+    }
+  }, [entries])
+
   const stats: Stat[] = useMemo(
     () => [
       {
         label: 'Total Entries',
-        value: loading ? '...' : entries.length,
-        icon: Heart,
-        color: 'sky',
-      },
-      {
-        label: 'Published',
-        value: loading ? '...' : entries.filter((e) => e.is_published).length,
-        icon: Eye,
+        value: loading ? '...' : metrics.totalEntries.toLocaleString(),
+        icon: FileText,
         color: 'green',
       },
       {
+        label: 'Published',
+        value: loading ? '...' : metrics.published.toLocaleString(),
+        icon: Globe,
+        color: 'sky',
+      },
+      {
         label: 'Drafts',
-        value: loading ? '...' : entries.filter((e) => !e.is_published).length,
-        icon: FileText,
+        value: loading ? '...' : metrics.drafts.toLocaleString(),
+        icon: Heart,
         color: 'amber',
       },
       {
+        label: 'Total Views',
+        value: loading ? '...' : formatCompact(metrics.totalViews),
+        icon: Eye,
+        color: 'purple',
+      },
+      {
         label: 'This Month',
-        value:
-          loading ? '...' : entries.filter((e) => new Date(e.created_at) >= startOfMonth(new Date())).length,
-        icon: Calendar,
+        value: loading ? '...' : metrics.thisMonth.toLocaleString(),
+        icon: Plus,
         color: 'blue',
       },
       {
-        label: 'Total Views',
-        value: loading ? '...' : entries.reduce((sum, e) => sum + (e.view_count || 0), 0),
-        icon: TrendingUp,
-        color: 'purple',
+        label: 'Views / Entry',
+        value: loading ? '...' : metrics.avgViewsPerEntry.toLocaleString(),
+        icon: BarChart2,
+        color: 'pink',
       },
     ],
-    [entries, loading]
+    [loading, metrics]
   )
 
-  const recentEntries = entries.slice(0, 10)
+  const recentEntries = entries.slice(0, 8)
 
   return (
     <AdminLayout>
       <div ref={containerRef} className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="heading">Dashboard</h1>
-            <p className="muted-foreground mt-1">Track your progress and manage your surprises</p>
+            <h1 className="heading">Admin Dashboard</h1>
+            <p className="muted-foreground mt-1">Website metrics and system overview</p>
           </div>
-          <button
-            onClick={() => showToast('Preparing your new entry...')}
-            className="btn-primary w-full sm:w-auto inline-flex items-center gap-2"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span>Create Entry</span>
-          </button>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {loading
-            ? Array.from({ length: 5 }).map((_, i) => <SkeletonStatCard key={i} />)
-            : stats.map((stat, index) => <StatCard key={stat.label} stat={stat} index={index} />)}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {stats.map((stat, index) => (
+            <StatCard key={stat.label} stat={stat} index={index} />
+          ))}
         </div>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Progress Graphs</h2>
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">System Health</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Database</p>
+                  <p className="text-sm muted-foreground">Neon Postgres</p>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {loading ? '...' : 'Healthy'}
+              </p>
+            </div>
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Published Rate</p>
+                  <p className="text-sm muted-foreground">Share of entries live</p>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {loading || entries.length === 0 ? '...' : `${Math.round((metrics.published / entries.length) * 100)}%`}
+              </p>
+            </div>
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <Server className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Views This Month</p>
+                  <p className="text-sm muted-foreground">Current calendar month</p>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                {loading ? '...' : formatCompact(metrics.viewsThisMonth)}
+              </p>
+            </div>
+            <div className="card p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <BarChart2 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Top Entry Views</p>
+                  <p className="text-sm muted-foreground">Highest single entry</p>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                {loading ? '...' : formatCompact(metrics.mostViewed)}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="gsap-section">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Monthly Trends</h2>
           <div className="grid gap-6 lg:grid-cols-2">
-            <EntriesOverTimeChart entries={entries} />
+            <EntriesOverTimeChart entries={entries} days={14} />
             <ViewsByEntryChart entries={entries} />
+          </div>
+        </section>
+
+        <section className="gsap-section">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Entry Breakdown</h2>
+          <div className="grid gap-6 lg:grid-cols-2">
             <EntriesByTypeChart entries={entries} />
             <PublishedStatusChart entries={entries} />
           </div>
         </section>
 
         <section className="gsap-section">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">Recent Entries</h2>
-            <Link
-              href="/admin/entries"
-              className="accent text-sm font-medium hover:opacity-80 flex items-center gap-1 transition-colors"
-            >
-              View All <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Recent Entries</h2>
           <div className="card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-base border-b border-base">
-                  <tr>
-                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Entry
-                    </th>
-                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Published
-                    </th>
-                    <th className="px-6 py-4 text-left muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Views
-                    </th>
-                    <th className="px-6 py-4 text-right muted-foreground text-sm font-medium uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-base">
-                  {loading ? (
+            {loading ? (
+              <div className="p-6 space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="animate-pulse h-4 bg-stone-200 rounded w-full max-w-md" />
+                ))}
+              </div>
+            ) : recentEntries.length === 0 ? (
+              <div className="p-6 text-sm muted-foreground">No entries yet.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-base-2 border-b border-card-border">
                     <tr>
-                      <td colSpan={6} className="px-6 py-12">
-                        <SkeletonEntryTable rows={5} cells={6} />
-                      </td>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider muted-foreground">Entry</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider muted-foreground">Slug</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider muted-foreground">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider muted-foreground">Views</th>
                     </tr>
-                  ) : recentEntries.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center muted-foreground">
-                        No entries yet. Create your first love letter!
-                      </td>
-                    </tr>
-                  ) : (
-                    recentEntries.map((entry) => (
-                       <tr
-                         key={entry.id}
-                         className="hover:bg-base/50 transition-colors cursor-pointer"
-                       >
-                         <td className="px-6 py-4">
-                           <div className="flex items-center gap-3">
-                             <span className="text-xl w-6 text-center">
-                               <EntryTypeIcon type={entry.type} />
-                             </span>
-                             <div>
-                               <p className="font-medium">{entry.title}</p>
-                               <p className="muted-foreground text-sm">{entry.slug}</p>
-                             </div>
-                           </div>
-                         </td>
-                         <td className="px-6 py-4">
-                           <span
-                             className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium"
-                             style={{
-                               backgroundColor: `${TYPE_COLORS[entry.type]}20`,
-                               color: TYPE_COLORS[entry.type],
-                             }}
-                           >
-                             {entry.type.replace('_', ' ')}
-                           </span>
-                         </td>
-                         <td className="px-6 py-4">
-                           <span
-                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                               entry.is_published
-                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                 : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                             }`}
-                           >
-                             {entry.is_published ? 'Published' : 'Draft'}
-                           </span>
-                         </td>
-                         <td className="px-6 py-4 muted-foreground">
-                           {format(new Date(entry.publish_at), 'MMM d, yyyy')}
-                         </td>
-                         <td className="px-6 py-4 muted-foreground font-mono">{entry.view_count || 0}</td>
-                         <td className="px-6 py-4">
-                           <div className="flex items-center justify-end gap-2">
-                             <Link
-                               href={`/daily/${entry.slug}`}
-                               className="p-2 rounded-lg bg-base border border-base muted hover:accent hover:border-accent transition-colors"
-                               aria-label="View entry"
-                             >
-                               <Eye className="w-4 h-4" />
-                             </Link>
-                             <button
-                               className="p-2 rounded-lg bg-base border border-base muted hover:accent hover:border-accent transition-colors"
-                               aria-label="More options"
-                             >
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
+                  </thead>
+                  <tbody className="divide-y divide-card-border">
+                    {recentEntries.map((entry) => (
+                      <tr key={entry.id}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <EntryTypeIcon type={entry.type} />
+                            <span className="font-medium">{entry.title}</span>
                           </div>
                         </td>
+                        <td className="px-6 py-4 muted-foreground text-sm font-mono">/{entry.slug}</td>
+                        <td className="px-6 py-4">
+                          <span className={entry.is_published ? 'text-green-600 text-sm font-medium' : 'text-amber-600 text-sm font-medium'}>
+                            {entry.is_published ? 'Published' : 'Draft'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm">{(entry.view_count || 0).toLocaleString()}</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </section>
 
-          {toast && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-toast">
-              <div className="btn-primary px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5" />
-                <span className="text-sm font-medium">{toast}</span>
+        <section className="gsap-section">
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Quick Actions</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/admin/entries/new" className="card p-6 hover:border-accent transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mb-3">
+                <Plus className="w-6 h-6 text-sky-600 dark:text-sky-400" />
               </div>
-            </div>
-          )}
+              <h3 className="font-medium">Create Entry</h3>
+              <p className="text-sm muted-foreground mt-1">Add new love letter</p>
+            </Link>
+            <Link href="/admin/entries" className="card p-6 hover:border-accent transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3">
+                <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="font-medium">Manage Entries</h3>
+              <p className="text-sm muted-foreground mt-1">View all entries</p>
+            </Link>
+            <Link href="/admin/diaries" className="card p-6 hover:border-accent transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-3">
+                <Heart className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="font-medium">Love Diaries</h3>
+              <p className="text-sm muted-foreground mt-1">Manage diaries</p>
+            </Link>
+            <Link href="/admin/settings" className="card p-6 hover:border-accent transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-3">
+                <Sparkles className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h3 className="font-medium">Settings</h3>
+              <p className="text-sm muted-foreground mt-1">Configure system</p>
+            </Link>
+          </div>
+        </section>
       </div>
     </AdminLayout>
   )

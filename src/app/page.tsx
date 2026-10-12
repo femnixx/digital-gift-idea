@@ -1,12 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useColorTheme } from '@/lib/theme'
-
-type Theme = 'light' | 'romantic'
 
 function HeartSvg() {
   return (
@@ -81,7 +77,6 @@ function Sparkles() {
 }
 
 export default function HomePage() {
-  const router = useRouter()
   const { theme } = useColorTheme()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
@@ -133,10 +128,6 @@ export default function HomePage() {
             A private digital sanctuary where distance disappears.
             Create personalized gifts that speak straight to the heart.
           </p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/login" className="btn btn-primary">Sign In</Link>
-            <Link href="/signup" className="btn btn-secondary">Get Started</Link>
-          </div>
         </div>
       </section>
 
@@ -144,13 +135,13 @@ export default function HomePage() {
         <div className="container">
           <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map(({ title, desc, Icon }) => (
-              <Link key={title} href="/login" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div key={title} className="card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                     background: 'rgb(var(--card-border) / 0.6)',
+                    background: 'rgb(var(--card-border) / 0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
@@ -159,8 +150,8 @@ export default function HomePage() {
                   </div>
                   <h3 style={{ fontSize: 16, fontWeight: 600 }}>{title}</h3>
                 </div>
-                 <p style={{ fontSize: 14, color: 'rgb(var(--muted))', lineHeight: 1.55 }}>{desc}</p>
-              </Link>
+                <p style={{ fontSize: 14, color: 'rgb(var(--muted))', lineHeight: 1.55 }}>{desc}</p>
+              </div>
             ))}
           </div>
         </div>

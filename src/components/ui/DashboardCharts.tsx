@@ -45,6 +45,7 @@ const statColors: Record<string, { bg: string; text: string }> = {
   amber: { bg: 'bg-amber-100', text: 'text-amber-600' },
   blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
   purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+  pink: { bg: 'bg-pink-100', text: 'text-pink-600' },
 }
 
 export function typeLabel(type: EntryType): string {

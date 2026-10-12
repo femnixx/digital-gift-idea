@@ -2,9 +2,11 @@
 
 import { neon } from '@neondatabase/serverless'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify, createRemoteJWKSet } from 'jose'
+import { ADMIN_USER_ID, SESSION_MAX_AGE_DAYS } from '@/lib/constants'
+import { resolveConnectionString } from '@/lib/neon/connection'
 
-const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
+const connectionString = resolveConnectionString()
 if (!connectionString) throw new Error('Missing NEON_DATABASE_URL')
 
 export const sql = neon(connectionString)
@@ -24,11 +26,21 @@ export interface Session {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production'
-const JWT_EXPIRY = '7d'
+const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET)
+const JWT_EXPIRY = `${SESSION_MAX_AGE_DAYS}d`
 
 const NEON_AUTH_JWKS_URL = process.env.NEON_AUTH_JWKS_URL || process.env.NEXT_PUBLIC_NEON_AUTH_JWKS_URL || ''
 const NEON_AUTH_ISSUER = process.env.NEON_AUTH_ISSUER || ''
 const NEON_AUTH_AUDIENCE = process.env.NEON_AUTH_AUDIENCE || ''
+
+// Cached JWKS so the Neon Auth fallback does not fetch the key set per request.
+let neonAuthJwks: ReturnType<typeof createRemoteJWKSet> | null = null
+function getNeonAuthJwks() {
+  if (!neonAuthJwks) {
+    neonAuthJwks = createRemoteJWKSet(new URL(NEON_AUTH_JWKS_URL))
+  }
+  return neonAuthJwks
+}
 
 function getNeonAuthIssuer(): string {
   if (!NEON_AUTH_ISSUER) {
@@ -68,7 +80,11 @@ export async function getUserByEmail(email: string): Promise<(User & { password_
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const result = await sql`select id, email, name, avatar_url, created_at, updated_at from users where id = ${id}`
+  // Normalize the legacy 'admin' alias to the canonical UUID. Old sessions minted
+  // before the admin account had a UUID carried sub='admin'; without this they
+  // would silently fail verification.
+  const resolvedId = id === 'admin' ? ADMIN_USER_ID : id
+  const result = await sql`select id, email, name, avatar_url, created_at, updated_at from users where id = ${resolvedId}`
   return (result[0] as unknown as User) || null
 }
 
@@ -81,18 +97,27 @@ export async function updateUser(id: string, patch: Partial<Pick<User, 'name' | 
 }
 
 export async function createSession(userId: string): Promise<string> {
-  const token = jwt.sign({ sub: userId, typ: 'session' }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
-  await sql`insert into sessions (token, user_id, created_at, expires_at) values (${token}, ${userId}, now(), now() + interval '7 days')`
+  // The jti makes each token unique. Without it two sign-ins inside the same
+  // second produce an identical JWT (sub/typ/iat/exp are the only claims and iat
+  // has one-second granularity), which then collides on the sessions primary key
+  // and fails the insert with a duplicate-key error.
+  const token = await new SignJWT({ sub: userId, typ: 'session', jti: crypto.randomUUID() })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(JWT_EXPIRY)
+    .sign(JWT_SECRET_KEY)
+
+  await sql`insert into sessions (token, user_id, created_at, expires_at) values (${token}, ${userId}, now(), now() + ${SESSION_MAX_AGE_DAYS} * interval '1 day')`
   return token
 }
 
 export async function verifySession(token: string): Promise<User | null> {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as { sub: string; typ: string }
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY)
     if (payload.typ !== 'session') return null
     const result = await sql`select user_id, expires_at from sessions where token = ${token} and expires_at > now()`
     if (result.length === 0) return null
-    return getUserById(payload.sub)
+    return getUserById(payload.sub as string)
   } catch {
     return null
   }
@@ -115,23 +140,11 @@ export async function verifyNeonAuthToken(token: string): Promise<string | null>
       return null
     }
 
-    const decoded = jwt.decode(token, { complete: true }) as any
-    if (!decoded?.payload) return null
-
-    const jwks = await fetch(NEON_AUTH_JWKS_URL).then((res) => res.json())
-    const keys = jwks.keys || []
-    const key = keys.find((k: any) => k.kid === decoded.header.kid)
-
-    if (!key) {
-      return null
-    }
-
-    const publicKey = `-----BEGIN PUBLIC KEY-----\n${key.x.replace(/_/g, '/').replace(/-/g, '+')}\n-----END PUBLIC KEY-----`
-    const payload = jwt.verify(token, publicKey, {
+    const { payload } = await jwtVerify(token, getNeonAuthJwks(), {
       algorithms: ['RS256', 'ES256'],
       issuer: getNeonAuthIssuer(),
       audience: NEON_AUTH_AUDIENCE || 'neondb',
-    }) as any
+    })
 
     const userId = payload.sub as string
     if (!userId) return null
@@ -151,7 +164,11 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
     const cookie = request.headers.get('cookie') || ''
     const match = cookie.match(/session=([^;]+)/)
     if (match) {
-      return verifySession(match[1])
+      const localUser = await verifySession(match[1])
+      if (localUser) return localUser
+      const userId = await verifyNeonAuthToken(match[1])
+      if (!userId) return null
+      return getUserById(userId)
     }
     return null
   }
@@ -193,9 +210,9 @@ export async function getOrCreateUserFromNeonAuth(payload: {
   return result[0] as User
 }
 
-export async function ensureProfileExists(userId: string, displayName: string) {
+export async function ensureProfileExists(userId: string, displayName: string, email?: string) {
   try {
-    await sql`insert into profiles (id, display_name, created_at, updated_at) values (${userId}, ${displayName}, now(), now())`
+    await sql`insert into profiles (id, email, display_name, created_at, updated_at) values (${userId}, ${email || displayName}, ${displayName}, now(), now())`
   } catch {
     // ignore duplicate
   }

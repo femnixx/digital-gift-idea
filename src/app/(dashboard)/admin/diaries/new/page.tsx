@@ -62,7 +62,7 @@ export default function NewDiaryPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/me')
+      const res = await fetch('/api/admin/me')
       let userId = 'demo-user'
       if (res.ok) {
         const data = await res.json()
@@ -77,7 +77,7 @@ export default function NewDiaryPage() {
       )
 
       if (result && 'success' in result && !result.success) {
-        setError(result.error)
+        setError(result.error || 'Failed to create diary')
         setLoading(false)
         return
       }

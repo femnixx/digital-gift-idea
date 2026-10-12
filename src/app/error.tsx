@@ -17,8 +17,8 @@ export default function Error({
   }, [error])
 
   const handleSignOut = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
+    await fetch('/api/admin/logout', { method: 'POST' })
+    router.push('/admin/login')
   }
 
   return (

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getNeonClient } from '@/lib/neon'
 import { z } from 'zod'
-import { listEntries, createEntry as repoCreateEntry, slugExists } from '@/lib/repositories/entryRepository'
+import { listEntries, countEntries, createEntry, slugExists } from '@/lib/repositories/entryRepository'
+import { getUserIdFromRequest } from '@/lib/api/authGuard'
 
 const createEntrySchema = z.object({
   title: z.string().min(1).max(200),
@@ -14,44 +14,39 @@ const createEntrySchema = z.object({
   is_published: z.boolean().default(false),
 })
 
-async function getUserIdFromToken(request: NextRequest): Promise<string | null> {
-  const token = request.cookies.get('auth-token')?.value
-  if (!token) return null
+// Valid `type` values for list filtering. The column is a Postgres enum, so an
+// unknown value would surface as a 500 rather than an empty result.
+const ENTRY_TYPES = ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note'] as const
 
-  try {
-    const client = getNeonClient()
-    const userId = Buffer.from(token, 'base64').toString('utf-8').split(':')[0]
-    const result = await client.query('SELECT id FROM profiles WHERE id = $1', [userId])
-    return result.length > 0 ? userId : null
-  } catch {
-    return null
-  }
+function parseEntryType(raw: string | null): string | undefined {
+  if (!raw) return undefined
+  return (ENTRY_TYPES as readonly string[]).includes(raw) ? raw : undefined
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const userId = await getUserIdFromRequest(request)
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const type = searchParams.get('type')
-    const published = searchParams.get('published')
-    const search = searchParams.get('search')
+    const parsedPage = parseInt(searchParams.get('page') || '', 10)
+    const parsedLimit = parseInt(searchParams.get('limit') || '', 10)
+    const type = parseEntryType(searchParams.get('type'))
+    const search = searchParams.get('search') || undefined
 
-    const entries = await listEntries({
-      created_by: userId,
-      type: type || undefined,
-      search: search || undefined,
-      page,
-      limit,
-    })
+    const page = Number.isNaN(parsedPage) ? 1 : parsedPage
+    const limit = Number.isNaN(parsedLimit) ? 10 : parsedLimit
 
-    const totalResult = await listEntries({ created_by: userId, type: type || undefined, search: search || undefined })
-    const total = totalResult.length
+    const filters = { created_by: userId, type, search }
+
+    // A single count query alongside the page; the previous implementation re-ran
+    // listEntries, which capped `total` at the default page size of 10.
+    const [entries, total] = await Promise.all([
+      listEntries({ ...filters, page, limit }),
+      countEntries(filters),
+    ])
 
     return NextResponse.json({
       entries,
@@ -59,7 +54,7 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit) || 1,
       },
     })
   } catch (error) {
@@ -70,7 +65,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const userId = await getUserIdFromRequest(request)
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -89,16 +84,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Slug already exists' }, { status: 409 })
     }
 
-    const entry = await repoCreateEntry({
+    const now = new Date().toISOString()
+    const entry = await createEntry({
       title,
       type,
       slug,
       content,
-      publish_at,
-      unlock_at,
-      unlock_condition,
+      publish_at: publish_at ?? now,
+      unlock_at: unlock_at ?? null,
+      unlock_condition: unlock_condition ?? null,
       is_published,
+      is_featured: false,
+      view_count: 0,
       created_by: userId,
+      created_at: now,
+      updated_at: now,
     })
 
     return NextResponse.json({ entry }, { status: 201 })

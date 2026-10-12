@@ -9,7 +9,7 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     setTimeout(() => {
-      router.push('/login')
+      router.push('/admin/login')
     }, 2000)
   }, [router])
 

@@ -47,5 +47,5 @@ export function useDashboardData() {
     }
   }, [])
 
-  return { entries, loading, isDemoMode: false }
+  return { entries, loading }
 }

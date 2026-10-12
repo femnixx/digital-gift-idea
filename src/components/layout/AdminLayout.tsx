@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Calendar, Image, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
+import { Heart, Plus, Calendar, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { EntryType } from '@/types'
 
@@ -47,12 +47,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [userName, setUserName] = useState('You')
+  const [userName, setUserName] = useState('Admin')
 
   useEffect(() => {
     async function loadUser() {
       try {
-        const res = await fetch('/api/auth/me')
+        const res = await fetch('/api/admin/me')
         if (res.ok) {
           const data = await res.json()
           if (data.user?.name) {
@@ -67,9 +67,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [])
 
   const handleSignOut = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await fetch('/api/admin/logout', { method: 'POST' })
     setUserMenuOpen(false)
-    router.push('/login')
+    router.push('/admin/login')
     router.refresh()
   }
 

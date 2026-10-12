@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/neon/auth'
-import { getEntryBySlug, getMediaByEntry, createMedia as dbCreateMedia, deleteMedia } from '@/lib/neon/db'
-import { getMediaStore, uploadMedia } from '@/lib/storage/objectStorage'
+import { getMediaById, getMediaByEntry, createMedia as dbCreateMedia, deleteMedia as dbDeleteMedia } from '@/lib/neon/db'
+import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
+import { deleteMedia, uploadMedia } from '@/lib/storage/objectStorage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const entry = await getEntryBySlug(entryId)
+    const entry = await resolveEntryByIdOrSlug(entryId)
     if (!entry) {
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
@@ -62,7 +63,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'entry_id required' }, { status: 400 })
     }
 
-    const media = await getMediaByEntry(entryId)
+    const entry = await resolveEntryByIdOrSlug(entryId)
+    if (!entry) {
+      return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
+    }
+
+    const media = await getMediaByEntry(entry.id)
 
     return NextResponse.json({ media }, { status: 200 })
   } catch (error) {
@@ -85,18 +91,30 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Media ID required' }, { status: 400 })
     }
 
-    const mediaList = await getMediaByEntry('')
-    const media = mediaList.find((m) => m.id === mediaId)
+    // Look the media row up by its own id. This previously called
+    // getMediaByEntry(''), which made Postgres reject the empty string as a uuid
+    // and returned a 500 without deleting anything.
+    const media = await getMediaById(mediaId)
 
     if (!media) {
       return NextResponse.json({ error: 'Media not found' }, { status: 404 })
     }
 
-    try {
-      await deleteMedia(mediaId)
-    } catch {
-      // ignore delete error
+    // Only the owner of the media's entry may delete it.
+    const entry = await resolveEntryByIdOrSlug(media.entry_id)
+    if (!entry || entry.created_by !== user.id) {
+      return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
+
+    try {
+      // Remove the stored object first so a failed DB delete cannot orphan a
+      // row pointing at a missing file.
+      await deleteMedia(media.storage_path)
+    } catch (error) {
+      console.error('Error deleting media from storage:', error)
+    }
+
+    await dbDeleteMedia(mediaId)
 
     return NextResponse.json({ success: true })
   } catch (error) {

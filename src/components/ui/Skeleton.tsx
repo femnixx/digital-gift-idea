@@ -40,16 +40,6 @@ export function SkeletonCard({ className }: { className?: string }) {
   )
 }
 
-export function SkeletonStatCard() {
-  return (
-    <div className="bg-white border border-stone-200 rounded-xl p-5">
-      <Skeleton className="h-8 w-8 rounded-lg mb-3" />
-      <Skeleton className="h-5 w-3/4 mb-1" />
-      <Skeleton className="h-8 w-1/4" />
-    </div>
-  )
-}
-
 export function SkeletonTableRow({ cells = 6 }) {
   return (
     <tr>

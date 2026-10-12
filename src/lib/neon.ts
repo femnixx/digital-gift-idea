@@ -1,9 +1,11 @@
 import { neon } from '@neondatabase/serverless'
+import { resolveConnectionString } from '@/lib/neon/connection'
 
 export function getNeonClient() {
-  const connectionString = process.env.NEON_DATABASE_URL
+  const connectionString = resolveConnectionString()
+
   if (!connectionString) {
-    throw new Error('Missing NEON_DATABASE_URL')
+    throw new Error('Missing database connection string. Add NEON_DATABASE_URL, DATABASE_URL, or DATABASE_URL_UNPOOLED to your environment.')
   }
   return neon(connectionString)
 }

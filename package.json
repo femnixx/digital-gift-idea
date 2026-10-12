@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 4000",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "neon:tables": "tsx scripts/neon-tables.ts",
     "neon:storage": "tsx scripts/neon-storage.ts",
-    "neon:db": "tsx scripts/neon-db.ts"
+    "db:migrate": "tsx scripts/run-migrations.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
@@ -43,6 +43,8 @@
     "files-sdk": "^2.6.2",
     "framer-motion": "^11.18.2",
     "gsap": "^3.12.0",
+    "jose": "^6.2.12",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.468.0",
     "next": "^14.2.0",
     "react": "18.3.0",
@@ -56,20 +58,27 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.11.0",
     "@types/pg": "^8.23.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/ui": "^5.0.3",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
+    "jsdom": "^30.1.2",
     "pg": "^8.23.1",
     "postcss": "^8.4.0",
     "prettier": "^3.2.0",
     "prettier-plugin-tailwindcss": "^0.5.0",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
   }
 }

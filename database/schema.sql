@@ -206,6 +206,9 @@ CREATE INDEX idx_entries_slug ON entries(slug);
 CREATE INDEX idx_entries_publish_at ON entries(publish_at);
 CREATE INDEX idx_entries_type ON entries(type);
 CREATE INDEX idx_entries_created_by ON entries(created_by);
+-- Supports the owner-filtered, created_at DESC paginated list query used by the
+-- admin entries API. Without it, each page is an index scan plus a sort.
+CREATE INDEX idx_entries_created_by_created_at ON entries(created_by, created_at DESC);
 CREATE INDEX idx_media_entry_id ON media(entry_id);
 CREATE INDEX idx_bouquet_flowers_entry_id ON bouquet_flowers(entry_id);
 CREATE INDEX idx_polaroid_cards_entry_id ON polaroid_cards(entry_id);
