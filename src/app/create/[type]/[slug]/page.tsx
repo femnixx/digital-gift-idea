@@ -13,12 +13,9 @@ import dynamic from 'next/dynamic'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
 
 /**
- * The coffee date editor pulls in three.js and @react-three/drei, whose
- * installed versions target React 19 while this project runs React 18.
- * Statically importing it made the whole create route fail for every gift
- * type, including letters that never show a 3D preview. Loading it lazily, and
- * only on the client, keeps the dependency out of the server bundle and stops
- * one editor from taking down the page.
+ * The coffee date editor renders WebGL, which has no server equivalent, so it
+ * is loaded on the client only. This also keeps three.js out of the server
+ * bundle, so the remaining editors are not weighed down by it.
  */
 const CoffeeDateSelector = dynamic(
   () => import('@/components/features/CoffeeDateSelector').then((m) => m.CoffeeDateSelector),
