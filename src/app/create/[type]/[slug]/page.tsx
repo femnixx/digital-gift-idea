@@ -9,8 +9,21 @@ import { BouquetEditor } from '@/components/features/BouquetEditor'
 import { PolaroidCustomizer } from '@/components/features/PolaroidCustomizer'
 import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
-import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
+import dynamic from 'next/dynamic'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
+
+/**
+ * The coffee date editor pulls in three.js and @react-three/drei, whose
+ * installed versions target React 19 while this project runs React 18.
+ * Statically importing it made the whole create route fail for every gift
+ * type, including letters that never show a 3D preview. Loading it lazily, and
+ * only on the client, keeps the dependency out of the server bundle and stops
+ * one editor from taking down the page.
+ */
+const CoffeeDateSelector = dynamic(
+  () => import('@/components/features/CoffeeDateSelector').then((m) => m.CoffeeDateSelector),
+  { ssr: false, loading: () => <div className="card card-lg text-sm muted-foreground">Loading coffee date builder…</div> }
+)
 import { SharePanel } from '@/components/share/SharePanel'
 import type { Entry, EntryType } from '@/types'
 
