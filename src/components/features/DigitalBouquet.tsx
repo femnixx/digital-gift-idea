@@ -315,8 +315,8 @@ export function DigitalBouquet({
                   onClick={() => handleArrangementChange(arr.type)}
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center ${
                     arrangement === arr.type
-                      ? 'bg-stone-800 text-white'
-                      : 'bg-surface text-body hover:bg-surface'
+                      ? 'bg-brand text-white'
+                      : 'bg-surface text-body hover:bg-surface-2'
                   }`}
                 >
                   {arr.icon}

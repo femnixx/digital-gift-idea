@@ -118,7 +118,7 @@ export default function NewEntryPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin"
-            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface:bg-stone-600 transition-colors"
+            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface-2 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -170,7 +170,7 @@ export default function NewEntryPage() {
                     className={`group text-left p-5 rounded-xl border transition-all ${
                       isSelected
                         ? 'border-sky-400 bg-sky-50 dark:bg-sky-950/30'
-                        : 'border-line hover:border-line:border-stone-600 bg-surface'
+                        : 'border-line hover:border-brand bg-surface'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">

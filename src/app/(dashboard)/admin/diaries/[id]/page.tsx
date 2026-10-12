@@ -154,7 +154,7 @@ export default function AdminDiaryDetailPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/diaries"
-            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface:bg-stone-600 transition-colors"
+            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface-2 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -286,7 +286,7 @@ export default function AdminDiaryDetailPage() {
                     <button
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="flex-1 p-3 rounded-lg border border-line text-body-muted hover:bg-surface:bg-stone-800 transition-colors"
+                      className="flex-1 p-3 rounded-lg border border-line text-body-muted hover:bg-surface-2 transition-colors"
                     >
                       Cancel
                     </button>
