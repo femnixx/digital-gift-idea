@@ -173,7 +173,7 @@ function DrinkCard({ drinkType, isSelected, onToggle, index }: DrinkCardProps) {
       className={`relative cursor-pointer rounded-2xl border-2 p-4 transition-all duration-300 ${
         isSelected
           ? 'border-sky-400 bg-sky-50 shadow-lg shadow-sky-200/50'
-          : 'border-slate-200 bg-white hover:border-sky-200 hover:shadow-md'
+          : 'border-line bg-surface hover:border-sky-200 hover:shadow-md'
       }`}
     >
       {isSelected && (
@@ -190,8 +190,8 @@ function DrinkCard({ drinkType, isSelected, onToggle, index }: DrinkCardProps) {
           {getCupSvg()}
         </div>
         <div>
-          <h3 className="font-serif font-semibold text-slate-800 text-sm">{drink.name}</h3>
-          <p className="text-xs text-slate-500 mt-1">{drink.description}</p>
+          <h3 className="font-serif font-semibold text-body text-sm">{drink.name}</h3>
+          <p className="text-xs text-body-muted mt-1">{drink.description}</p>
           <p className="text-xs font-medium text-sky-600 mt-1">{drink.priceSuggestion}</p>
         </div>
       </div>
@@ -315,9 +315,9 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
       >
         <div className="flex items-center gap-3 mb-6">
           <Coffee className="w-6 h-6 text-sky-500" />
-          <h2 className="font-serif text-xl font-semibold text-slate-800">Choose Your Drinks</h2>
+          <h2 className="font-serif text-xl font-semibold text-body">Choose Your Drinks</h2>
         </div>
-        <p className="text-slate-500 text-sm mb-6">Select one or more drinks to create the perfect coffee date arrangement</p>
+        <p className="text-body-muted text-sm mb-6">Select one or more drinks to create the perfect coffee date arrangement</p>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {DRINK_ORDER.map((drink, i) => (
@@ -340,7 +340,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
             <p className="text-sm text-sky-700 font-medium mb-2">Selected arrangement:</p>
             <div className="flex flex-wrap gap-2">
               {selectedDrinks.map(drink => (
-                <span key={drink} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-sky-200 text-sm text-sky-700">
+                <span key={drink} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface border border-sky-200 text-sm text-sky-700">
                   {DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}
                 </span>
               ))}
@@ -358,7 +358,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
       >
         <div className="flex items-center gap-3 mb-6">
           <Heart className="w-6 h-6 text-sky-500" />
-          <h2 className="font-serif text-xl font-semibold text-slate-800">Personalize</h2>
+          <h2 className="font-serif text-xl font-semibold text-body">Personalize</h2>
         </div>
 
         <div className="space-y-4">
@@ -387,7 +387,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
           <div>
             <label className="label">Gift Card URL (optional)</label>
             <div className="relative">
-              <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-body-muted" />
               <input
                 type="url"
                 value={giftCardUrl}
@@ -422,7 +422,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-sky-500" />
-              <h2 className="font-serif text-xl font-semibold text-slate-800">Preview</h2>
+              <h2 className="font-serif text-xl font-semibold text-body">Preview</h2>
             </div>
             <div className="flex gap-2">
               <button
@@ -461,8 +461,8 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
                           ref={el => { cupRefs.current[i] = el; return undefined }}
                           className="relative w-24 h-28"
                         >
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-surface rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-surface border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
                           <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
                           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
                           {[...Array(3)].map((_, j) => (
@@ -474,7 +474,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
                             />
                           ))}
                         </div>
-                        <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
+                        <p className="text-center text-xs text-body-muted mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
                       </div>
                     ))}
                   </div>
@@ -490,12 +490,12 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
                         className="relative"
                       >
                         <div className="relative w-24 h-28">
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
-                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-surface rounded-b-2xl border-4" style={{ borderColor: DRINK_CONFIG[drink].color }} />
+                          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-surface border-4 border-t-0 rounded-t-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
                           <div className="absolute right-0 top-4 w-4 h-10 border-4 border-r-0 rounded-r-xl" style={{ borderColor: DRINK_CONFIG[drink].color }} />
                           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-b-xl" style={{ backgroundColor: DRINK_CONFIG[drink].color }} />
                         </div>
-                        <p className="text-center text-xs text-slate-600 mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
+                        <p className="text-center text-xs text-body-muted mt-2 font-medium">{DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -512,7 +512,7 @@ export function CoffeeDateSelector({ entryId, existingDates = [], onSave, onCanc
           {selectedDrinks.length > 0 && (
             <button
               onClick={() => setSelectedDrinks([])}
-              className="text-sm text-slate-500 hover:text-sky-500 transition-colors"
+              className="text-sm text-body-muted hover:text-sky-500 transition-colors"
             >
               Clear selection
             </button>

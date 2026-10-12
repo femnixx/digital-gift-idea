@@ -492,33 +492,33 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           >
             <button
               onClick={() => back('/')}
-              className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="p-2 rounded-lg bg-surface border border-line hover:bg-surface-2 transition-colors"
               aria-label="Back"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-900" />
+              <ArrowLeft className="w-5 h-5 text-body" />
             </button>
 
             <div className="flex items-center gap-4">
-              <span className="font-handwriting text-lg text-gray-900">
+              <span className="font-handwriting text-lg text-body">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 {format(new Date(entry.publish_at), 'MMMM d, yyyy')}
               </span>
               <button
                 onClick={handleShare}
-                className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                className="p-2 rounded-lg bg-surface border border-line hover:bg-surface-2 transition-colors"
                 aria-label="Share"
               >
                 {shareCopied ? (
                   <span className="text-accent text-xs font-medium">Copied!</span>
                 ) : (
-                  <Share2 className="w-5 h-5 text-gray-900" />
+                  <Share2 className="w-5 h-5 text-body" />
                 )}
               </button>
             </div>
           </motion.header>
 
           <article
-            className="bg-white rounded-2xl border border-gray-200"
+            className="bg-surface rounded-2xl border border-line"
           >
             {entry.media?.find(m => m.type === 'image' && m.sort_order === 0)?.public_url && (
               <div className="relative h-64 md:h-80 overflow-hidden rounded-t-2xl">
@@ -532,7 +532,7 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-sm font-medium">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/10 text-sm font-medium">
                     <Heart className="w-4 h-4" />
                     {entry.type.charAt(0).toUpperCase() + entry.type.slice(1).replace('_', ' ')}
                   </span>

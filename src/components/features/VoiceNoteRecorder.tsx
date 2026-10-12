@@ -196,7 +196,7 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
 
       {mode === 'preview' && audioUrl && (
         <div className="space-y-4">
-          <div className="p-6 rounded-2xl bg-white border border-sky-100 shadow-lg">
+          <div className="p-6 rounded-2xl bg-surface border border-sky-100 shadow-lg">
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={togglePlay}

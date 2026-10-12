@@ -159,11 +159,11 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
       case 'vintage':
         return 'bg-amber-50 border-4 border-amber-200 shadow-polaroid sepia-[.15]'
       case 'black_white':
-        return 'bg-gray-100 border-4 border-gray-700 shadow-polaroid grayscale'
+        return 'bg-surface border-4 border-gray-700 shadow-polaroid grayscale'
       case 'colorful_border':
-        return 'bg-white shadow-polaroid'
+        return 'bg-surface shadow-polaroid'
       default:
-        return 'bg-white border-4 border-gray-100 shadow-polaroid'
+        return 'bg-surface border-4 border-gray-100 shadow-polaroid'
     }
   }
 
@@ -208,7 +208,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
               <Shuffle className="w-4 h-4" />
               Shuffle
             </button>
-            <span className="text-sm text-slate-500 ml-auto">
+            <span className="text-sm text-body-muted ml-auto">
               {localCards.length} polaroid{localCards.length !== 1 ? 's' : ''}
             </span>
           </motion.div>
@@ -223,7 +223,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
           className="text-center py-16"
         >
           <div className="text-6xl mb-4">📸</div>
-          <p className="text-slate-500 font-handwriting text-lg mb-4">No polaroids yet</p>
+          <p className="text-body-muted font-handwriting text-lg mb-4">No polaroids yet</p>
           {isEditing && (
             <button
               type="button"
@@ -262,7 +262,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                   >
                   {card.template === 'colorful_border' ? (
                     <div className="p-[3px] rounded-xl bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400">
-                      <div className="bg-white rounded-lg overflow-hidden">
+                      <div className="bg-surface rounded-lg overflow-hidden">
                         {renderFront(card, isFlipped, isEditing, baseRotation, handleFlip, handleShake)}
                         {renderBack(card, isShaken, isFlipped)}
                       </div>
@@ -300,7 +300,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                             type="button"
                             onClick={() => handleMoveCard(index, 'up')}
                             disabled={index === 0}
-                            className="p-1.5 rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-full bg-surface text-body-muted hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Move up"
                           >
                             <ChevronUp className="w-3.5 h-3.5" />
@@ -309,7 +309,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
                             type="button"
                             onClick={() => handleMoveCard(index, 'down')}
                             disabled={index === localCards.length - 1}
-                            className="p-1.5 rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-full bg-surface text-body-muted hover:bg-stone-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Move down"
                           >
                             <ChevronDown className="w-3.5 h-3.5" />
@@ -320,7 +320,7 @@ export function PolaroidDeck({ cards, entryId, onCardsChange, isEditing = false 
 
                   {/* Drag indicator in edit mode */}
                   {isEditing && (
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-xs cursor-grab active:cursor-grabbing">
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-surface text-body-muted text-xs cursor-grab active:cursor-grabbing">
                       ⋮⋮
                     </div>
                   )}
@@ -415,7 +415,7 @@ function renderFront(
       </div>
 
       {/* White border / content */}
-      <div className="p-4 pb-12 bg-white">
+      <div className="p-4 pb-12 bg-surface">
         {card.caption && (
           <p
             className={`${getFontClass(card.font_family)} ${card.font_size} leading-relaxed mb-2`}
@@ -426,14 +426,14 @@ function renderFront(
         )}
 
         {card.date_tag && (
-          <p className="text-xs text-gray-400 text-center tracking-wider uppercase">
+          <p className="text-xs text-body-muted text-center tracking-wider uppercase">
             {new Date(card.date_tag).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         )}
 
         {/* Flip hint */}
         {!isEditing && !isFlipped && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-gray-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-body-muted text-xs opacity-0 group-hover:opacity-100 transition-opacity">
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             <span>Click to flip</span>
           </div>
@@ -441,7 +441,7 @@ function renderFront(
 
         {/* Shake hint */}
         {!isEditing && !isFlipped && card.hidden_message && (
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 text-gray-400/60 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 text-body-muted/60 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
             <Sparkles className="w-3 h-3 animate-pulse" aria-hidden="true" />
             <span>Shake me</span>
           </div>
@@ -454,7 +454,7 @@ function renderFront(
 function renderBack(card: PolaroidCardType, isShaken: boolean, isFlipped: boolean) {
   return (
     <motion.div
-      className="absolute inset-0 bg-white rotate-y-180 p-6 flex flex-col items-center justify-center"
+      className="absolute inset-0 bg-surface rotate-y-180 p-6 flex flex-col items-center justify-center"
       style={{
         transformStyle: 'preserve-3d',
         backfaceVisibility: 'hidden',
@@ -468,7 +468,7 @@ function renderBack(card: PolaroidCardType, isShaken: boolean, isFlipped: boolea
             {card.back_note}
           </p>
         ) : (
-          <div className="text-center text-gray-400 py-8">
+          <div className="text-center text-body-muted py-8">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" aria-hidden="true" />
             <p className="font-handwriting">No note on the back yet...</p>
             <p className="text-xs mt-1">Add one in the editor!</p>

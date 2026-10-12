@@ -138,7 +138,7 @@ export function TimezoneClock({
             transition={{ delay: label === 'You' ? 0.1 : 0.2 }}
           >
             {/* Day/Night indicator */}
-            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-white/80 backdrop-blur text-xs font-medium">
+            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-surface/80 backdrop-blur text-xs font-medium">
               {isDay ? (
                 <>
                   <Sun className="w-3 h-3 text-gold-500" aria-hidden="true" />
@@ -186,7 +186,7 @@ export function TimezoneClock({
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <motion.div
-                className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center"
+                className="w-16 h-16 rounded-2xl bg-surface/20 flex items-center justify-center"
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
@@ -332,7 +332,7 @@ function AnniversaryCountdown({ targetDate }: { targetDate: string }) {
 function CountdownUnit({ value, label }: { value: number; label: string }) {
   return (
     <motion.div
-      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white shadow-sm border border-lavender-200"
+      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface shadow-sm border border-lavender-200"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
     >

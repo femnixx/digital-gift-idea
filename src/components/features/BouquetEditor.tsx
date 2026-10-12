@@ -48,10 +48,10 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
   }
 
   const handleSave = () => {
-    if (!title.trim()) {
-      alert('Please enter a title for your bouquet')
-      return
-    }
+    // A bouquet does not need its own name: the entry already has a UUID and a
+    // public slug from when it was created, and those are what identify it. The
+    // title below is a nice-to-have label, so it is optional rather than a
+    // blocker that leaves the bouquet unsavable.
     if (flowers.length === 0) {
       alert('Please add at least one flower')
       return
@@ -81,15 +81,17 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
         {flowers.length === 0 ? (
           <div className='card p-8 text-center mb-8'>
             <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
-            <h2 className='font-serif text-xl text-slate-700 mb-2'>Create Your Bouquet</h2>
-            <p className='text-slate-500 mb-6'>
+            <h2 className='font-serif text-xl text-body mb-2'>Create Your Bouquet</h2>
+            <p className='text-body-muted mb-6'>
               Choose a flower type and color, then add flowers to your arrangement.
               You can arrange them in different patterns and add personal notes.
             </p>
 
             <div className='space-y-6'>
               <div>
-                <label className='label'>Title</label>
+                <label className='label'>
+                  Label <span className='muted-foreground font-normal'>(optional)</span>
+                </label>
                 <input
                   type='text'
                   value={title}
@@ -176,8 +178,8 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
           <div className='space-y-6'>
             <div className='flex items-center justify-between'>
               <div>
-                <h2 className='font-serif text-xl text-slate-700'>Your Bouquet</h2>
-                <p className='text-slate-500 text-sm'>{flowers.length} flowers</p>
+                <h2 className='font-serif text-xl text-body'>Your Bouquet</h2>
+                <p className='text-body-muted text-sm'>{flowers.length} flowers</p>
               </div>
               <div className='flex gap-3'>
                 <button onClick={() => setFlowers([])} className='btn-secondary'>

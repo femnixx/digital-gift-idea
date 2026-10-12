@@ -6,7 +6,7 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-stone-200', className)}
+      className={cn('animate-pulse rounded-md bg-surface', className)}
       {...props}
     />
   )
@@ -65,7 +65,7 @@ export function SkeletonTableRow({ cells = 6 }) {
 export function SkeletonEntryTable({ rows = 5, cells = 6 }) {
   return (
     <div className="divide-y divide-stone-200">
-      <div className="grid grid-cols-6 gap-4 p-4 border-b border-stone-200">
+      <div className="grid grid-cols-6 gap-4 p-4 border-b border-line">
         {Array.from({ length: cells }).map((_, i) => (
           <Skeleton key={i} className="h-4 w-full max-w-[100px]" />
         ))}

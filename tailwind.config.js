@@ -1,6 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  /*
+   * The theme is driven by a `data-theme` attribute on <html> set by
+   * ThemeProvider (light | romantic), not by a `.dark` class. Pointing Tailwind
+   * at that selector is what makes every `dark:` variant actually respond to
+   * the theme switcher; with `darkMode: 'class'` nothing ever added the class,
+   * so dark styles silently never applied.
+   */
+  darkMode: ['selector', '[data-theme="romantic"]'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -20,6 +27,22 @@ module.exports = {
         muted: 'rgb(var(--muted) / <alpha-value>)',
         input: 'rgb(var(--input-bg) / <alpha-value>)',
         'input-border': 'rgb(var(--input-border) / <alpha-value>)',
+
+        /*
+         * Semantic aliases. These read as roles rather than colours, so a
+         * component can be themed without knowing which palette is active:
+         * `bg-surface` for raised panels, `text-body` for copy, `text-muted`
+         * for secondary copy, `border-line` for hairlines. All four follow the
+         * CSS variables, so light and dark follow automatically.
+         */
+        surface: 'rgb(var(--card-bg) / <alpha-value>)',
+        'surface-2': 'rgb(var(--bg-2) / <alpha-value>)',
+        body: 'rgb(var(--text) / <alpha-value>)',
+        'body-muted': 'rgb(var(--muted) / <alpha-value>)',
+        line: 'rgb(var(--card-border) / <alpha-value>)',
+        'line-input': 'rgb(var(--input-border) / <alpha-value>)',
+        brand: 'rgb(var(--accent) / <alpha-value>)',
+        'brand-soft': 'rgb(var(--accent-2) / <alpha-value>)',
         primary: {
           50: '#fff1f2',
           100: '#ffe4e6',

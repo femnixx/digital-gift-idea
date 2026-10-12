@@ -146,7 +146,7 @@ export function Coffee3DPreview({ drinkType, onBack }: { drinkType: DrinkType; o
 
   return (
     <div className="relative w-full">
-      <div className="aspect-[4/3] w-full max-w-2xl mx-auto bg-stone-100 dark:bg-stone-800 rounded-2xl overflow-hidden">
+      <div className="aspect-[4/3] w-full max-w-2xl mx-auto bg-surface rounded-2xl overflow-hidden">
         {failed ? (
           <div className="w-full h-full flex items-center justify-center text-sm muted-foreground">
             3D preview is unavailable on this device
@@ -164,9 +164,9 @@ export function Coffee3DPreview({ drinkType, onBack }: { drinkType: DrinkType; o
       >
         <div className="flex items-center justify-center gap-3 mb-2">
           <Coffee className="w-6 h-6 text-sky-600" />
-          <h3 className="font-serif text-xl text-stone-800 dark:text-stone-200">{DRINK_CONFIG[drinkType].name}</h3>
+          <h3 className="font-serif text-xl text-body">{DRINK_CONFIG[drinkType].name}</h3>
         </div>
-        <p className="text-stone-500 dark:text-stone-400 text-sm mb-4">{DRINK_CONFIG[drinkType].description}</p>
+        <p className="text-body-muted text-sm mb-4">{DRINK_CONFIG[drinkType].description}</p>
         {onBack && (
           <button onClick={onBack} className="btn-secondary inline-flex items-center gap-2">
             <RotateCcw className="w-4 h-4" />

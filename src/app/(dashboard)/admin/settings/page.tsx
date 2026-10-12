@@ -114,7 +114,7 @@ export default function AdminSettingsPage() {
                   aria-label="Toggle dark mode"
                   className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-accent' : 'bg-base-2'}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white mt-1 ml-1 transition-transform ${darkMode ? 'translate-x-6' : ''}`} />
+                  <div className={`w-4 h-4 rounded-full bg-surface mt-1 ml-1 transition-transform ${darkMode ? 'translate-x-6' : ''}`} />
                 </button>
               </label>
               <div>

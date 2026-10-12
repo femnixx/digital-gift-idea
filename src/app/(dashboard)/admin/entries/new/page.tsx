@@ -118,18 +118,18 @@ export default function NewEntryPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin"
-            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface:bg-stone-600 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="font-script text-3xl md:text-4xl text-sky-700">Create Love Entry</h1>
-            <p className="text-stone-600 mt-1">Name your surprise and see your past entries</p>
+            <p className="text-body-muted mt-1">Name your surprise and see your past entries</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+        <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
+          <h2 className="font-serif text-xl font-semibold text-body">
             New Entry
           </h2>
 
@@ -141,7 +141,7 @@ export default function NewEntryPage() {
           )}
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+            <label className="block text-sm font-medium text-body">
               Entry Title
             </label>
             <input
@@ -155,7 +155,7 @@ export default function NewEntryPage() {
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+            <label className="block text-sm font-medium text-body">
               Entry Type
             </label>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -170,7 +170,7 @@ export default function NewEntryPage() {
                     className={`group text-left p-5 rounded-xl border transition-all ${
                       isSelected
                         ? 'border-sky-400 bg-sky-50 dark:bg-sky-950/30'
-                        : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-white dark:bg-stone-900'
+                        : 'border-line hover:border-line:border-stone-600 bg-surface'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
@@ -181,7 +181,7 @@ export default function NewEntryPage() {
                         <EntryTypeIcon type={type.type} />
                       </span>
                     </div>
-                    <h3 className="font-serif text-base font-semibold text-stone-800 dark:text-stone-200">
+                    <h3 className="font-serif text-base font-semibold text-body">
                       {type.label}
                     </h3>
                   </button>
@@ -209,9 +209,9 @@ export default function NewEntryPage() {
           </button>
         </div>
 
-        <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-stone-200 dark:border-stone-700">
-            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+        <div className="bg-surface rounded-xl border border-line overflow-hidden">
+          <div className="px-6 py-4 border-b border-line">
+            <h2 className="font-serif text-xl font-semibold text-body">
               Your Past Entries
             </h2>
           </div>
@@ -219,14 +219,14 @@ export default function NewEntryPage() {
             {loading ? (
               <div className="p-6 space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-stone-100 dark:bg-stone-700 rounded-lg animate-pulse" />
+                  <div key={i} className="h-16 bg-surface rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : entries.length === 0 ? (
               <div className="text-center py-12">
                 <Heart className="w-12 h-12 mx-auto mb-4 text-stone-300" />
-                <p className="text-stone-500 dark:text-stone-400">No entries yet</p>
-                <p className="text-stone-400 text-sm mt-1">Your created entries will appear here</p>
+                <p className="text-body-muted">No entries yet</p>
+                <p className="text-body-muted text-sm mt-1">Your created entries will appear here</p>
               </div>
             ) : (
               <div className="divide-y divide-stone-200 dark:divide-stone-700">
@@ -243,10 +243,10 @@ export default function NewEntryPage() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-stone-800 dark:text-stone-200 truncate">
+                      <p className="font-medium text-body truncate">
                         {entry.title}
                       </p>
-                      <p className="text-stone-400 dark:text-stone-500 text-sm">
+                      <p className="text-body-muted text-sm">
                         {entry.type.replace('_', ' ')} &middot; {entry.slug}
                       </p>
                     </div>
@@ -261,14 +261,14 @@ export default function NewEntryPage() {
                     </span>
                     <Link
                       href={`/daily/${entry.slug}`}
-                      className="p-2 rounded-lg text-stone-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors flex-shrink-0"
+                      className="p-2 rounded-lg text-body-muted hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors flex-shrink-0"
                       aria-label="View entry"
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={() => handleDelete(entry.id)}
-                      className="p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      className="p-2 rounded-lg text-body-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
                       aria-label="Delete entry"
                     >
                       <Trash2 className="w-4 h-4" />

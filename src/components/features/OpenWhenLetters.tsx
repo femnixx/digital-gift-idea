@@ -165,7 +165,7 @@ export function OpenWhenLetters({ letters, onUnlock, onSave, isEditing = false, 
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="bg-surface rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
               initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 30 }}
@@ -214,7 +214,7 @@ export function OpenWhenLetters({ letters, onUnlock, onSave, isEditing = false, 
                   <motion.button
                     type="button"
                     onClick={(e) => handleEdit(letter, e)}
-                    className="p-2 rounded-full bg-white/90 text-sky-500 hover:bg-sky-100 shadow-sm active:scale-90 transition-all"
+                    className="p-2 rounded-full bg-surface/90 text-sky-500 hover:bg-sky-100 shadow-sm active:scale-90 transition-all"
                     title="Edit"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -224,7 +224,7 @@ export function OpenWhenLetters({ letters, onUnlock, onSave, isEditing = false, 
                   <motion.button
                     type="button"
                     onClick={(e) => handleDelete(letter.id, e)}
-                    className="p-2 rounded-full bg-white/90 text-red-500 hover:bg-red-100 shadow-sm active:scale-90 transition-all"
+                    className="p-2 rounded-full bg-surface/90 text-red-500 hover:bg-red-100 shadow-sm active:scale-90 transition-all"
                     title="Delete"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -344,7 +344,7 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, isJumping, didJump, onCl
 
           {/* Seal */}
           <motion.div
-            className="absolute top-6 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl border-2 border-white/30"
+            className="absolute top-6 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-surface/20 flex items-center justify-center text-3xl border-2 border-white/30"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
@@ -369,7 +369,7 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, isJumping, didJump, onCl
 
           {/* Trigger type badge */}
           <motion.div
-            className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur"
+            className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-surface/20 backdrop-blur"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -425,7 +425,7 @@ function EnvelopeCard({ letter, isExpanded, isUnlocked, isJumping, didJump, onCl
               }}
             >
               {/* Paper Note */}
-              <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white">
+              <div className="relative bg-surface rounded-2xl shadow-2xl overflow-hidden border-4 border-white">
                 <div className="absolute inset-0 bg-[url('/images/paper-texture.svg')] opacity-5" aria-hidden="true" />
 
                 {/* Sparkles around the note */}
@@ -525,7 +525,7 @@ function LetterContent({ letter, onClose }: LetterContentProps) {
   return (
     <div className="relative w-full max-w-md mx-auto">
       <motion.div
-        className="relative bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative bg-surface rounded-2xl shadow-2xl overflow-hidden"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
@@ -735,7 +735,7 @@ function UnlockAnimation({ letter, onComplete }: UnlockAnimationProps) {
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent" />
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl border-2 border-white/30">
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-surface/20 flex items-center justify-center text-3xl border-2 border-white/30">
               {letter.seal_emoji}
             </div>
           </motion.div>
@@ -890,7 +890,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-2xl" />
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl border-2 border-white/30">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-surface/20 flex items-center justify-center text-2xl border-2 border-white/30">
             {form.seal_emoji}
           </div>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium">
@@ -901,7 +901,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
 
       {/* Trigger Type */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Trigger Type</label>
+        <label className="block text-sm font-medium text-body mb-2">Trigger Type</label>
         <div className="grid grid-cols-2 gap-2">
           {Object.entries(triggerLabels).map(([type, label]) => {
             const Icon = triggerIcons[type as keyof typeof triggerIcons]
@@ -913,7 +913,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
                 className={`p-3 rounded-xl border-2 flex items-center gap-2 transition-all active:scale-95 touch-manipulation ${
                   form.trigger_type === type
                     ? 'border-sky-500 bg-sky-50 text-sky-600'
-                    : 'border-slate-200 hover:border-sky-300'
+                    : 'border-line hover:border-sky-300'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -926,13 +926,13 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
 
       {/* Trigger Label */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Trigger Label</label>
+        <label className="block text-sm font-medium text-body mb-2">Trigger Label</label>
         <input
           type="text"
           value={form.trigger_label}
           onChange={(e) => setForm(prev => ({ ...prev, trigger_label: e.target.value }))}
           placeholder="e.g., Open when you miss me"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-line focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
           required
         />
       </div>
@@ -940,7 +940,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
       {/* Trigger Value (not for manual) */}
       {form.trigger_type !== 'manual' && (
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-body mb-2">
             {form.trigger_type === 'date' ? 'Date' : form.trigger_type === 'location' ? 'Location' : 'Mood'}
           </label>
           <input
@@ -948,14 +948,14 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
             value={form.trigger_value}
             onChange={(e) => setForm(prev => ({ ...prev, trigger_value: e.target.value }))}
             placeholder={form.trigger_type === 'location' ? 'e.g., Paris, France' : 'e.g., Feeling sad'}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-line focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
           />
         </div>
       )}
 
       {/* Envelope Color */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Envelope Color</label>
+        <label className="block text-sm font-medium text-body mb-2">Envelope Color</label>
         <div className="flex flex-wrap gap-2">
           {envelopeColors.map((color) => (
             <button
@@ -974,7 +974,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
 
       {/* Seal Emoji */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Seal Emoji</label>
+        <label className="block text-sm font-medium text-body mb-2">Seal Emoji</label>
         <div className="flex flex-wrap gap-2">
           {sealEmojis.map((emoji) => (
             <button
@@ -982,7 +982,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
               type="button"
               onClick={() => setForm(prev => ({ ...prev, seal_emoji: emoji }))}
               className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
-                form.seal_emoji === emoji ? 'bg-sky-100 ring-2 ring-sky-500' : 'bg-slate-50 hover:bg-slate-100'
+                form.seal_emoji === emoji ? 'bg-sky-100 ring-2 ring-sky-500' : 'bg-surface-2 hover:bg-surface'
               }`}
             >
               {emoji}
@@ -993,25 +993,25 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
 
       {/* Message Title */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Message Title (optional)</label>
+        <label className="block text-sm font-medium text-body mb-2">Message Title (optional)</label>
         <input
           type="text"
           value={form.content.title}
           onChange={(e) => setForm(prev => ({ ...prev, content: { ...prev.content, title: e.target.value } }))}
           placeholder="A title for your letter"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-line focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all"
         />
       </div>
 
       {/* Message Content */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Message</label>
+        <label className="block text-sm font-medium text-body mb-2">Message</label>
         <textarea
           value={form.content.message}
           onChange={(e) => setForm(prev => ({ ...prev, content: { ...prev.content, message: e.target.value } }))}
           placeholder="Write your heartfelt message..."
           rows={5}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all resize-none font-handwriting text-lg"
+          className="w-full px-4 py-3 rounded-xl border border-line focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none transition-all resize-none font-handwriting text-lg"
           required
         />
       </div>
@@ -1021,7 +1021,7 @@ export function OpenWhenEditor({ letter, onSave, onCancel }: OpenWhenEditorProps
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-medium hover:bg-slate-50 active:scale-95 transition-all touch-manipulation"
+          className="flex-1 px-6 py-3 rounded-xl border-2 border-line text-body-muted font-medium hover:bg-surface-2 active:scale-95 transition-all touch-manipulation"
         >
           Cancel
         </button>

@@ -295,7 +295,7 @@ export function DigitalBouquet({
   return (
     <motion.div
       ref={containerRef}
-      className="relative rounded-3xl bg-stone-50 overflow-hidden"
+      className="relative rounded-3xl bg-surface-2 overflow-hidden"
       style={{ minHeight: isMobile ? '420px' : '520px' }}
       initial="hidden"
       animate="visible"
@@ -307,7 +307,7 @@ export function DigitalBouquet({
       {/* Controls */}
       {isEditing && (
         <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-30">
-          <div className="bg-white/90 backdrop-blur rounded-2xl border border-stone-200 p-2 sm:p-3 flex flex-wrap items-center gap-2">
+          <div className="bg-surface/90 backdrop-blur rounded-2xl border border-line p-2 sm:p-3 flex flex-wrap items-center gap-2">
             <div className="flex gap-1">
               {arrangements.map(arr => (
                 <button
@@ -316,7 +316,7 @@ export function DigitalBouquet({
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center ${
                     arrangement === arr.type
                       ? 'bg-stone-800 text-white'
-                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                      : 'bg-surface text-body hover:bg-surface'
                   }`}
                 >
                   {arr.icon}
@@ -326,22 +326,22 @@ export function DigitalBouquet({
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-xs text-stone-600 font-medium whitespace-nowrap">Count</label>
+              <label className="text-xs text-body-muted font-medium whitespace-nowrap">Count</label>
               <input
                 type="range"
                 min="3"
                 max="20"
                 value={flowerCount}
                 onChange={(e) => setFlowerCount(Number(e.target.value))}
-                className="w-16 sm:w-20 h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-stone-600"
+                className="w-16 sm:w-20 h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-stone-600"
               />
-              <span className="text-xs text-stone-500 w-4 text-center">{flowerCount}</span>
+              <span className="text-xs text-body-muted w-4 text-center">{flowerCount}</span>
             </div>
 
             <div className="flex gap-2 ml-auto">
               <button
                 onClick={handleAutoArrange}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors flex items-center"
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-surface text-body hover:bg-surface transition-colors flex items-center"
               >
                 <SlidersHorizontal className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Auto-arrange</span>
@@ -451,20 +451,20 @@ export function DigitalBouquet({
       {/* Empty state */}
       {displayFlowers.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="text-stone-400 font-handwriting text-lg">Your bouquet is empty 🌱</p>
+          <p className="text-body-muted font-handwriting text-lg">Your bouquet is empty 🌱</p>
         </div>
       )}
 
       {/* Note popup */}
       {selectedFlower && selectedFlower.note && (
         <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur rounded-xl shadow-lg border border-stone-200 px-4 py-3 max-w-xs z-40"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-surface/95 backdrop-blur rounded-xl shadow-lg border border-line px-4 py-3 max-w-xs z-40"
           style={{ bottom: isMobile ? '38%' : '42%' }}
         >
-          <p className="font-handwriting text-stone-700 text-sm">{selectedFlower.note}</p>
+          <p className="font-handwriting text-body text-sm">{selectedFlower.note}</p>
           <button
             onClick={() => setSelectedFlower(null)}
-            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center hover:bg-stone-300"
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-surface text-body-muted flex items-center justify-center hover:bg-stone-300"
           >
             <X className="w-3 h-3" />
           </button>

@@ -21,8 +21,8 @@ const BACKGROUND_COLORS = [
   { name: 'Sage', value: 'bg-sage-50', text: 'text-sage-900', preview: 'bg-sage-50' },
   { name: 'Sky', value: 'bg-sky-50', text: 'text-sky-900', preview: 'bg-sky-50' },
   { name: 'Gold', value: 'bg-gold-50', text: 'text-gold-900', preview: 'bg-gold-50' },
-  { name: 'Slate', value: 'bg-slate-100', text: 'text-slate-900', preview: 'bg-slate-100' },
-  { name: 'White', value: 'bg-white', text: 'text-slate-900', preview: 'bg-white' },
+  { name: 'Slate', value: 'bg-surface', text: 'text-body', preview: 'bg-surface' },
+  { name: 'White', value: 'bg-surface', text: 'text-body', preview: 'bg-surface' },
 ]
 
 const FONT_STYLES = [
@@ -40,9 +40,9 @@ const STICKERS = [
 ]
 
 const PAPER_TEXTURES = [
-  { name: 'Clean', value: 'none', pattern: 'bg-white' },
-  { name: 'Lined', value: 'lined', pattern: 'bg-white' },
-  { name: 'Dotted', value: 'dotted', pattern: 'bg-white' },
+  { name: 'Clean', value: 'none', pattern: 'bg-surface' },
+  { name: 'Lined', value: 'lined', pattern: 'bg-surface' },
+  { name: 'Dotted', value: 'dotted', pattern: 'bg-surface' },
   { name: 'Grain', value: 'grain', pattern: 'bg-amber-50' },
 ]
 
@@ -135,7 +135,7 @@ export function LetterEditor({
               placeholder="Write your love letter here... 💕"
               className="textarea min-h-[250px] resize-y font-handwriting text-lg leading-relaxed"
             />
-            <p className="text-slate-400 text-xs mt-1">
+            <p className="text-body-muted text-xs mt-1">
               {message.length} characters
             </p>
           </div>
@@ -151,7 +151,7 @@ export function LetterEditor({
                   key={`${sticker}-${i}`}
                   type="button"
                   onClick={() => removeSticker(sticker)}
-                  className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg hover:bg-sky-50 hover:border-sky-300 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-surface border border-sky-200 flex items-center justify-center text-lg hover:bg-sky-50 hover:border-sky-300 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   title="Click to remove"
@@ -176,7 +176,7 @@ export function LetterEditor({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-3 p-4 bg-white rounded-xl border border-sky-100 shadow-sm"
+                  className="mt-3 p-4 bg-surface rounded-xl border border-sky-100 shadow-sm"
                 >
                   <div className="grid grid-cols-8 gap-2">
                     {STICKERS.map((sticker) => (
@@ -247,7 +247,7 @@ export function LetterEditor({
                   className={`px-4 py-3 rounded-xl border-2 transition-all ${
                     fontStyle === font.value
                       ? 'border-sky-500 bg-sky-50 shadow-sm'
-                      : 'border-sky-100 bg-white hover:border-sky-300'
+                      : 'border-sky-100 bg-surface hover:border-sky-300'
                   } ${font.preview}`}
                   whileHover={isReadOnly ? {} : { scale: 1.03 }}
                   whileTap={isReadOnly ? {} : { scale: 0.97 }}
@@ -272,7 +272,7 @@ export function LetterEditor({
                   className={`px-4 py-3 rounded-xl border-2 transition-all text-sm ${
                     paperTexture === texture.value
                       ? 'border-sky-500 bg-sky-50 shadow-sm'
-                      : 'border-sky-100 bg-white hover:border-sky-300'
+                      : 'border-sky-100 bg-surface hover:border-sky-300'
                   }`}
                   whileHover={isReadOnly ? {} : { scale: 1.03 }}
                   whileTap={isReadOnly ? {} : { scale: 0.97 }}
@@ -297,7 +297,7 @@ export function LetterEditor({
         <motion.button
           type="button"
           onClick={() => setShowPreview(false)}
-          className="p-2 rounded-full bg-white/80 backdrop-blur border border-sky-200 shadow-sm text-slate-600 hover:text-sky-500 transition-colors"
+          className="p-2 rounded-full bg-surface/80 backdrop-blur border border-sky-200 shadow-sm text-body-muted hover:text-sky-500 transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -307,7 +307,7 @@ export function LetterEditor({
 
       <div className="text-center mb-6">
         <h3 className="font-script text-2xl gradient-text mb-1">Preview</h3>
-        <p className="text-slate-500 text-sm">How your letter will look</p>
+        <p className="text-body-muted text-sm">How your letter will look</p>
       </div>
 
       <motion.div
@@ -336,7 +336,7 @@ export function LetterEditor({
               <p>{message}</p>
             </>
           ) : (
-            <p className="text-slate-400 italic text-center py-20">
+            <p className="text-body-muted italic text-center py-20">
               Your message will appear here...
             </p>
           )}
@@ -347,14 +347,14 @@ export function LetterEditor({
 
   if (showPreview) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-sky-100 p-6 md:p-8">
+      <div className="bg-surface rounded-2xl shadow-lg border border-sky-100 p-6 md:p-8">
         {renderPreview()}
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
       <div className="border-b border-sky-100 px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <button
@@ -363,7 +363,7 @@ export function LetterEditor({
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'message'
                 ? 'border-sky-500 text-sky-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                : 'border-transparent text-body-muted hover:text-body'
             }`}
           >
             <Heart className="w-4 h-4" />
@@ -375,7 +375,7 @@ export function LetterEditor({
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'style'
                 ? 'border-sky-500 text-sky-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                : 'border-transparent text-body-muted hover:text-body'
             }`}
           >
             <Palette className="w-4 h-4" />

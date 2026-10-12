@@ -206,7 +206,7 @@ export function ScratchCardCustomizer({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
       {/* Header */}
       <div className="border-b border-sky-100 px-4 sm:px-6 py-4 flex items-center justify-between">
         <h3 className="font-script text-xl gradient-text">
@@ -246,15 +246,15 @@ export function ScratchCardCustomizer({
             >
               <div className="text-center">
                 <h4 className="font-handwriting text-lg text-sky-600 mb-1">Preview</h4>
-                <p className="text-slate-500 text-sm">How your scratch card will look</p>
+                <p className="text-body-muted text-sm">How your scratch card will look</p>
               </div>
               <div className="space-y-4">
                 <div className="text-center">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Cover</p>
+                  <p className="text-xs text-body-muted uppercase tracking-wider mb-2">Cover</p>
                   {getCoverPreview()}
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Reveal</p>
+                  <p className="text-xs text-body-muted uppercase tracking-wider mb-2">Reveal</p>
                   {getRevealPreview()}
                 </div>
               </div>
@@ -300,7 +300,7 @@ export function ScratchCardCustomizer({
                     className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-sky-300 hover:border-sky-400 hover:bg-sky-50 transition-colors w-full max-w-xs mx-auto"
                   >
                     <Upload className="w-6 h-6 text-sky-400" />
-                    <span className="text-sm text-slate-600">Upload cover image</span>
+                    <span className="text-sm text-body-muted">Upload cover image</span>
                   </button>
                 )}
                 <input
@@ -351,11 +351,11 @@ export function ScratchCardCustomizer({
                       className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
                         coverPattern === p.id
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-slate-100 bg-white hover:border-sky-300'
+                          : 'border-slate-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-lg ${p.preview}`} />
-                      <span className="text-xs text-slate-600">{p.label}</span>
+                      <span className="text-xs text-body-muted">{p.label}</span>
                     </button>
                   ))}
                 </div>
@@ -376,11 +376,11 @@ export function ScratchCardCustomizer({
                       className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
                         coverText === t.label
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-slate-100 bg-white hover:border-sky-300'
+                          : 'border-slate-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       <span className="text-2xl">{t.emoji}</span>
-                      <span className="text-xs text-slate-600">{t.label}</span>
+                      <span className="text-xs text-body-muted">{t.label}</span>
                     </button>
                   ))}
                 </div>
@@ -388,7 +388,7 @@ export function ScratchCardCustomizer({
 
               {/* Divider */}
               <div className="border-t border-sky-100 pt-4">
-                <p className="text-xs text-slate-400 uppercase tracking-wider mb-4 font-medium">
+                <p className="text-xs text-body-muted uppercase tracking-wider mb-4 font-medium">
                   Hidden Surprise
                 </p>
               </div>
@@ -405,7 +405,7 @@ export function ScratchCardCustomizer({
                       className={`px-4 py-3 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                         revealContentType === type
                           ? 'border-sky-500 bg-sky-50 shadow-sm text-sky-700'
-                          : 'border-slate-100 bg-white hover:border-sky-300 text-slate-600'
+                          : 'border-slate-100 bg-surface hover:border-sky-300 text-body-muted'
                       }`}
                     >
                       {type === 'text' ? '💌 Message' : '🖼️ Image'}
@@ -460,10 +460,10 @@ export function ScratchCardCustomizer({
                         className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-sky-300 hover:border-sky-400 hover:bg-sky-50 transition-colors aspect-video"
                       >
                         <Upload className="w-6 h-6 text-sky-400" />
-                        <span className="text-xs text-slate-600">Upload image</span>
+                        <span className="text-xs text-body-muted">Upload image</span>
                       </button>
                       <div className="space-y-2">
-                        <label className="text-xs text-slate-500 block">Or paste URL:</label>
+                        <label className="text-xs text-body-muted block">Or paste URL:</label>
                         <input
                           type="url"
                           value={revealImageUrl}
@@ -479,7 +479,7 @@ export function ScratchCardCustomizer({
 
               {/* Divider */}
               <div className="border-t border-sky-100 pt-4">
-                <p className="text-xs text-slate-400 uppercase tracking-wider mb-4 font-medium">
+                <p className="text-xs text-body-muted uppercase tracking-wider mb-4 font-medium">
                   Scratch Settings
                 </p>
               </div>
@@ -490,7 +490,7 @@ export function ScratchCardCustomizer({
                   <Sliders className="w-4 h-4 text-sky-500" />
                   Reveal Threshold: {Math.round(scratchThreshold * 100)}%
                 </label>
-                <p className="text-xs text-slate-500 -mt-2">
+                <p className="text-xs text-body-muted -mt-2">
                   How much needs to be scratched before revealing the content
                 </p>
                 <input
@@ -502,7 +502,7 @@ export function ScratchCardCustomizer({
                   onChange={(e) => setScratchThreshold(Number(e.target.value))}
                   className="w-full accent-sky-500"
                 />
-                <div className="flex justify-between text-xs text-slate-400">
+                <div className="flex justify-between text-xs text-body-muted">
                   <span>Easy (30%)</span>
                   <span>Hard (95%)</span>
                 </div>
@@ -511,7 +511,7 @@ export function ScratchCardCustomizer({
               {/* Brush Size */}
               <div className="space-y-3">
                 <label className="label">Brush Size: {brushSize}px</label>
-                <p className="text-xs text-slate-500 -mt-2">
+                <p className="text-xs text-body-muted -mt-2">
                   Size of the scratch area when touching the card
                 </p>
                 <input
@@ -527,7 +527,7 @@ export function ScratchCardCustomizer({
 
               {/* Mini preview of scratch interaction */}
               <div className="space-y-3">
-                <label className="label text-sm text-slate-500">Quick Preview</label>
+                <label className="label text-sm text-body-muted">Quick Preview</label>
                 <div className="relative rounded-xl overflow-hidden shadow-lg mx-auto max-w-xs">
                   <ScratchCardPreview
                     coverColor={coverColor}
@@ -758,7 +758,7 @@ function ScratchCardPreview({
           drawCover(ctx, rect.width, rect.height)
           setIsRevealed(false)
         }}
-        className="absolute top-2 right-2 p-1 rounded-full bg-white/80 text-sky-500 hover:bg-white text-xs z-10 shadow"
+        className="absolute top-2 right-2 p-1 rounded-full bg-surface/80 text-sky-500 hover:bg-surface text-xs z-10 shadow"
         title="Reset preview"
       >
         <RotateCcw className="w-3.5 h-3.5" />

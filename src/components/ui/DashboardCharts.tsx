@@ -66,7 +66,7 @@ export function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const colors = statColors[stat.color] ?? statColors.sky
   return (
     <motion.div
-      className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4 cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-surface rounded-xl border border-line px-5 py-4 cursor-pointer hover:shadow-lg transition-shadow"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
@@ -74,8 +74,8 @@ export function StatCard({ stat, index }: { stat: Stat; index: number }) {
     >
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-stone-500 dark:text-stone-400 text-xs uppercase tracking-wider truncate">{stat.label}</p>
-          <p className="font-semibold text-2xl text-stone-800 dark:text-stone-100 mt-1">{stat.value}</p>
+          <p className="text-body-muted text-xs uppercase tracking-wider truncate">{stat.label}</p>
+          <p className="font-semibold text-2xl text-body mt-1">{stat.value}</p>
         </div>
         <div className={`w-11 h-11 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
           <Icon className={`w-5 h-5 ${colors.text}`} />
@@ -94,11 +94,11 @@ const ChartWrapper = ({
   subtitle?: string
   children: ReactNode
 }) => (
-  <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 px-5 py-4">
+  <div className="bg-surface rounded-xl border border-line px-5 py-4">
     <div className="flex items-center justify-between mb-4">
       <div>
-        <h3 className="font-semibold text-stone-800 dark:text-stone-200">{title}</h3>
-        {subtitle && <p className="text-stone-500 dark:text-stone-400 text-xs mt-0.5">{subtitle}</p>}
+        <h3 className="font-semibold text-body">{title}</h3>
+        {subtitle && <p className="text-body-muted text-xs mt-0.5">{subtitle}</p>}
       </div>
     </div>
     <div className="h-64 w-full">{children}</div>
@@ -166,7 +166,7 @@ export function ViewsByEntryChart({ entries }: ProgressChartProps) {
   if (data.length === 0) {
     return (
       <ChartWrapper title="Views by Entry" subtitle="Entries with views shown">
-        <div className="h-full flex items-center justify-center text-stone-400 text-sm">
+        <div className="h-full flex items-center justify-center text-body-muted text-sm">
           No views recorded yet.
         </div>
       </ChartWrapper>
@@ -218,7 +218,7 @@ export function EntriesByTypeChart({ entries }: ProgressChartProps) {
   if (data.length === 0) {
     return (
       <ChartWrapper title="Entries by Type">
-        <div className="h-full flex items-center justify-center text-stone-400 text-sm">
+        <div className="h-full flex items-center justify-center text-body-muted text-sm">
           No entries yet.
         </div>
       </ChartWrapper>
@@ -259,7 +259,7 @@ export function PublishedStatusChart({ entries }: ProgressChartProps) {
   if (entries.length === 0 || data.length === 0) {
     return (
       <ChartWrapper title="Published vs Drafts">
-        <div className="h-full flex items-center justify-center text-stone-400 text-sm">
+        <div className="h-full flex items-center justify-center text-body-muted text-sm">
           No entries to summarize.
         </div>
       </ChartWrapper>

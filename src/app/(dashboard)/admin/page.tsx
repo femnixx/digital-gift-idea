@@ -153,12 +153,12 @@ export default function AdminDashboardPage() {
         </div>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Service Health</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Service Health</h2>
           <ServiceHealthPanel />
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Content &amp; Storage</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Content &amp; Storage</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">
@@ -220,7 +220,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Monthly Trends</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Monthly Trends</h2>
           <div className="grid gap-6 lg:grid-cols-2">
             <EntriesOverTimeChart entries={entries} days={14} />
             <ViewsByEntryChart entries={entries} />
@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Entry Breakdown</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Entry Breakdown</h2>
           <div className="grid gap-6 lg:grid-cols-2">
             <EntriesByTypeChart entries={entries} />
             <PublishedStatusChart entries={entries} />
@@ -236,12 +236,12 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Recent Entries</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Recent Entries</h2>
           <div className="card overflow-hidden">
             {loading ? (
               <div className="p-6 space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="animate-pulse h-4 bg-stone-200 rounded w-full max-w-md" />
+                  <div key={i} className="animate-pulse h-4 bg-surface rounded w-full max-w-md" />
                 ))}
               </div>
             ) : recentEntries.length === 0 ? (
@@ -283,7 +283,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Quick Actions</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Quick Actions</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Link href="/admin/entries/new" className="card p-6 hover:border-accent transition-colors">
               <div className="w-12 h-12 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mb-3">

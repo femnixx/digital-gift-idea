@@ -203,11 +203,11 @@ export function PolaroidCustomizer({
       case 'vintage':
         return 'bg-amber-50 border-4 border-amber-200 sepia-[.15]'
       case 'black_white':
-        return 'bg-gray-100 border-4 border-gray-700 grayscale'
+        return 'bg-surface border-4 border-gray-700 grayscale'
       case 'colorful_border':
-        return 'bg-white'
+        return 'bg-surface'
       default:
-        return 'bg-white border-4 border-gray-100'
+        return 'bg-surface border-4 border-gray-100'
     }
   }
 
@@ -215,7 +215,7 @@ export function PolaroidCustomizer({
     if (template !== 'colorful_border') return null
     return (
       <div className="p-[3px] rounded-xl bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400">
-        <div className={`rounded-lg overflow-hidden ${getTemplateClasses().replace('bg-white', '')}`}>
+        <div className={`rounded-lg overflow-hidden ${getTemplateClasses().replace('bg-surface', '')}`}>
           {renderPreviewContent()}
         </div>
       </div>
@@ -240,7 +240,7 @@ export function PolaroidCustomizer({
           </div>
         )}
       </div>
-      <div className={`p-3 pb-6 ${template === 'vintage' ? 'bg-amber-50' : template === 'black_white' ? 'bg-gray-100' : 'bg-white'}`}>
+      <div className={`p-3 pb-6 ${template === 'vintage' ? 'bg-amber-50' : template === 'black_white' ? 'bg-surface' : 'bg-surface'}`}>
         {caption && (
           <p
             className={`${fontFamily} ${fontSize} leading-relaxed`}
@@ -250,7 +250,7 @@ export function PolaroidCustomizer({
           </p>
         )}
         {dateTag && (
-          <p className="text-xs text-gray-400 text-center tracking-wider uppercase mt-1">
+          <p className="text-xs text-body-muted text-center tracking-wider uppercase mt-1">
             {new Date(dateTag).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         )}
@@ -259,7 +259,7 @@ export function PolaroidCustomizer({
   )
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-lg border border-sky-100 overflow-hidden">
       <div className="border-b border-sky-100 px-4 sm:px-6 py-4 flex items-center justify-between">
         <h3 className="font-script text-xl gradient-text">
           {isEditing ? 'Edit Polaroid' : 'New Polaroid'}
@@ -268,7 +268,7 @@ export function PolaroidCustomizer({
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-slate-600 transition-colors"
+            className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-body-muted transition-colors"
             title="Preview"
           >
             <Eye className="w-4 h-4" />
@@ -277,7 +277,7 @@ export function PolaroidCustomizer({
             <button
               type="button"
               onClick={onCancel}
-              className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-slate-600 transition-colors"
+              className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-body-muted transition-colors"
               title="Cancel"
             >
               <X className="w-4 h-4" />
@@ -298,7 +298,7 @@ export function PolaroidCustomizer({
             >
               <div className="text-center">
                 <h4 className="font-handwriting text-lg text-sky-600 mb-1">Preview</h4>
-                <p className="text-slate-500 text-sm">How your polaroid will look</p>
+                <p className="text-body-muted text-sm">How your polaroid will look</p>
               </div>
               <div className="flex justify-center">
                 <div className="w-full max-w-xs">
@@ -383,7 +383,7 @@ export function PolaroidCustomizer({
                     <button
                       type="button"
                       onClick={() => setShowCropper(true)}
-                      className="absolute bottom-2 right-2 px-3 py-1.5 rounded-full bg-white/90 text-sky-600 text-xs font-medium hover:bg-white transition-colors"
+                      className="absolute bottom-2 right-2 px-3 py-1.5 rounded-full bg-surface/90 text-sky-600 text-xs font-medium hover:bg-surface transition-colors"
                     >
                       Recrop
                     </button>
@@ -396,7 +396,7 @@ export function PolaroidCustomizer({
                       className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-sky-300 hover:border-sky-400 hover:bg-sky-50 transition-colors aspect-square"
                     >
                       <Upload className="w-6 h-6 text-sky-500" />
-                      <span className="text-xs text-slate-600">Upload</span>
+                      <span className="text-xs text-body-muted">Upload</span>
                     </button>
                     {PRESET_EMOJIS.map((preset) => (
                       <button
@@ -407,7 +407,7 @@ export function PolaroidCustomizer({
                         title={preset.name}
                       >
                         <span className="text-3xl">{preset.emoji}</span>
-                        <span className="text-xs text-slate-500">{preset.name}</span>
+                        <span className="text-xs text-body-muted">{preset.name}</span>
                       </button>
                     ))}
                   </div>
@@ -436,7 +436,7 @@ export function PolaroidCustomizer({
                       className={`px-3 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         template === t.id
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-sky-100 bg-white hover:border-sky-300'
+                          : 'border-sky-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       {t.name}
@@ -457,7 +457,7 @@ export function PolaroidCustomizer({
                       className={`px-4 py-2 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
                         orientation === o
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-sky-100 bg-white hover:border-sky-300'
+                          : 'border-sky-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       {o}
@@ -495,7 +495,7 @@ export function PolaroidCustomizer({
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${font.class} ${
                         fontFamily === font.id
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-sky-100 bg-white hover:border-sky-300'
+                          : 'border-sky-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       {font.name}
@@ -512,7 +512,7 @@ export function PolaroidCustomizer({
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${
                         fontSize === size.id
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-sky-100 bg-white hover:border-sky-300'
+                          : 'border-sky-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       {size.name}
@@ -544,7 +544,7 @@ export function PolaroidCustomizer({
                       className={`px-3 py-2 rounded-xl border-2 text-sm transition-all ${
                         textAlignment === align.id
                           ? 'border-sky-500 bg-sky-50 shadow-sm'
-                          : 'border-sky-100 bg-white hover:border-sky-300'
+                          : 'border-sky-100 bg-surface hover:border-sky-300'
                       }`}
                     >
                       {align.icon} {align.name}
@@ -563,7 +563,7 @@ export function PolaroidCustomizer({
                   {stickers.map((sticker, i) => (
                     <motion.span
                       key={`${sticker}-${i}`}
-                      className="w-10 h-10 rounded-xl bg-white border border-sky-200 flex items-center justify-center text-lg cursor-pointer hover:bg-sky-50 hover:border-sky-300 transition-colors"
+                      className="w-10 h-10 rounded-xl bg-surface border border-sky-200 flex items-center justify-center text-lg cursor-pointer hover:bg-sky-50 hover:border-sky-300 transition-colors"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => removeSticker(sticker)}
@@ -581,7 +581,7 @@ export function PolaroidCustomizer({
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                <div id="sticker-picker" className="hidden mt-3 p-4 bg-white rounded-xl border border-sky-100 shadow-sm">
+                <div id="sticker-picker" className="hidden mt-3 p-4 bg-surface rounded-xl border border-sky-100 shadow-sm">
                   <div className="grid grid-cols-8 gap-2">
                     {STICKERS.map((sticker) => (
                       <button

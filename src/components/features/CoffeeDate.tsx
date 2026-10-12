@@ -176,11 +176,11 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
           {/* Main Cup */}
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-28 relative">
             <div 
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-white rounded-b-2xl border-4"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-24 bg-surface rounded-b-2xl border-4"
               style={{ borderColor: primaryDrink.color }}
             />
             <div 
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-white border-4 border-t-0 rounded-t-xl"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 w-24 h-4 bg-surface border-4 border-t-0 rounded-t-xl"
               style={{ borderColor: primaryDrink.color }}
             />
             
@@ -235,12 +235,12 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
           {date.drink_types.length > 1 && (
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex -space-x-2">
               {date.drink_types.slice(0, 3).map((drink, i) => (
-                <span key={drink} className="text-lg bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm border border-slate-200">
+                <span key={drink} className="text-lg bg-surface rounded-full w-6 h-6 flex items-center justify-center shadow-sm border border-line">
                   {DRINK_CONFIG[drink].emoji}
                 </span>
               ))}
               {date.drink_types.length > 3 && (
-                <span className="text-xs bg-slate-100 rounded-full w-6 h-6 flex items-center justify-center text-slate-600">
+                <span className="text-xs bg-surface rounded-full w-6 h-6 flex items-center justify-center text-body-muted">
                   +{date.drink_types.length - 3}
                 </span>
               )}
@@ -281,7 +281,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
 
           {date.local_cafe_suggestion && (
             <motion.div
-              className="p-3 rounded-xl bg-white/80 backdrop-blur border border-sky-100 mb-4"
+              className="p-3 rounded-xl bg-surface/80 backdrop-blur border border-sky-100 mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -302,7 +302,7 @@ export function CoffeeDateWidget({ date, onRedeem, className = '' }: CoffeeDateP
               {date.drink_types.map(drink => (
                 <span 
                   key={drink} 
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-sky-200 text-xs text-sky-700"
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface border border-sky-200 text-xs text-sky-700"
                 >
                   {DRINK_CONFIG[drink].emoji} {DRINK_CONFIG[drink].name}
                 </span>

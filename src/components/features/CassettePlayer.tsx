@@ -370,7 +370,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
           />
           <div className="absolute inset-0 flex items-center justify-end pr-2 pointer-events-none">
             <motion.div
-              className="w-3 h-3 bg-white rounded-full shadow-lg border-2 border-sky-400"
+              className="w-3 h-3 bg-surface rounded-full shadow-lg border-2 border-sky-400"
               style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`, transform: 'translateX(50%)' }}
               animate={{ scale: isPlaying ? 1.2 : 1 }}
             />
@@ -457,7 +457,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
                   className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                     notes.indexOf(note) === currentIndex
                       ? 'bg-sky-500 text-white shadow-lg'
-                      : 'bg-white text-sky-700 hover:bg-sky-50 border border-sky-100'
+                      : 'bg-surface text-sky-700 hover:bg-sky-50 border border-sky-100'
                   }`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -465,7 +465,7 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     notes.indexOf(note) === currentIndex
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-surface/20 text-white'
                       : 'bg-sky-100 text-sky-500'
                   }`}>
                     {notes.indexOf(note) === currentIndex && isPlaying ? (

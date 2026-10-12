@@ -105,16 +105,16 @@ export default function AdminDiaryDetailPage() {
       <AdminLayout>
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700">
-              <ArrowLeft className="w-5 h-5 text-stone-400" />
+            <div className="p-2 rounded-lg bg-surface">
+              <ArrowLeft className="w-5 h-5 text-body-muted" />
             </div>
-            <div className="h-10 w-64 bg-stone-200 dark:bg-stone-700 rounded-lg animate-pulse" />
+            <div className="h-10 w-64 bg-surface rounded-lg animate-pulse" />
           </div>
           <div className="grid gap-4 sm:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 p-6">
-                <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded w-24 animate-pulse" />
-                <div className="h-8 bg-stone-200 dark:bg-stone-700 rounded w-16 mt-2 animate-pulse" />
+              <div key={i} className="bg-surface rounded-xl border border-line p-6">
+                <div className="h-4 bg-surface rounded w-24 animate-pulse" />
+                <div className="h-8 bg-surface rounded w-16 mt-2 animate-pulse" />
               </div>
             ))}
           </div>
@@ -128,14 +128,14 @@ export default function AdminDiaryDetailPage() {
       <AdminLayout>
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <Link href="/admin/diaries" className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700">
-              <ArrowLeft className="w-5 h-5 text-stone-600" />
+            <Link href="/admin/diaries" className="p-2 rounded-lg bg-surface">
+              <ArrowLeft className="w-5 h-5 text-body-muted" />
             </Link>
             <h1 className="font-script text-3xl md:text-4xl text-sky-700">Diary Not Found</h1>
           </div>
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 p-8 text-center">
+          <div className="bg-surface rounded-xl border border-line p-8 text-center">
             <Heart className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-            <p className="text-stone-600 dark:text-stone-400">{error}</p>
+            <p className="text-body-muted">{error}</p>
             <Link href="/admin/diaries" className="btn-primary inline-flex items-center gap-2 mt-4">
               <ArrowLeft className="w-4 h-4" />
               Back to Diaries
@@ -154,13 +154,13 @@ export default function AdminDiaryDetailPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/diaries"
-            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface:bg-stone-600 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="font-script text-3xl md:text-4xl text-sky-700">{diary.title}</h1>
-            <p className="text-stone-600 mt-1">ID: {diary.id}</p>
+            <p className="text-body-muted mt-1">ID: {diary.id}</p>
           </div>
         </div>
 
@@ -173,27 +173,27 @@ export default function AdminDiaryDetailPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
-              <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+            <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
+              <h2 className="font-serif text-xl font-semibold text-body">
                 Description
               </h2>
-              <p className="text-stone-600 dark:text-stone-400">
+              <p className="text-body-muted">
                 {diary.description || 'No description provided'}
               </p>
             </div>
 
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
+            <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+                <h2 className="font-serif text-xl font-semibold text-body">
                   Entries in this Diary
                 </h2>
-                <span className="text-sm text-stone-500">{diary.entry_count} items</span>
+                <span className="text-sm text-body-muted">{diary.entry_count} items</span>
               </div>
 
               {diary.entry_count === 0 ? (
                 <div className="text-center py-8">
                   <Heart className="w-10 h-10 mx-auto mb-3 text-stone-300" />
-                  <p className="text-stone-500">No entries yet</p>
+                  <p className="text-body-muted">No entries yet</p>
                   <Link href="/admin/entries/new" className="btn-primary inline-flex items-center gap-2 mt-4">
                     <Sparkles className="w-4 h-4" />
                     Add Entry
@@ -204,13 +204,13 @@ export default function AdminDiaryDetailPage() {
                   {(Object.entries(metrics?.type_breakdown || {}) as [string, number][]).map(([type, count]) => (
                     <div
                       key={type}
-                      className="flex items-center gap-4 p-4 rounded-lg bg-stone-50 dark:bg-stone-900/50"
+                      className="flex items-center gap-4 p-4 rounded-lg bg-surface-2"
                     >
                       <span className="text-xl w-6 text-center">
                         <EntryTypeIcon type={type as EntryType} />
                       </span>
                       <div className="flex-1">
-                        <p className="font-medium text-stone-800 dark:text-stone-200">
+                        <p className="font-medium text-body">
                           {type.replace('_', ' ')}
                         </p>
                       </div>
@@ -231,8 +231,8 @@ export default function AdminDiaryDetailPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
-              <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+            <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
+              <h2 className="font-serif text-xl font-semibold text-body">
                 Diary Info
               </h2>
               <div className="space-y-3">
@@ -257,8 +257,8 @@ export default function AdminDiaryDetailPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-4">
-              <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+            <div className="bg-surface rounded-xl border border-line p-6 space-y-4">
+              <h2 className="font-serif text-xl font-semibold text-body">
                 Actions
               </h2>
               {!confirmDelete ? (
@@ -286,7 +286,7 @@ export default function AdminDiaryDetailPage() {
                     <button
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="flex-1 p-3 rounded-lg border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                      className="flex-1 p-3 rounded-lg border border-line text-body-muted hover:bg-surface:bg-stone-800 transition-colors"
                     >
                       Cancel
                     </button>
@@ -312,7 +312,7 @@ export default function AdminDiaryDetailPage() {
                 <ChevronRight className="w-4 h-4" />
                 Add Entries to This Diary
               </h3>
-              <p className="text-sm text-stone-500 mt-2">
+              <p className="text-sm text-body-muted mt-2">
                 Link existing entries to this diary to organize your gifts
               </p>
               <button
@@ -364,15 +364,15 @@ function MetricCard({
     green: 'bg-green-100 text-green-600',
     purple: 'bg-purple-100 text-purple-600',
     rose: 'bg-rose-100 text-rose-600',
-    stone: 'bg-stone-100 text-stone-600',
+    stone: 'bg-surface text-body-muted',
   }
 
   return (
-    <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6">
+    <div className="bg-surface rounded-xl border border-line p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-stone-500 dark:text-stone-400">{label}</p>
-          <p className="text-2xl font-bold text-stone-800 dark:text-stone-200 mt-1">{value}</p>
+          <p className="text-sm font-medium text-body-muted">{label}</p>
+          <p className="text-2xl font-bold text-body mt-1">{value}</p>
         </div>
         <div className={`p-3 rounded-lg ${colorMap[color]}`}>
           <Icon className="w-6 h-6" />
@@ -385,8 +385,8 @@ function MetricCard({
 function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-stone-500 dark:text-stone-400">{label}</span>
-      <span className={`text-sm ${mono ? 'font-mono' : ''} text-stone-800 dark:text-stone-200`}>
+      <span className="text-sm text-body-muted">{label}</span>
+      <span className={`text-sm ${mono ? 'font-mono' : ''} text-body`}>
         {value}
       </span>
     </div>

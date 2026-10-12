@@ -204,8 +204,8 @@ export default function CreateEntryPage() {
 
         {loading ? (
           <div className="card card-lg space-y-3">
-            <div className="animate-pulse h-4 w-1/3 bg-stone-200 dark:bg-stone-700 rounded" />
-            <div className="animate-pulse h-32 w-full bg-stone-200 dark:bg-stone-700 rounded" />
+            <div className="animate-pulse h-4 w-1/3 bg-surface rounded" />
+            <div className="animate-pulse h-32 w-full bg-surface rounded" />
           </div>
         ) : (
           <div className="space-y-6">{editor}</div>

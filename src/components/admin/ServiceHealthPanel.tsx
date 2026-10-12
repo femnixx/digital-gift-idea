@@ -92,8 +92,8 @@ export function ServiceHealthPanel() {
         {loading && !report
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="card p-4 space-y-2">
-                <div className="animate-pulse h-4 w-2/3 bg-stone-200 dark:bg-stone-700 rounded" />
-                <div className="animate-pulse h-3 w-1/2 bg-stone-200 dark:bg-stone-700 rounded" />
+                <div className="animate-pulse h-4 w-2/3 bg-surface rounded" />
+                <div className="animate-pulse h-3 w-1/2 bg-surface rounded" />
               </div>
             ))
           : (report?.services || []).map((service) => {

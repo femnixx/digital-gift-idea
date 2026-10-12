@@ -6,6 +6,7 @@ import {
   Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines, Check, ArrowRight, ArrowLeft
 } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
+import { Button, Field } from '@/components/ui/primitives'
 import type { EntryType } from '@/types'
 
 interface Option {
@@ -90,14 +91,15 @@ export default function CreatePage() {
     <PublicShell>
       <div className="container-wide py-8 lg:py-12">
         <div className="flex items-center gap-3 mb-8">
-          <button
+          <Button
+            tone="neutral"
+            size="sm"
             onClick={() => (selected ? setSelected(null) : router.push('/'))}
-            className="btn btn-secondary btn-sm"
             aria-label="Back"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="sr-only">Back</span>
-          </button>
+          </Button>
           <div>
             <h1 className="heading">
               {selected ? `Name your ${selected.label.toLowerCase()}` : 'What would you like to make?'}
@@ -146,8 +148,7 @@ export default function CreatePage() {
               <Check className="w-5 h-5 text-green-600 ml-auto shrink-0" />
             </div>
 
-            <div>
-              <label htmlFor="title" className="label">Name</label>
+            <Field label="Name">
               <input
                 id="title"
                 className="input"
@@ -156,12 +157,9 @@ export default function CreatePage() {
                 placeholder={selected.label}
                 maxLength={200}
               />
-            </div>
+            </Field>
 
-            <div>
-              <label htmlFor="slug" className="label">
-                Public link name <span className="muted-foreground font-normal">(optional)</span>
-              </label>
+            <Field label="Public link name" optional hint="Lowercase letters, numbers and dashes only.">
               <div className="flex items-center gap-2">
                 <span className="text-sm muted-foreground whitespace-nowrap hidden sm:inline">/daily/</span>
                 <input
@@ -173,19 +171,18 @@ export default function CreatePage() {
                   maxLength={60}
                 />
               </div>
-              <p className="hint mt-1">Lowercase letters, numbers and dashes only.</p>
-            </div>
+            </Field>
 
             {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : null}
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button onClick={() => setSelected(null)} className="btn btn-secondary" disabled={submitting}>
+              <Button tone="neutral" onClick={() => setSelected(null)} disabled={submitting}>
                 Back
-              </button>
-              <button onClick={handleCreate} className="btn btn-primary btn-lg" disabled={submitting || !slugPreview}>
+              </Button>
+              <Button size="lg" onClick={handleCreate} disabled={submitting || !slugPreview}>
                 {submitting ? 'Creating...' : 'Create'}
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         )}

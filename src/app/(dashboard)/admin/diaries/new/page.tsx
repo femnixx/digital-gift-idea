@@ -98,24 +98,24 @@ export default function NewDiaryPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/diaries"
-            className="p-2 rounded-lg bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 transition-colors"
+            className="p-2 rounded-lg bg-surface text-body-muted hover:bg-surface:bg-stone-600 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="font-script text-3xl md:text-4xl text-sky-700">Create Love Diary</h1>
-            <p className="text-stone-600 mt-1">Start a new collection of love letters and gifts</p>
+            <p className="text-body-muted mt-1">Start a new collection of love letters and gifts</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
-            <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+          <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
+            <h2 className="font-serif text-xl font-semibold text-body">
               Diary Details
             </h2>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+              <label className="block text-sm font-medium text-body">
                 Diary Title
               </label>
               <input
@@ -124,12 +124,12 @@ export default function NewDiaryPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Our First Year Together"
-                className="w-full px-4 py-3 rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-shadow"
+                className="w-full px-4 py-3 rounded-lg border border-line bg-surface text-body focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-shadow"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+              <label className="block text-sm font-medium text-body">
                 Description
               </label>
               <textarea
@@ -137,14 +137,14 @@ export default function NewDiaryPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="A short description of this diary..."
                 rows={4}
-                className="w-full px-4 py-3 rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-shadow resize-none"
+                className="w-full px-4 py-3 rounded-lg border border-line bg-surface text-body focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-shadow resize-none"
               />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-6 space-y-6">
+          <div className="bg-surface rounded-xl border border-line p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">
+              <h2 className="font-serif text-xl font-semibold text-body">
                 Select Entries
               </h2>
               <button
@@ -174,18 +174,18 @@ export default function NewDiaryPage() {
             )}
 
             <div className="space-y-3">
-              <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
+              <p className="text-sm font-medium text-body">
                 Choose love entries to include in this diary
               </p>
               <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                 {loadingEntries ? (
                   <div className="space-y-2">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="h-16 bg-stone-100 dark:bg-stone-700 rounded-lg animate-pulse" />
+                      <div key={i} className="h-16 bg-surface rounded-lg animate-pulse" />
                     ))}
                   </div>
                 ) : entries.length === 0 ? (
-                  <div className="text-center py-8 text-stone-500 dark:text-stone-400">
+                  <div className="text-center py-8 text-body-muted">
                     <Heart className="w-10 h-10 mx-auto mb-3 text-stone-300" />
                     <p>No entries available</p>
                     <p className="text-sm mt-1">Create entries from the Entries page first</p>
@@ -204,14 +204,14 @@ export default function NewDiaryPage() {
                       className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                         selectedEntries.includes(entry.id)
                           ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30'
-                          : 'border-stone-200 dark:border-stone-700 hover:border-sky-300 dark:hover:border-sky-800'
+                          : 'border-line hover:border-sky-300 dark:hover:border-sky-800'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={selectedEntries.includes(entry.id)}
                         onChange={() => toggleEntry(entry.id)}
-                        className="w-5 h-5 rounded border-stone-300 text-sky-600 focus:ring-sky-500"
+                        className="w-5 h-5 rounded border-line text-sky-600 focus:ring-sky-500"
                       />
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <span
@@ -221,10 +221,10 @@ export default function NewDiaryPage() {
                           <EntryTypeIcon type={entry.type} />
                         </span>
                         <div className="min-w-0">
-                          <p className="font-medium text-stone-800 dark:text-stone-200 truncate">
+                          <p className="font-medium text-body truncate">
                             {entry.title}
                           </p>
-                          <p className="text-stone-400 text-sm">{entry.type.replace('_', ' ')}</p>
+                          <p className="text-body-muted text-sm">{entry.type.replace('_', ' ')}</p>
                         </div>
                       </div>
                       <span
@@ -254,7 +254,7 @@ export default function NewDiaryPage() {
             <button
               type="button"
               onClick={() => router.push('/admin/diaries')}
-              className="px-6 py-3 rounded-lg border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              className="px-6 py-3 rounded-lg border border-line text-body-muted hover:bg-surface:bg-stone-800 transition-colors"
             >
               Cancel
             </button>

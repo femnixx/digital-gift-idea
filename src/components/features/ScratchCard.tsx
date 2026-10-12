@@ -252,14 +252,14 @@ export function ScratchCard({
                 <motion.img
                   src={revealContent.content}
                   alt="Revealed surprise"
-                  className="w-full h-full object-cover rounded-lg border border-stone-200"
+                  className="w-full h-full object-cover rounded-lg border border-line"
                   initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.4 }}
                 />
               ) : (
                 <motion.div
-                  className="w-full h-full bg-stone-50 rounded-lg p-8 flex items-center justify-center text-center border border-stone-200"
+                  className="w-full h-full bg-surface-2 rounded-lg p-8 flex items-center justify-center text-center border border-line"
                   initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.4 }}
@@ -283,7 +283,7 @@ export function ScratchCard({
                       {revealContent.content}
                     </motion.p>
                     <motion.div
-                      className="mt-6 flex items-center justify-center gap-2 text-stone-400"
+                      className="mt-6 flex items-center justify-center gap-2 text-body-muted"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.3 }}
@@ -317,12 +317,12 @@ export function ScratchCard({
       {/* Progress indicator */}
       {!isRevealed && (
         <motion.div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-stone-100 text-stone-800 text-sm border border-stone-200"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-surface text-body text-sm border border-line"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
+          <div className="w-32 h-2 bg-surface rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-sky-400 rounded-full"
               initial={{ width: 0 }}
@@ -340,7 +340,7 @@ export function ScratchCard({
           className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none"
         >
           <motion.div
-            className="w-14 h-14 rounded-lg bg-stone-100 flex items-center justify-center mb-3 border border-stone-200"
+            className="w-14 h-14 rounded-lg bg-surface flex items-center justify-center mb-3 border border-line"
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -354,7 +354,7 @@ export function ScratchCard({
               <path d="M12 2v20M17 5l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </motion.div>
-          <p className="font-handwriting text-lg text-stone-500 text-center">
+          <p className="font-handwriting text-lg text-body-muted text-center">
             Scratch to reveal your surprise
           </p>
         </div>
@@ -365,7 +365,7 @@ export function ScratchCard({
         <motion.button
           type="button"
           onClick={onEdit}
-          className="absolute top-3 right-3 p-2 rounded-lg bg-white border border-stone-200 text-stone-600 hover:text-sky-600 hover:bg-stone-100 transition-colors z-10"
+          className="absolute top-3 right-3 p-2 rounded-lg bg-surface border border-line text-body-muted hover:text-sky-600 hover:bg-surface transition-colors z-10"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.05 }}
