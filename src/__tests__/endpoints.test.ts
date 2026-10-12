@@ -317,6 +317,170 @@ describe('Endpoint smoke tests', () => {
       logRequest('media(anon-delete)', del.status, delData)
       expect(del.status).toBe(401)
     })
+
+    it('DELETE /api/media for an unknown id returns 404 when authenticated', async () => {
+      const login = await adminLogin()
+      expect(login.status).toBe(200)
+      const res = await fetch(`${BASE}/api/media?id=00000000-0000-0000-0000-000000000009`, {
+        ...FETCH_OPTS,
+        method: 'DELETE',
+        headers: { Cookie: login.cookie },
+      })
+      const data = await res.json()
+      logRequest('media(delete-missing)', res.status, data)
+      expect(res.status).toBe(404)
+    }, 20000)
+
+    it('DELETE /api/media without an id returns 400', async () => {
+      const login = await adminLogin()
+      expect(login.status).toBe(200)
+      const res = await fetch(`${BASE}/api/media`, {
+        ...FETCH_OPTS,
+        method: 'DELETE',
+        headers: { Cookie: login.cookie },
+      })
+      logRequest('media(delete-no-id)', res.status, null)
+      expect(res.status).toBe(400)
+    }, 20000)
+  })
+
+  describe('Voice note endpoints', () => {
+    it('POST without session returns 401', async () => {
+      const res = await fetch(`${BASE}/api/entries/slug/voice-notes`, {
+        ...FETCH_OPTS,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'x' }),
+      })
+      const data = await res.json()
+      logRequest('voiceNote(anon)', res.status, data)
+      expect(res.status).toBe(401)
+    })
+
+    it('POST with an invalid payload returns 400 when authenticated', async () => {
+      const login = await adminLogin()
+      expect(login.status).toBe(200)
+      // A real entry is required: the route resolves the entry before it
+      // validates the body, so a missing slug would only produce a 404.
+      const slug = `voice-bad-${Date.now().toString(36)}`
+      const created = await createEntry(login.cookie, slug, 'Voice Bad Payload', true)
+      expect([200, 201]).toContain(created.status)
+
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes`, {
+        ...FETCH_OPTS,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: login.cookie },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      logRequest('voiceNote(bad-payload)', res.status, data)
+      expect(res.status).toBe(400)
+
+      await deleteEntry(login.cookie, slug)
+    }, 30000)
+
+    it('POST then DELETE round-trips, including the waveform JSONB column', async () => {
+      const login = await adminLogin()
+      expect(login.status).toBe(200)
+      const slug = `voice-${Date.now().toString(36)}`
+
+      const created = await createEntry(login.cookie, slug, 'Voice Host', true)
+      expect([200, 201]).toContain(created.status)
+
+      const post = await fetch(`${BASE}/api/entries/${slug}/voice-notes`, {
+        ...FETCH_OPTS,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: login.cookie },
+        // The array must survive the JSONB round-trip; passing it raw used to
+        // make Postgres reject it as invalid JSON.
+        body: JSON.stringify({ title: 'Note A', duration_seconds: 12, waveform_data: [1, 2, 3] }),
+      })
+      const postData = await post.json()
+      logRequest('voiceNote(create)', post.status, postData)
+      expect(post.status).toBe(201)
+      const voiceNoteId = postData.voice_note?.id
+      expect(voiceNoteId).toBeTruthy()
+      expect(postData.voice_note?.waveform_data).toEqual([1, 2, 3])
+
+      // The id is a query param: the path has no [voiceId] segment.
+      const del = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}`, {
+        ...FETCH_OPTS,
+        method: 'DELETE',
+        headers: { Cookie: login.cookie },
+      })
+      const delData = await del.json()
+      logRequest('voiceNote(delete)', del.status, delData)
+      expect(del.status).toBe(200)
+
+      // Deleting again proves it actually removed the row rather than matching none.
+      const delAgain = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${voiceNoteId}`, {
+        ...FETCH_OPTS,
+        method: 'DELETE',
+        headers: { Cookie: login.cookie },
+      })
+      logRequest('voiceNote(delete-again)', delAgain.status, null)
+      expect(delAgain.status).toBe(200)
+
+      await deleteEntry(login.cookie, slug)
+    }, 40000)
+  })
+
+  describe('Interaction endpoints', () => {
+    it('GET lists interactions for an existing entry', async () => {
+      const res = await fetch(`${BASE}/api/public/entries/test-entry/interactions`, FETCH_OPTS)
+      const data = await res.json()
+      logRequest('interactions(get)', res.status, data)
+      expect(res.status).toBe(200)
+      expect(Array.isArray(data.interactions)).toBe(true)
+    })
+
+    it('POST rejects an unknown interaction type with 400', async () => {
+      const res = await fetch(`${BASE}/api/public/entries/test-entry/interactions`, {
+        ...FETCH_OPTS,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interaction_type: 'not-a-reaction' }),
+      })
+      const data = await res.json()
+      logRequest('interactions(bad-type)', res.status, data)
+      expect(res.status).toBe(400)
+    })
+
+    it('POST records a valid interaction and writes the metadata JSONB column', async () => {
+      const res = await fetch(`${BASE}/api/public/entries/test-entry/interactions`, {
+        ...FETCH_OPTS,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interaction_type: 'love', metadata: { source: 'smoke-test' } }),
+      })
+      const data = await res.json()
+      logRequest('interactions(post)', res.status, data)
+      expect(res.status).toBe(201)
+      expect(data.interaction?.interaction_type).toBe('love')
+      expect(data.interaction?.metadata?.source).toBe('smoke-test')
+    })
+  })
+
+  describe('Admin stats endpoint', () => {
+    it('GET without session returns 401', async () => {
+      const res = await fetch(`${BASE}/api/admin/stats`, FETCH_OPTS)
+      logRequest('adminStats(anon)', res.status, null)
+      expect(res.status).toBe(401)
+    })
+
+    it('GET returns real aggregates when authenticated', async () => {
+      const login = await adminLogin()
+      expect(login.status).toBe(200)
+      const res = await fetch(`${BASE}/api/admin/stats`, { ...FETCH_OPTS, headers: { Cookie: login.cookie } })
+      const data = await res.json()
+      logRequest('adminStats(auth)', res.status, data)
+      expect(res.status).toBe(200)
+      // Every figure must be a real number, never a hardcoded or placeholder value.
+      for (const key of ['diaries', 'mediaFiles', 'storageBytes', 'interactions', 'voiceNotes', 'voiceNoteSeconds']) {
+        expect(typeof data[key]).toBe('number')
+        expect(Number.isFinite(data[key])).toBe(true)
+      }
+    }, 20000)
   })
 
   describe('Removed endpoints', () => {

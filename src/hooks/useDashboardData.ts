@@ -17,8 +17,29 @@ export interface DashboardEntry {
   updated_at: string
 }
 
+/**
+ * Website-wide aggregates, sourced from /api/admin/stats. Every field is a real
+ * database total — there is no estimated or placeholder figure.
+ */
+export interface DashboardStats {
+  diaries: number
+  mediaFiles: number
+  storageBytes: number
+  interactions: number
+  voiceNotes: number
+  voiceNoteSeconds: number
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${bytes} B`
+}
+
 export function useDashboardData() {
   const [entries, setEntries] = useState<DashboardEntry[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,19 +47,28 @@ export function useDashboardData() {
 
     async function load() {
       try {
-        const res = await fetch('/api/entries')
-        if (!res.ok) {
-          setEntries([])
-          return
-        }
-        const data = await res.json()
+        const [entriesRes, statsRes] = await Promise.all([
+          fetch('/api/entries'),
+          fetch('/api/admin/stats'),
+        ])
+
         if (cancelled) return
-        setEntries(data.entries as DashboardEntry[])
+
+        if (entriesRes.ok) {
+          const data = await entriesRes.json()
+          setEntries(data.entries as DashboardEntry[])
+        } else {
+          setEntries([])
+        }
+
+        if (statsRes.ok) {
+          setStats((await statsRes.json()) as DashboardStats)
+        }
       } catch {
         if (cancelled) return
         setEntries([])
       }
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
 
     load()
@@ -47,5 +77,5 @@ export function useDashboardData() {
     }
   }, [])
 
-  return { entries, loading }
+  return { entries, stats, loading }
 }

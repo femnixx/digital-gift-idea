@@ -245,14 +245,6 @@ export async function getProfiles() {
   return result as any[]
 }
 
-export async function ensureProfileExists(userId: string, displayName: string) {
-  try {
-    await sql`insert into profiles (id, display_name, created_at, updated_at) values (${userId}, ${displayName}, now(), now())`
-  } catch {
-    // ignore duplicate
-  }
-}
-
 export async function getPartnerInteractionsByEntry(entryId: string) {
   const result = await sql`select * from partner_interactions where entry_id = ${entryId} order by created_at desc`
   return result as any[]

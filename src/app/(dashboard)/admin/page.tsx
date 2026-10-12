@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { gsap } from 'gsap'
 import { startOfMonth } from 'date-fns'
 import {
-  Heart, Plus, Eye, Sparkles, FileText, Globe, BarChart2, Server, Database, Shield
+  Heart, Plus, Eye, Sparkles, FileText, Globe, Server, Database
 } from 'lucide-react'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { useDashboardData } from '@/hooks/useDashboardData'
+import { useDashboardData, formatBytes } from '@/hooks/useDashboardData'
 import { StatCard } from '@/components/ui/DashboardCharts'
 import type { Stat } from '@/components/ui/DashboardCharts'
 import {
@@ -25,9 +25,15 @@ function formatCompact(value: number): string {
   return value.toLocaleString()
 }
 
+function formatDuration(seconds: number): string {
+  if (seconds >= 3600) return `${(seconds / 3600).toFixed(1)}h`
+  if (seconds >= 60) return `${Math.round(seconds / 60)}m`
+  return `${seconds}s`
+}
+
 export default function AdminDashboardPage() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { entries, loading } = useDashboardData()
+  const { entries, stats: siteStats, loading } = useDashboardData()
 
   useEffect(() => {
     if (loading || !containerRef.current) return
@@ -106,13 +112,25 @@ export default function AdminDashboardPage() {
         color: 'blue',
       },
       {
-        label: 'Views / Entry',
-        value: loading ? '...' : metrics.avgViewsPerEntry.toLocaleString(),
-        icon: BarChart2,
-        color: 'pink',
+        label: 'Views This Month',
+        value: loading ? '...' : formatCompact(metrics.viewsThisMonth),
+        icon: Server,
+        color: 'purple',
+      },
+      {
+        label: 'Storage Used',
+        value: loading || !siteStats ? '...' : formatBytes(siteStats.storageBytes),
+        icon: Database,
+        color: 'sky',
+      },
+      {
+        label: 'Interactions',
+        value: loading || !siteStats ? '...' : siteStats.interactions.toLocaleString(),
+        icon: Heart,
+        color: 'green',
       },
     ],
-    [loading, metrics]
+    [loading, metrics, siteStats]
   )
 
   const recentEntries = entries.slice(0, 8)
@@ -134,12 +152,12 @@ export default function AdminDashboardPage() {
         </div>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">System Health</h2>
+          <h2 className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200 mb-4">Content &amp; Storage</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <Database className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <p className="font-medium">Database</p>
@@ -147,49 +165,49 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {loading ? '...' : 'Healthy'}
+                {loading || !siteStats ? '...' : 'Healthy'}
               </p>
             </div>
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Published Rate</p>
-                  <p className="text-sm muted-foreground">Share of entries live</p>
+                  <p className="font-medium">Storage Used</p>
+                  <p className="text-sm muted-foreground">{loading || !siteStats ? '...' : `${siteStats.mediaFiles} attached files`}</p>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {loading || entries.length === 0 ? '...' : `${Math.round((metrics.published / entries.length) * 100)}%`}
+              <p className="text-3xl font-bold text-sky-600 dark:text-sky-400">
+                {loading || !siteStats ? '...' : formatBytes(siteStats.storageBytes)}
               </p>
             </div>
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                  <Server className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <Heart className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Views This Month</p>
-                  <p className="text-sm muted-foreground">Current calendar month</p>
+                  <p className="font-medium">Love Diaries</p>
+                  <p className="text-sm muted-foreground">Collections created</p>
                 </div>
               </div>
               <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {loading ? '...' : formatCompact(metrics.viewsThisMonth)}
+                {loading || !siteStats ? '...' : siteStats.diaries.toLocaleString()}
               </p>
             </div>
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                  <BarChart2 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Server className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Top Entry Views</p>
-                  <p className="text-sm muted-foreground">Highest single entry</p>
+                  <p className="font-medium">Voice Notes</p>
+                  <p className="text-sm muted-foreground">{loading || !siteStats ? '...' : formatDuration(siteStats.voiceNoteSeconds)} recorded</p>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                {loading ? '...' : formatCompact(metrics.mostViewed)}
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {loading || !siteStats ? '...' : siteStats.voiceNotes.toLocaleString()}
               </p>
             </div>
           </div>
