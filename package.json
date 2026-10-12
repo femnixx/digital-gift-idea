@@ -4,14 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3001",
+    "prebuild": "node scripts/guard-dev-server.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "node scripts/warm-routes.mjs && vitest run",
     "neon:tables": "tsx scripts/neon-tables.ts",
     "neon:storage": "tsx scripts/neon-storage.ts",
     "db:migrate": "tsx scripts/run-migrations.ts",
-    "db:expire": "tsx scripts/expire-entries.ts"
+    "db:expire": "tsx scripts/expire-entries.ts",
+    "dev:stop": "node scripts/stop-dev.mjs",
+    "dev:reset": "node scripts/dev-reset.mjs",
+    "test:warm": "node scripts/warm-routes.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
