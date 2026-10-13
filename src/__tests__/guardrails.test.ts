@@ -433,6 +433,98 @@ describe('Anonymous gift flow guardrails', () => {
     }, 30000)
   })
 
+  describe('Scratch card persistence', () => {
+    const payload = {
+      cover_color: '#0284c7',
+      reveal_content: { type: 'text', content: 'Scratch to reveal: I love you' },
+      scratch_threshold: 0.6,
+    }
+
+    it('saves a card and reads it back', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Scratch', type: 'scratch_card', slug: `sc1-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const put = await fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card: payload }),
+      })
+      log('scratch save', put.status)
+      expect(put.status).toBe(200)
+
+      const saved = await put.json()
+      // The card must be an object, not an empty array: reading the delete's
+      // result instead of the insert's returned nothing at all.
+      expect(saved.card).toBeTruthy()
+      expect(saved.card.reveal_content.content).toBe(payload.reveal_content.content)
+      expect(saved.card.cover_color).toBe(payload.cover_color)
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`)
+      expect(get.status).toBe(200)
+      expect((await get.json()).card.reveal_content.content).toBe(payload.reveal_content.content)
+    }, 40000)
+
+    it('replaces rather than appends', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Scratch', type: 'scratch_card', slug: `sc2-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const put = async (content: string) =>
+        fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`, {
+          ...FETCH_OPTS, method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card: { ...payload, reveal_content: { type: 'text', content } } }),
+        })
+
+      await put('first')
+      await put('second')
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`)
+      expect((await get.json()).card.reveal_content.content).toBe('second')
+    }, 40000)
+
+    it('refuses to read or write without the edit token', async () => {
+      const { slug } = await withEntryToken({
+        title: 'Scratch', type: 'scratch_card', slug: `sc3-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      expect((await fetch(`${BASE}/api/entries/${slug}/scratch-card`)).status).toBe(404)
+      const write = await fetch(`${BASE}/api/entries/${slug}/scratch-card`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card: payload }),
+      })
+      log('scratch write no token', write.status, '(expect 404)')
+      expect(write.status).toBe(404)
+    }, 30000)
+
+    it('rejects a cover colour that is not hex', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Scratch', type: 'scratch_card', slug: `sc4-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const res = await fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card: { ...payload, cover_color: 'red' } }),
+      })
+      log('scratch bad colour', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('rejects an unknown reveal type', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Scratch', type: 'scratch_card', slug: `sc5-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const res = await fetch(`${BASE}/api/entries/${slug}/scratch-card?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card: { ...payload, reveal_content: { type: 'telepathy', content: 'x' } } }),
+      })
+      log('scratch bad reveal type', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+  })
+
   describe('Gift lifetime', () => {
     it('defaults to permanent when no expiry is given', async () => {
       const res = await createGift({ title: 't', type: 'letter', slug: `ttl1-${Date.now().toString(36)}`, content: {}, is_published: false })

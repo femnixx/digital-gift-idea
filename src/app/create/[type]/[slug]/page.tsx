@@ -170,7 +170,7 @@ export default function CreateEntryPage() {
           <ScratchCardCustomizer
             entryId={slug}
             card={null}
-            onSave={() => setNotice('Scratch card saved')}
+            token={token} onSave={() => setNotice('Scratch card saved')}
           />
         )
       case 'voice_note':

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Heart,
@@ -17,12 +17,15 @@ import {
   Eye,
 } from 'lucide-react'
 import type { ScratchCard } from '@/types'
+import { scratchCardApi, type ScratchCardPayload } from '@/lib/api/scratchCardApi'
 
 interface ScratchCardCustomizerProps {
   entryId: string
   card?: ScratchCard | null
   onSave: (card: ScratchCard) => void
   onCancel?: () => void
+  /** Edit token, required for the card to reach the database. */
+  token?: string
 }
 
 const COVER_COLORS = [
@@ -57,6 +60,7 @@ export function ScratchCardCustomizer({
   card,
   onSave,
   onCancel,
+  token,
 }: ScratchCardCustomizerProps) {
   const isEditing = !!card
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -82,6 +86,8 @@ export function ScratchCardCustomizer({
   const [brushSize, setBrushSize] = useState(30)
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [loaded, setLoaded] = useState(false)
 
   const getPatternClasses = () => {
     switch (coverPattern) {
@@ -133,31 +139,75 @@ export function ScratchCardCustomizer({
     if (revealContentType === 'text' && !revealText.trim()) return
     if (revealContentType === 'image' && !revealImageUrl) return
 
+    // Without a token there is no way to prove authorship, so this cannot be
+    // written. Say so rather than reporting a success that did not happen.
+    if (!token) {
+      setSaveError('Missing edit token, so this card cannot be saved.')
+      return
+    }
+
     setIsSaving(true)
+    setSaveError('')
+
+    const savedCard: ScratchCard = {
+      id: card?.id || `scratch-${Date.now()}`,
+      entry_id: card?.entry_id || entryId,
+      cover_color: coverColor,
+      cover_image_url: coverImageUrl || null,
+      reveal_content: {
+        type: revealContentType,
+        content: revealContentType === 'text' ? revealText : revealImageUrl,
+      },
+      scratch_threshold: scratchThreshold,
+      created_at: card?.created_at || new Date().toISOString(),
+    }
+
     try {
-      let finalCoverImageUrl = coverImageUrl
-      if (coverImageUrl && (!card?.cover_image_url || coverImageUrl !== card.cover_image_url)) {
-        finalCoverImageUrl = coverImageUrl
-      }
-
-      const savedCard: ScratchCard = {
-        id: card?.id || `scratch-${Date.now()}`,
-        entry_id: card?.entry_id || entryId,
-        cover_color: coverColor,
-        cover_image_url: finalCoverImageUrl || null,
+      await scratchCardApi.replace(entryId, token, {
+        cover_color: savedCard.cover_color,
+        cover_image_url: savedCard.cover_image_url,
         reveal_content: {
-          type: revealContentType,
-          content: revealContentType === 'text' ? revealText : revealImageUrl,
+          type: savedCard.reveal_content.type,
+          content: savedCard.reveal_content.content,
         },
-        scratch_threshold: scratchThreshold,
-        created_at: card?.created_at || new Date().toISOString(),
-      }
-
+        scratch_threshold: savedCard.scratch_threshold,
+      })
       onSave(savedCard)
+    } catch (err: any) {
+      setSaveError(err.message || 'Could not save this card')
     } finally {
       setIsSaving(false)
     }
   }
+
+  // Load the card saved for this entry, so revisiting shows it rather than an
+  // empty form. The incoming `card` prop still wins when one is supplied.
+  useEffect(() => {
+    let cancelled = false
+    if (card || !token) {
+      setLoaded(true)
+      return
+    }
+    ;(async () => {
+      try {
+        const existing = await scratchCardApi.get(entryId, token)
+        if (cancelled || !existing) return
+        setCoverColor(existing.cover_color)
+        setCoverImageUrl(existing.cover_image_url || '')
+        setRevealContentType((existing.reveal_content?.type || 'text') as any)
+        setRevealText(existing.reveal_content?.type === 'text' ? existing.reveal_content.content : '')
+        setScratchThreshold(Number(existing.scratch_threshold) || 0.6)
+      } catch {
+        // A missing card is the normal first-visit case; leave the defaults.
+      } finally {
+        if (!cancelled) setLoaded(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryId, token, card])
 
   const getCoverPreview = () => {
     if (coverImageUrl) {
@@ -577,6 +627,11 @@ export function ScratchCardCustomizer({
             <Sparkles className="w-4 h-4" />
             {isSaving ? 'Saving...' : isEditing ? 'Update Card' : 'Save Card'}
           </button>
+          {saveError ? (
+            <p role="alert" className="w-full text-sm text-red-600">
+              {saveError}
+            </p>
+          ) : null}
         </div>
       )}
     </div>
