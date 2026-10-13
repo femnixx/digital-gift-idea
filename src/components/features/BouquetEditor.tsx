@@ -67,8 +67,11 @@ export function BouquetEditor({
       flower_type: selectedType,
       color: selectedColor,
       note: null,
-      position_x: 50,
-      position_y: 50,
+      // Was a fixed 50,50, so every flower landed on the same point and ten of
+      // them rendered as one. Place each by the golden angle instead, so the
+      // bouquet fans out as it is built rather than stacking in the centre.
+      position_x: Math.max(8, Math.min(92, 50 + Math.cos(flowers.length * 2.399963) * (8 + (flowers.length % 5) * 6))),
+      position_y: Math.max(8, Math.min(92, 38 + Math.sin(flowers.length * 2.399963) * 30)),
       rotation: Math.random() * 20 - 10,
       scale: 0.8 + Math.random() * 0.4,
       sort_order: flowers.length,

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Heart, X, MessageSquare, Sparkles, Shuffle, Circle, Flower2, SlidersHorizontal } from 'lucide-react'
 import { FLOWER_CONFIG, type FlowerType, type BouquetFlower, type ArrangementType } from '@/types'
 import { ProceduralFlower } from '@/components/features/ProceduralFlower'
@@ -280,16 +280,29 @@ export function DigitalBouquet({
   const handleRegenerate = () => {
     const newSeed = Date.now()
     const newFlowers = generateBouquet(flowerCount, newSeed, entryId || '')
-    const rng = createRng(newSeed)
-    const arranged = applyArrangement(newFlowers, arrangement, rng)
+    const arranged = applyArrangement(newFlowers, arrangement, createRng(newSeed))
     setLocalFlowers(arranged)
     setGenerationSeed(newSeed)
     onReplaceFlowers?.(arranged)
   }
 
+  /**
+   * Spreads whatever is currently placed.
+   *
+   * Called automatically whenever flowers are added, as well as from the
+   * Auto-arrange button, because generateBouquet emits every head at the centre
+   * and a stack of identical positions looks like a single flower.
+   */
+  const arrangeNow = useCallback(
+    (flowers: BouquetFlower[]) => {
+      if (flowers.length === 0) return flowers
+      return applyArrangement(flowers, arrangement, createRng(generationSeed))
+    },
+    [arrangement, generationSeed]
+  )
+
   const handleAutoArrange = () => {
-    const arranged = autoArrange(localFlowers)
-    setLocalFlowers(arranged)
+    setLocalFlowers((prev) => arrangeNow(prev))
   }
 
   const handleArrangementChange = (type: ArrangementType) => {
