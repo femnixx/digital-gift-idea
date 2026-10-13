@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { Mic, Square, Play, Pause, Upload, RotateCcw, Music, Trash2 } from 'lucide-react'
+import { Mic, Square, Play, Pause, Upload, RotateCcw, Music, Trash2, Check } from 'lucide-react'
 import { useAudioMeter, WaveformBars } from '@/lib/audio/useAudioMeter'
 
 export function VoiceNoteRecorder({
@@ -61,11 +61,15 @@ export function VoiceNoteRecorder({
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         const url = URL.createObjectURL(blob)
-        setSavedLevels(meterFinish())
+        // Capture the bars before the meter's effect tears down, and hand them
+        // straight to the save rather than reading them back from state.
+        const levels = meterFinish()
+        setSavedLevels(levels)
         setAudioUrl(url)
         setMode('preview')
         stream.getTracks().forEach(t => t.stop())
         setStream(null)
+        void handleSave(levels)
       }
 
       recorder.start()
@@ -100,10 +104,13 @@ export function VoiceNoteRecorder({
     const url = URL.createObjectURL(file)
     setAudioUrl(url)
     setMode('preview')
+    setSavedLevels(null)
     setError(null)
 
     const audio = new Audio(url)
     audio.addEventListener('loadedmetadata', () => setDuration(audio.duration))
+    // An upload is also a finished note, so it saves itself too.
+    void handleSave(null)
   }
 
   const togglePlay = () => {
@@ -116,7 +123,7 @@ export function VoiceNoteRecorder({
     setIsPlaying(!isPlaying)
   }
 
-  const handleSave = async () => {
+  const handleSave = async (levels?: number[] | null) => {
     if (!audioUrl) return
 
     // Without a token there is no way to prove authorship, so this cannot be
@@ -162,7 +169,7 @@ export function VoiceNoteRecorder({
             // audio.duration is a float; the column is an INTEGER, so round before
           // sending rather than letting the database reject it.
           duration_seconds: duration ? Math.round(duration) : null,
-            waveform_data: savedLevels ?? null,
+            waveform_data: levels ?? savedLevels ?? null,
             cassette_side: 'A',
           }),
         }
@@ -292,13 +299,24 @@ export function VoiceNoteRecorder({
           </div>
 
           <div className="flex gap-3">
-            <button
-              onClick={handleSave}
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
-            >
-              <Music className="w-4 h-4" />
-              Save Voice Note
-            </button>
+            {savedOk ? (
+              /* Saved itself, so the primary action is now just confirmation. */
+              <div className="btn-primary flex-1 flex items-center justify-center gap-2" role="status">
+                <Check className="w-4 h-4" />
+                Saved
+              </div>
+            ) : (
+              /* Only reachable when the automatic save failed, which is what
+                 makes it a retry rather than a second way to save. */
+              <button
+                onClick={() => handleSave(savedLevels)}
+                disabled={saving}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                <Music className="w-4 h-4" />
+                {saving ? 'Saving...' : error ? 'Retry Save' : 'Save Voice Note'}
+              </button>
+            )}
             <button
               onClick={cleanup}
               className="btn-secondary flex items-center justify-center gap-2"

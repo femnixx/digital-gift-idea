@@ -175,7 +175,7 @@ export default function CreateEntryPage() {
           />
         )
       case 'voice_note':
-        return <VoiceNoteRecorder entryId={slug} token={token} onSave={() => setNotice('Voice note saved')} />
+        return <VoiceNoteRecorder entryId={slug} token={token} onSave={(ok) => setNotice(ok ? 'Voice note saved' : 'Could not save the voice note')} />
       case 'coffee_date':
         return (
           <CoffeeDateSelector
