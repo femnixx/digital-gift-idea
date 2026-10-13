@@ -394,7 +394,7 @@ export function DigitalBouquet({
           </svg>
 
           {/* Flower area - above vase opening */}
-          <div className="absolute left-1/2 -translate-x-1/2 w-full" style={{ height: '120%', bottom: '100%' }}>
+          <div className="absolute inset-x-0" style={{ bottom: '18%', top: 0 }}>
             <AnimatePresence mode="popLayout">
               {displayFlowers.map((flower, index) => {
                 const seed = flower.generation_seed || parseInt(flower.id.slice(-6), 36)
@@ -407,7 +407,7 @@ export function DigitalBouquet({
                     className="absolute flex flex-col items-center select-none"
                     style={{
                       left: `${flower.position_x}%`,
-                      bottom: `${100 - flower.position_y}%`,
+                      bottom: `${flower.position_y}%`,
                       transform: `translateX(-50%) rotate(${flower.rotation}deg) scale(${flower.scale})`,
                       zIndex: index + 10,
                     }}
@@ -451,13 +451,16 @@ export function DigitalBouquet({
                         ease: 'easeInOut',
                       }}
                     >
-                      <ProceduralFlower
-                        type={flower.flower_type}
-                        color={flower.color}
-                        seed={seed}
-                        size={isMobile ? 55 : 72}
-                        simplified={isMobile}
-                      />
+                      <span
+                        className="leading-none select-none"
+                        style={{
+                          fontSize: `${flower.scale * (isMobile ? 44 : 64)}px`,
+                          filter: `hue-rotate(${(seed % 40) - 20}deg) drop-shadow(0 2px 3px rgba(0,0,0,0.15))`,
+                        }}
+                        aria-hidden
+                      >
+                        {FLOWER_CONFIG[flower.flower_type]?.emoji || '🌸'}
+                      </span>
                     </motion.div>
                   </motion.div>
                 )
