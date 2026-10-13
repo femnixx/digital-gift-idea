@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Mic, Square, Play, Pause, Upload, RotateCcw, Music, Trash2 } from 'lucide-react'
+import { useAudioMeter, WaveformBars } from '@/lib/audio/useAudioMeter'
 
 export function VoiceNoteRecorder({
   entryId,
@@ -22,9 +23,15 @@ export function VoiceNoteRecorder({
   const [saving, setSaving] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [savedLevels, setSavedLevels] = useState<number[] | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const chunksRef = useRef<Blob[]>([])
+
+  // Declared before the handlers so meterFinish is in scope for recorder.onstop.
+  const meter = useAudioMeter(stream, mode === 'recording')
+  const meterFinish = useCallback(() => meter.finish(), [meter])
 
   const cleanup = useCallback(() => {
     if (audioUrl && mode !== 'preview') {
@@ -40,7 +47,9 @@ export function VoiceNoteRecorder({
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const capture = await navigator.mediaDevices.getUserMedia({ audio: true })
+      setStream(capture)
+      const stream = capture
       const recorder = new MediaRecorder(stream)
       mediaRecorderRef.current = recorder
       chunksRef.current = []
@@ -52,13 +61,16 @@ export function VoiceNoteRecorder({
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         const url = URL.createObjectURL(blob)
+        setSavedLevels(meterFinish())
         setAudioUrl(url)
         setMode('preview')
         stream.getTracks().forEach(t => t.stop())
+        setStream(null)
       }
 
       recorder.start()
       setMode('recording')
+      setSavedLevels(null)
       setError(null)
     } catch (err) {
       setError('Could not access microphone. Please allow microphone access.')
@@ -150,7 +162,7 @@ export function VoiceNoteRecorder({
             // audio.duration is a float; the column is an INTEGER, so round before
           // sending rather than letting the database reject it.
           duration_seconds: duration ? Math.round(duration) : null,
-            waveform_data: null,
+            waveform_data: savedLevels ?? null,
             cassette_side: 'A',
           }),
         }
@@ -233,6 +245,13 @@ export function VoiceNoteRecorder({
             <Mic className="w-8 h-8 text-white" />
           </div>
           <p className="text-sky-600 font-handwriting text-xl">Recording...</p>
+          {/* Live frequency bars, so the microphone's input is visible while speaking. */}
+          <WaveformBars
+            levels={meter.levels}
+            height={56}
+            barClassName="bg-brand"
+            className="max-w-md mx-auto"
+          />
           <button onClick={stopRecording} className="btn-secondary flex items-center gap-2 mx-auto">
             <Square className="w-4 h-4" />
             Stop Recording
@@ -243,6 +262,13 @@ export function VoiceNoteRecorder({
       {mode === 'preview' && audioUrl && (
         <div className="space-y-4">
           <div className="p-6 rounded-2xl bg-surface border border-sky-100 shadow-lg">
+            {/* The bars captured while recording. */}
+            <WaveformBars
+              levels={savedLevels}
+              height={48}
+              barClassName="bg-brand"
+              className="mb-4 max-w-md"
+            />
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={togglePlay}

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { WaveformBars } from '@/lib/audio/useAudioMeter'
 import { Play, Pause, Volume2, VolumeX, RotateCcw, Heart, Sparkles, Music } from 'lucide-react'
 
 interface VoiceNote {
@@ -292,6 +293,16 @@ export function CassettePlayer({ notes, autoPlay = false, className = '' }: Cass
           {/* Current time display on tape */}
           <div className="absolute bottom-16 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 rounded text-white text-xs font-mono">
             {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+
+          {/* Recorded frequency bars. These were accepted as a prop and never
+              drawn, so the tape carried no indication of what was recorded. */}
+          <div className="mt-4">
+            <WaveformBars
+              levels={currentNote.waveformData ?? null}
+              height={40}
+              barClassName="bg-brand"
+            />
           </div>
         </div>
 

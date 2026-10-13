@@ -665,6 +665,31 @@ describe('Anonymous gift flow guardrails', () => {
       expect(res.status).toBe(404)
     }, 30000)
 
+    it('stores and returns a frequency waveform', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vnwave-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+
+      // A realistic capture: 48 bands normalised to 0..1, the shape the meter
+      // produces. Verifies the array survives the JSONB round-trip rather than
+      // arriving back as a string or truncated.
+      const levels = Array.from({ length: 48 }, (_, i) => Number((Math.abs(Math.sin(i / 3)) * 0.9 + 0.1).toFixed(3)))
+
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'With bars', duration_seconds: 9, waveform_data: levels, cassette_side: 'A' }),
+      })
+      log('voice note waveform save', res.status)
+      expect(res.status).toBe(201)
+      expect((await res.json()).voice_note?.waveform_data).toEqual(levels)
+
+      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
+      const note = (await pub.json()).entry.voice_notes[0]
+      expect(note.waveform_data).toEqual(levels)
+      expect(note.waveform_data).toHaveLength(48)
+    }, 40000)
+
     it('deletes a note by id, and refuses without a token', async () => {
       const { slug, token } = await withEntryToken({
         title: 'Voice', type: 'voice_note', slug: `vn4-${Date.now().toString(36)}`, content: {}, is_published: false,
