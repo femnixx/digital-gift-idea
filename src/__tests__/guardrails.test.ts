@@ -39,6 +39,11 @@ function entryApi(slug: string, token?: string) {
   return `${BASE}/api/entries/${encodeURIComponent(slug)}${token ? `?token=${encodeURIComponent(token)}` : ''}`
 }
 
+async function withEntryToken(body: Record<string, unknown>) {
+  const created = await createGift(body)
+  return { slug: created.data.entry.slug, token: created.token as string }
+}
+
 describe('Anonymous gift flow guardrails', () => {
   beforeAll(async () => {
     try {
@@ -226,6 +231,137 @@ describe('Anonymous gift flow guardrails', () => {
     })
   })
 
+  describe('Bouquet persistence', () => {
+    it('saves an arrangement and reads it back', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq1-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      expect(token).toBeTruthy()
+
+      const flowers = [
+        { flower_type: 'rose', color: '#e11d48', position_x: 50, position_y: 58, rotation: 0, scale: 1.16 },
+        { flower_type: 'lavender', color: '#a78bfa', position_x: 62.7, position_y: 52, rotation: 5.7, scale: 1.11 },
+      ]
+
+      const put = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers }),
+      })
+      log('bouquet save', put.status)
+      expect(put.status).toBe(200)
+      expect((await put.json()).flowers).toHaveLength(2)
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)
+      const saved = await get.json()
+      log('bouquet load', get.status)
+      expect(get.status).toBe(200)
+      expect(saved.flowers).toHaveLength(2)
+      expect(saved.flowers.map((f: any) => f.flower_type).sort()).toEqual(['lavender', 'rose'])
+    }, 40000)
+
+    it('replaces rather than appends, so removing a flower sticks', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq2-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const put = async (flowers: unknown[]) =>
+        fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+          ...FETCH_OPTS, method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flowers }),
+        })
+
+      await put([{ flower_type: 'rose', color: '#e11d48', position_x: 50, position_y: 50, rotation: 0, scale: 1 }])
+      await put([{ flower_type: 'tulip', color: '#f472b6', position_x: 30, position_y: 40, rotation: 0, scale: 1 }])
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)
+      const saved = await get.json()
+      expect(saved.flowers).toHaveLength(1)
+      expect(saved.flowers[0].flower_type).toBe('tulip')
+    }, 40000)
+
+    it('refuses to read or write without the edit token', async () => {
+      const { slug } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq3-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const read = await fetch(`${BASE}/api/entries/${slug}/bouquet`)
+      log('bouquet read no token', read.status, '(expect 404)')
+      expect(read.status).toBe(404)
+
+      const write = await fetch(`${BASE}/api/entries/${slug}/bouquet`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers: [] }),
+      })
+      log('bouquet write no token', write.status, '(expect 404)')
+      expect(write.status).toBe(404)
+    }, 30000)
+
+    it('rejects a flower type the palette does not have', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq4-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers: [{ flower_type: 'orchid', color: '#ff0000', position_x: 50, position_y: 50, rotation: 0, scale: 1 }] }),
+      })
+      log('bouquet bad type', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('rejects a colour that is not a hex value', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq5-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers: [{ flower_type: 'rose', color: 'red', position_x: 50, position_y: 50, rotation: 0, scale: 1 }] }),
+      })
+      log('bouquet bad colour', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('rejects a pixel coordinate given where a percentage belongs', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq6-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      // 232 is a valid pixel offset but not a percentage; the range check is
+      // what surfaces that unit confusion instead of storing a silent bad row.
+      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers: [{ flower_type: 'rose', color: '#e11d48', position_x: 12, position_y: 232, rotation: 0, scale: 1 }] }),
+      })
+      log('bouquet pixel coord', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('exposes saved flowers to the recipient through the public API', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bq7-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+
+      await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers: [{ flower_type: 'sunflower', color: '#f59e0b', position_x: 50, position_y: 58, rotation: 0, scale: 1.16 }] }),
+      })
+
+      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
+      const entry = (await pub.json()).entry
+      expect(pub.status).toBe(200)
+      expect(entry.bouquet_flowers).toHaveLength(1)
+      expect(entry.bouquet_flowers[0].flower_type).toBe('sunflower')
+    }, 40000)
+  })
+
   describe('Opening ceremony', () => {
     it('plays for every service type', async () => {
       const types = ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
@@ -322,7 +458,16 @@ describe('Anonymous gift flow guardrails', () => {
       })
       const cookie = await withToken(loginRes)
 
+      // Assert the sign-in first. Without this the failure surfaces as an opaque
+      // JSON parse error on the health response, because an empty cookie makes
+      // the middleware answer with a redirect page instead.
+      expect(loginRes.status, 'admin login must succeed before health can be probed').toBe(200)
+      expect(cookie, 'admin login must set a session cookie').toContain('session=')
+
       const res = await fetch(`${BASE}/api/admin/health`, { ...FETCH_OPTS, headers: { Cookie: cookie } })
+      if (res.status === 307) {
+        throw new Error('health endpoint redirected, so the admin session was not accepted')
+      }
       const data = await res.json()
       log('health', res.status, `overall=${data.overall} services=${(data.services || []).length}`)
 

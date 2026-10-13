@@ -131,7 +131,7 @@ export default function CreateEntryPage() {
           />
         )
       case 'bouquet':
-        return <BouquetEditor entryId={slug} onSave={() => setNotice('Bouquet saved')} />
+        return <BouquetEditor entryId={slug} token={token} onSave={() => setNotice('Bouquet saved')} />
       case 'polaroid':
         return (
           <PolaroidCustomizer

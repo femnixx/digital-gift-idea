@@ -1,21 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Heart, Sparkles, ArrowLeft } from 'lucide-react'
+import { bouquetApi, type BouquetFlowerPayload } from '@/lib/api/bouquetApi'
 import { DigitalBouquet } from '@/components/features/DigitalBouquet'
 import type { BouquetFlower, ArrangementType, FlowerType } from '@/types'
 import { FLOWER_CONFIG } from '@/types'
 
 const COLORS = ['#FF69B4', '#0284c7', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000', '#FFD700', '#FFA500', '#E6E6FA', '#D8BFD8', '#9370DB', '#BA55D3']
 
-export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; onSave?: (flowers: BouquetFlower[]) => void; onCancel?: () => void }) {
+export function BouquetEditor({
+  entryId,
+  onSave,
+  onCancel,
+  token,
+}: {
+  entryId: string
+  onSave?: (flowers: BouquetFlower[]) => void
+  onCancel?: () => void
+  /** Edit token proving this visitor created the entry. */
+  token?: string
+}) {
   const [flowers, setFlowers] = useState<BouquetFlower[]>([])
   const [selectedType, setSelectedType] = useState<FlowerType>('rose')
   const [selectedColor, setSelectedColor] = useState(COLORS[0])
   const [flowerCount, setFlowerCount] = useState(10)
   const [arrangement, setArrangement] = useState<ArrangementType>('circular')
   const [title, setTitle] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState('')
+
+  // Load any arrangement already saved for this entry, so revisiting the editor
+  // shows what was built rather than an empty canvas.
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const existing = await bouquetApi.list(entryId, token)
+        if (!cancelled && existing.length > 0) {
+          setFlowers(existing)
+        }
+      } catch (err: any) {
+        if (!cancelled) setLoadError(err.message || 'Could not load your bouquet')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [entryId, token])
 
   const handleAddFlower = () => {
     const newFlower: BouquetFlower = {
@@ -47,7 +90,7 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
     setFlowers(newFlowers)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // A bouquet does not need its own name: the entry already has a UUID and a
     // public slug from when it was created, and those are what identify it. The
     // title below is a nice-to-have label, so it is optional rather than a
@@ -56,14 +99,28 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
       alert('Please add at least one flower')
       return
     }
-    onSave?.(flowers)
+
+    if (!token) {
+      alert('Missing edit token, so this bouquet cannot be saved.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      await bouquetApi.replace(entryId, token, flowers)
+      onSave?.(flowers)
+    } catch (err: any) {
+      alert(err.message || 'Could not save your bouquet')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div className='min-h-screen bg-cream-50'>
+    <div className='min-h-screen bg-base'>
       <div className='max-w-4xl mx-auto px-6 py-12'>
         {onCancel && (
-          <button onClick={onCancel} className='inline-flex items-center gap-2 text-sky-500 hover:text-sky-600 mb-8'>
+          <button onClick={onCancel} className='inline-flex items-center gap-2 text-brand hover:opacity-80 mb-8'>
             <ArrowLeft className='w-4 h-4' /> Back to types
           </button>
         )}
@@ -73,12 +130,18 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
             <span className='text-3xl'>💐</span>
             <div>
               <h1 className='font-script text-3xl gradient-text'>Digital Bouquet</h1>
-              <p className='text-sky-500 text-sm'>Create a beautiful flower arrangement</p>
+              <p className='text-body-muted text-sm'>Create a beautiful flower arrangement</p>
             </div>
           </div>
         </div>
 
-        {flowers.length === 0 ? (
+        {loadError ? (
+          <p role='alert' className='text-sm text-red-600 mb-6'>{loadError}</p>
+        ) : null}
+
+        {loading ? (
+          <div className='card p-8 text-center text-body-muted'>Loading your bouquet…</div>
+        ) : flowers.length === 0 ? (
           <div className='card p-8 text-center mb-8'>
             <Sparkles className='w-12 h-12 text-gold-400 mx-auto mb-4' />
             <h2 className='font-serif text-xl text-body mb-2'>Create Your Bouquet</h2>
@@ -110,12 +173,12 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
                       onClick={() => setSelectedType(key as FlowerType)}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         selectedType === key
-                          ? 'border-sky-500 bg-sky-50'
-                          : 'border-sky-100 hover:border-sky-300'
+                          ? 'border-brand bg-brand/10'
+                          : 'border-line hover:border-brand/50'
                       }`}
                     >
                       <div className='text-2xl mb-1'>{config.emoji}</div>
-                      <div className='text-xs text-sky-600'>{config.name}</div>
+                      <div className='text-xs text-body-muted'>{config.name}</div>
                     </button>
                   ))}
                 </div>
@@ -129,7 +192,7 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
                       key={color}
                       onClick={() => setSelectedColor(color)}
                       className={`w-10 h-10 rounded-full border-2 transition-all ${
-                        selectedColor === color ? 'border-sky-500 scale-110' : 'border-sky-100'
+                        selectedColor === color ? 'border-brand scale-110' : 'border-line'
                       }`}
                       style={{ backgroundColor: color }}
                       aria-label={`Select color ${color}`}
@@ -185,8 +248,8 @@ export function BouquetEditor({ entryId, onSave, onCancel }: { entryId: string; 
                 <button onClick={() => setFlowers([])} className='btn-secondary'>
                   Clear All
                 </button>
-                <button onClick={handleSave} className='btn-primary'>
-                  Save Bouquet
+                <button onClick={handleSave} className='btn-primary' disabled={saving}>
+                  {saving ? 'Saving…' : 'Save Bouquet'}
                 </button>
               </div>
             </div>
