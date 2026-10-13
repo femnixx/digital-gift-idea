@@ -3,13 +3,24 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Mic, Square, Play, Pause, Upload, RotateCcw, Music, Trash2 } from 'lucide-react'
 
-export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave?: () => void }) {
+export function VoiceNoteRecorder({
+  entryId,
+  onSave,
+  token,
+}: {
+  entryId: string
+  onSave?: (saved: boolean) => void
+  /** Edit token, required for the note to reach the database. */
+  token?: string
+}) {
   const [mode, setMode] = useState<'idle' | 'recording' | 'preview'>('idle')
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [duration, setDuration] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [savedOk, setSavedOk] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -96,33 +107,66 @@ export function VoiceNoteRecorder({ entryId, onSave }: { entryId: string; onSave
   const handleSave = async () => {
     if (!audioUrl) return
 
-    let finalUrl = audioUrl
-    let mediaId = ''
-
-    if (uploadedFile) {
-      const reader = new FileReader()
-      const dataUrl = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.readAsDataURL(uploadedFile)
-      })
-      finalUrl = dataUrl
-      mediaId = 'media-' + Date.now()
+    // Without a token there is no way to prove authorship, so this cannot be
+    // written. Say so rather than showing a success notice that lies.
+    if (!token) {
+      setError('Missing edit token, so this voice note cannot be saved.')
+      return
     }
 
-    const voiceNote = {
-      id: 'vn-' + Date.now(),
-      entry_id: entryId,
-      media_id: mediaId || null,
-      title: title || 'Voice Note',
-      transcript: null,
-      waveform_data: null,
-      duration_seconds: duration,
-      cassette_side: 'A' as const,
-      created_at: new Date().toISOString()
-    }
+    setSaving(true)
+    setError(null)
+    setSavedOk(false)
 
-    cleanup()
-    onSave?.()
+    try {
+      // The audio goes to storage and the row references it. Reading it into a
+      // data URL and storing that would put a base64 blob in the database, which
+      // bloats every query that touches voice_notes.
+      let mediaId: string | null = null
+      const blob = await (await fetch(audioUrl)).blob()
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: blob.type || 'audio/webm' })
+
+      const form = new FormData()
+      form.append('file', file)
+      form.append('entry_id', entryId)
+      form.append('type', 'audio')
+      form.append('token', token)
+
+      const upload = await fetch('/api/media', { method: 'POST', body: form })
+      if (!upload.ok) {
+        const body = await upload.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not upload your recording')
+      }
+      mediaId = (await upload.json()).media?.id ?? null
+
+      const res = await fetch(
+        `/api/entries/${encodeURIComponent(entryId)}/voice-notes?token=${encodeURIComponent(token)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title || 'Voice Note',
+            media_id: mediaId,
+            duration_seconds: duration || null,
+            waveform_data: null,
+            cassette_side: 'A',
+          }),
+        }
+      )
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not save your voice note')
+      }
+
+      setSavedOk(true)
+      cleanup()
+      onSave?.(true)
+    } catch (err: any) {
+      setError(err.message || 'Could not save your voice note')
+      onSave?.(false)
+    } finally {
+      setSaving(false)
+    }
   }
 
   useEffect(() => {

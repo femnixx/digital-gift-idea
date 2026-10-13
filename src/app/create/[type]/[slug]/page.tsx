@@ -99,6 +99,28 @@ export default function CreateEntryPage() {
     }
   }
 
+  async function unpublish() {
+    setPublishing(true)
+    setError('')
+    try {
+      const res = await fetch(entryUrl(), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_published: false }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Could not unpublish')
+      }
+      setEntry((prev) => (prev ? { ...prev, is_published: false } : prev))
+      setNotice('Unpublished. The public link no longer shows this gift.')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   async function publish() {
     setPublishing(true)
     setError('')
@@ -203,24 +225,42 @@ export default function CreateEntryPage() {
         {notice ? <p className="text-sm text-green-600">{notice}</p> : null}
         {saving ? <p className="text-sm muted-foreground">Saving...</p> : null}
 
-        {!loading ? (
-          <TtlPicker
-            value={expiresAt}
-            onChange={setExpiresAt}
-            maxDays={MAX_TTL_DAYS}
-            max={maxExpiryIso()}
-          />
-        ) : null}
-
-        {!loading && entry?.is_published ? <SharePanel slug={slug} token={token} /> : null}
-
         {loading ? (
           <div className="card card-lg space-y-3">
             <div className="animate-pulse h-4 w-1/3 bg-surface rounded" />
             <div className="animate-pulse h-32 w-full bg-surface rounded" />
           </div>
+        ) : entry?.is_published ? (
+          /* Published: the editor steps aside and only the sharing and lifetime
+             controls remain, so the page is about distributing the gift rather
+             than still building it. "Keep editing" unpublishes to get back. */
+          <div className="space-y-6">
+            <SharePanel slug={slug} token={token} />
+            <TtlPicker
+              value={expiresAt}
+              onChange={setExpiresAt}
+              maxDays={MAX_TTL_DAYS}
+              max={maxExpiryIso()}
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <button onClick={() => unpublish()} className="btn btn-secondary" disabled={publishing}>
+                {publishing ? 'Working...' : 'Keep editing'}
+              </button>
+              <span className="text-sm muted-foreground">
+                Unpublishing hides the public link again until you publish once more.
+              </span>
+            </div>
+          </div>
         ) : (
-          <div className="space-y-6">{editor}</div>
+          <div className="space-y-6">
+            <TtlPicker
+              value={expiresAt}
+              onChange={setExpiresAt}
+              maxDays={MAX_TTL_DAYS}
+              max={maxExpiryIso()}
+            />
+            {editor}
+          </div>
         )}
       </div>
     </PublicShell>
