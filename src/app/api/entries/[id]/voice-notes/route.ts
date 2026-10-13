@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/neon/auth'
 import { createVoiceNote, deleteVoiceNote } from '@/lib/neon/db'
+import { sql } from '@/lib/neon/auth'
 import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
 import { authorisedByEditToken } from '@/lib/api/editToken'
 import { z } from 'zod'
@@ -11,7 +12,9 @@ const voiceNoteSchema = z.object({
   duration_seconds: z.number().min(0).max(600).optional(),
   transcript: z.string().nullable().optional(),
   cassette_side: z.enum(['A', 'B']).default('A'),
-  waveform_data: z.array(z.number()).optional(),
+  // Nullable, not merely optional: the recorder sends null explicitly when it
+  // has no waveform to report, and rejecting it made every save fail with a 400.
+  waveform_data: z.array(z.number()).nullable().optional(),
 })
 
 export async function POST(
@@ -32,6 +35,16 @@ export async function POST(
 
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
+    }
+
+    // A media_id that does not exist violates the foreign key and surfaces as a
+    // 500, which tells the caller nothing. Check it up front so a stale or
+    // fabricated id gets a legible 400 instead.
+    if (validation.data.media_id) {
+      const media = await sql`select id from media where id = ${validation.data.media_id} limit 1`
+      if (media.length === 0) {
+        return NextResponse.json({ error: 'Unknown media_id' }, { status: 400 })
+      }
     }
 
     const voiceNote = await createVoiceNote({

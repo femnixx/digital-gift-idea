@@ -574,6 +574,84 @@ describe('Anonymous gift flow guardrails', () => {
     }, 40000)
   })
 
+  describe('Voice note persistence', () => {
+    it('accepts the exact payload the recorder sends', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vn1-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      // This is what VoiceNoteRecorder posts, waveform_data null included. The
+      // schema used to allow undefined but not null, so every real save failed
+      // with a 400 while the tests, which omitted the field, passed. media_id is
+      // omitted here because it must reference a row the upload endpoint made.
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Voice Note',
+          duration_seconds: 12,
+          waveform_data: null,
+          cassette_side: 'A',
+        }),
+      })
+      log('voice note save', res.status)
+      expect(res.status).toBe(201)
+      expect((await res.json()).voice_note?.title).toBe('Voice Note')
+    }, 30000)
+
+    it('accepts a real waveform array when the recorder has one', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vn2-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'With bars', duration_seconds: 4, waveform_data: [0.1, 0.9, 0.4], cassette_side: 'A' }),
+      })
+      log('voice note with waveform', res.status)
+      expect(res.status).toBe(201)
+      expect((await res.json()).voice_note?.waveform_data).toEqual([0.1, 0.9, 0.4])
+    }, 30000)
+
+    it('refuses to save without the edit token', async () => {
+      const { slug } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vn3-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'x', waveform_data: null }),
+      })
+      log('voice note no token', res.status, '(expect 404)')
+      expect(res.status).toBe(404)
+    }, 30000)
+
+    it('deletes a note by id, and refuses without a token', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vn4-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const created = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Doomed', waveform_data: null }),
+      })
+      expect(created.status).toBe(201)
+      const noteId = (await created.json()).voice_note.id
+
+      const del = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${noteId}&token=${token}`, {
+        ...FETCH_OPTS, method: 'DELETE',
+      })
+      log('voice note delete', del.status)
+      expect(del.status).toBe(200)
+
+      const again = await fetch(`${BASE}/api/entries/${slug}/voice-notes?id=${noteId}&token=${token}`, {
+        ...FETCH_OPTS, method: 'DELETE',
+      })
+      log('voice note delete again', again.status, '(expect 200, delete is idempotent)')
+      expect(again.status).toBe(200)
+    }, 30000)
+  })
+
   describe('Scratch card persistence', () => {
     const payload = {
       cover_color: '#0284c7',
