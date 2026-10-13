@@ -40,11 +40,49 @@ export async function GET(
       return NextResponse.json({ error: 'Media not found in storage' }, { status: 404 })
     }
 
+    const range = request.headers.get('range')
+
+    // An <audio> element seeks by asking for a byte range, and it will not play
+    // from a server that ignores it: it gets 200 where it asked for 206, with no
+    // Accept-Ranges to say seeking is possible at all. Serving the range keeps
+    // playback working for both audio and long images.
+    if (range) {
+      const parsed = /^bytes=(\d*)-(\d*)$/.exec(range)
+      if (parsed) {
+        const size = body.byteLength
+        const start = parsed[1] === '' ? 0 : Number(parsed[1])
+        const end = parsed[2] === '' ? size - 1 : Math.min(Number(parsed[2]), size - 1)
+
+        if (Number.isFinite(start) && start < size && end >= start) {
+          return new NextResponse(body.slice(start, end + 1), {
+            status: 206,
+            headers: {
+              'Content-Type': media.mime_type || 'application/octet-stream',
+              'Content-Length': String(end - start + 1),
+              'Content-Range': `bytes ${start}-${end}/${size}`,
+              'Accept-Ranges': 'bytes',
+              'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+            },
+          })
+        }
+      }
+
+      // Unsatisfiable range.
+      return new NextResponse(null, {
+        status: 416,
+        headers: {
+          'Content-Range': `bytes */${body.byteLength}`,
+          'Accept-Ranges': 'bytes',
+        },
+      })
+    }
+
     return new NextResponse(body.slice(), {
       status: 200,
       headers: {
         'Content-Type': media.mime_type || 'application/octet-stream',
         'Content-Length': String(body.byteLength),
+        'Accept-Ranges': 'bytes',
         // Public, permanent, but revalidated so a replaced file is picked up.
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
       },

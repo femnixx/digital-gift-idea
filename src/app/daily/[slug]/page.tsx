@@ -58,7 +58,19 @@ export default async function DailyEntryRoute({ params }: PageProps) {
     scratch_cards: scratchCards,
     open_when_letters: openWhenLetters,
     coffee_dates: coffeeDates,
-    voice_notes: voiceNotes,
+    // Uploads leave public_url null, so give every note the permanent streaming
+    // path. Without this the player is handed an empty string and stays silent.
+    voice_notes: (voiceNotes as any[]).map((note) => ({
+      ...note,
+      media: note.media
+        ? {
+            ...note.media,
+            public_url:
+              note.media.public_url ||
+              `/api/public/entries/${slug}/media/${note.media.id}`,
+          }
+        : null,
+    })),
   }
 
   return <DailyEntryPage entry={enrichedEntry} />

@@ -176,9 +176,40 @@ export async function createCoffeeDate(coffeeDate: any) {
   return result[0]
 }
 
+/**
+ * Voice notes with their audio.
+ *
+ * Joined to media rather than selected alone: voice_notes carries media_id but
+ * not the file, and the public page built an empty audio url from the missing
+ * join, so a saved note rendered but never played. The media columns are
+ * flattened onto the note so existing callers reading note.media keep working.
+ */
 export async function getVoiceNotesByEntry(entryId: string) {
-  const result = await sql`select * from voice_notes where entry_id = ${entryId} order by created_at`
-  return result as any[]
+  const result = await sql`
+    select
+      v.*,
+      m.public_url   as media_public_url,
+      m.storage_path as media_storage_path,
+      m.mime_type    as media_mime_type,
+      m.filename     as media_filename
+    from voice_notes v
+    left join media m on m.id = v.media_id
+    where v.entry_id = ${entryId}
+    order by v.created_at
+  `
+
+  return (result as any[]).map((note) => ({
+    ...note,
+    media: note.media_id
+      ? {
+          id: note.media_id,
+          public_url: note.media_public_url,
+          storage_path: note.media_storage_path,
+          mime_type: note.media_mime_type,
+          filename: note.media_filename,
+        }
+      : null,
+  }))
 }
 
 export async function createVoiceNote(note: any) {
