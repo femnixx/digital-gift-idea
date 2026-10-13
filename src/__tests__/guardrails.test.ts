@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
+import { readFileSync } from 'node:fs'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
 const FETCH_OPTS: RequestInit = { redirect: 'manual' }
@@ -202,6 +203,27 @@ describe('Anonymous gift flow guardrails', () => {
       log('rename collision', put.status, '(expect 409)')
       expect(put.status).toBe(409)
     }, 30000)
+  })
+
+  describe('Global components never hijack the public flow', () => {
+    it('loading.tsx contains no navigation at all', () => {
+      const src = readFileSync('src/app/loading.tsx', 'utf8')
+      // It used to router.replace('/admin') after a timeout, which dragged any
+      // slow public route into the admin login screen.
+      expect(src).not.toMatch(/router\.(push|replace)/)
+      expect(src).not.toContain('/admin')
+    })
+
+    it('error.tsx never sends a visitor to the admin login', () => {
+      const src = readFileSync('src/app/error.tsx', 'utf8')
+      expect(src).not.toMatch(/router\.(push|replace)\(\s*['"`]\/admin/)
+      expect(src).not.toContain('/api/admin/logout')
+    })
+
+    it('not-found.tsx never sends a visitor to the admin login', () => {
+      const src = readFileSync('src/app/not-found.tsx', 'utf8')
+      expect(src).not.toContain('/admin')
+    })
   })
 
   describe('Public visibility', () => {
