@@ -226,6 +226,23 @@ describe('Anonymous gift flow guardrails', () => {
     })
   })
 
+  describe('Opening ceremony', () => {
+    it('plays for every service type', async () => {
+      const types = ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
+      for (const t of types) {
+        const slug = `cov-${t.replace('_', '-')}-${Date.now().toString(36)}`
+        const created = await createGift({ title: `${t}`, type: t, slug, content: {}, is_published: true })
+        expect(created.status).toBe(201)
+
+        // The recipient must be offered the ceremony before any contents appear.
+        const page = await fetch(`${BASE}/daily/${slug}`, FETCH_OPTS)
+        const html = await page.text()
+        expect(page.status).toBe(200)
+        expect(html).toContain('Open it')
+      }
+    }, 120000)
+  })
+
   describe('Public visibility', () => {
     it('a draft is not publicly visible', async () => {
       const created = await createGift({ title: 'd', type: 'letter', slug: `d-${Date.now().toString(36)}`, content: {}, is_published: false })

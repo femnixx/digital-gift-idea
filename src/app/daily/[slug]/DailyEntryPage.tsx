@@ -16,6 +16,7 @@ import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDa
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
 import { LetterEditor } from '@/components/features/LetterEditor'
+import { GiftOpening } from '@/components/gift/GiftOpening'
 import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, BouquetFlower, FlowerType } from '@/types'
 import { FLOWER_CONFIG } from '@/types'
 
@@ -26,6 +27,8 @@ interface DailyEntryPageProps {
 export function DailyEntryPage({ entry }: DailyEntryPageProps) {
   const { back } = useNav()
   const [isEditing, setIsEditing] = useState(false)
+  // The recipient sees the opening ceremony before the contents are revealed.
+  const [opened, setOpened] = useState(false)
   const [showScratchCustomizer, setShowScratchCustomizer] = useState(false)
   const [editingScratchCard, setEditingScratchCard] = useState<ScratchCardType | null>(null)
   const [editingOpenWhenLetters, setEditingOpenWhenLetters] = useState(false)
@@ -477,6 +480,20 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
       ♡
     </div>
   ))
+
+  // The editor affordances are for the creator, so the opening only plays for a
+  // recipient who is not mid-edit.
+  if (!opened && !isEditing) {
+    return (
+      <div className="min-h-screen bg-base">
+        <GiftOpening
+          type={entry.type}
+          title={entry.title}
+          onOpened={() => setOpened(true)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-base">
