@@ -57,7 +57,10 @@ export async function GET(
       sql`SELECT * FROM scratch_cards WHERE entry_id = ${entry.id} ORDER BY created_at ASC`,
       sql`SELECT * FROM open_when_letters WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT * FROM coffee_dates WHERE entry_id = ${entry.id} ORDER BY created_at ASC`,
-      sql`SELECT * FROM voice_notes WHERE entry_id = ${entry.id} ORDER BY created_at ASC`,
+      sql`SELECT v.*, m.public_url AS media_public_url, m.storage_path AS media_storage_path
+         FROM voice_notes v
+         LEFT JOIN media m ON m.id = v.media_id
+         WHERE v.entry_id = ${entry.id} ORDER BY v.created_at ASC`,
     ])
 
     const now = new Date()
@@ -90,7 +93,18 @@ export async function GET(
           scratch_cards: scratchCards,
           open_when_letters: unlockedLetters,
           coffee_dates: coffeeDates,
-          voice_notes: voiceNotes,
+          voice_notes: (voiceNotes as any[]).map((note) => ({
+            ...note,
+            media: note.media_id
+              ? {
+                  id: note.media_id,
+                  public_url:
+                    note.media_public_url ||
+                    `/api/public/entries/${slug}/media/${note.media_id}`,
+                  storage_path: note.media_storage_path,
+                }
+              : null,
+          })),
         },
       },
       { headers: NO_STORE_HEADERS }

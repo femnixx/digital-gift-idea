@@ -442,7 +442,6 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
   }
 
   const [shareCopied, setShareCopied] = useState(false)
-  const [editing, setEditing] = useState(false)
 
   const handleShare = async () => {
     try {
@@ -453,20 +452,6 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
       setShareCopied(false)
     }
   }
-
-  const getEditButton = () => {
-    const typeLabels: Record<string, string> = {
-      letter: 'Edit Letter',
-      polaroid: 'Edit Polaroids',
-      scratch_card: 'Edit Scratch Cards',
-      open_when: 'Edit Open When Letters',
-      coffee_date: 'Edit Coffee Date',
-      bouquet: entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? 'Edit Bouquet' : 'Create Bouquet',
-    }
-    return typeLabels[entry.type] || 'Edit Letter'
-  }
-
-  const showEditButton = ['letter', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'bouquet'].includes(entry.type)
 
   const floatingHearts = Array.from({ length: 6 }).map((_, i) => (
     <div
@@ -573,28 +558,6 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                   <Heart className="w-5 h-5 text-accent" />
                   <span className="w-16 h-px bg-gradient-to-r from-transparent via-card-border to-transparent" />
                 </div>
-
-                {showEditButton && (
-                  <motion.div
-                    className="mt-4 flex justify-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                <button
-                  type="button"
-                  onClick={() => { setEditing(true); }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors"
-                >
-                  {editing ? (
-                    <span className="block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Edit3 className="w-4 h-4" />
-                  )}
-                  {editing ? 'Editing...' : getEditButton()}
-                </button>
-                  </motion.div>
-                )}
               </motion.header>
 
               {(entry.content as any)?.partnerOne && (entry.content as any)?.partnerTwo && (

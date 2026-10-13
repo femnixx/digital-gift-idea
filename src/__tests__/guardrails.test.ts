@@ -362,6 +362,33 @@ describe('Anonymous gift flow guardrails', () => {
     }, 40000)
   })
 
+  describe('Recipient view is read-only', () => {
+    it('exposes no edit affordance for any service type', async () => {
+      const markers = [
+        'Edit Letter', 'Edit Polaroids', 'Edit Scratch Cards',
+        'Edit Open When Letters', 'Edit Coffee Date', 'Edit Bouquet',
+        'Add Scratch Card', 'Add Your First Scratch Card', 'Auto-arrange', 'Regenerate',
+      ]
+
+      // Every service the public view can render.
+      for (const type of ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']) {
+        const slug = `ro3-${type.replace('_', '-')}-${Date.now().toString(36)}`
+        const created = await createGift({
+          title: 'Read only', type, slug, content: { message: 'hi' }, is_published: true,
+        })
+        expect(created.status).toBe(201)
+
+        const page = await fetch(`${BASE}/daily/${slug}`)
+        const html = await page.text()
+        expect(page.status).toBe(200)
+
+        for (const marker of markers) {
+          expect(html, `${type} recipient view must not offer "${marker}"`).not.toContain(marker)
+        }
+      }
+    }, 120000)
+  })
+
   describe('Opening ceremony', () => {
     it('plays for every service type', async () => {
       const types = ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
@@ -664,6 +691,42 @@ describe('Anonymous gift flow guardrails', () => {
       log('voice note no token', res.status, '(expect 404)')
       expect(res.status).toBe(404)
     }, 30000)
+
+    it('returns a playable url for the audio, not an empty string', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vnplay-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+
+      // Upload a real file so the note references an actual media row, which is
+      // what the player needs. The note carnes media_id only, so the public
+      // payload used to leave media undefined and hand the player an empty url.
+      const form = new FormData()
+      form.append('file', new File([new Uint8Array(1024)], 'a.webm', { type: 'audio/webm' }))
+      form.append('entry_id', slug)
+      form.append('type', 'audio')
+      form.append('token', token)
+      const upload = await fetch(`${BASE}/api/media`, { method: 'POST', body: form })
+      expect(upload.status).toBe(201)
+      const mediaId = (await upload.json()).media.id
+
+      const saved = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Playable', media_id: mediaId, duration_seconds: 6, waveform_data: null }),
+      })
+      log('voice note save for playback', saved.status)
+      expect(saved.status).toBe(201)
+
+      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
+      const note = (await pub.json()).entry.voice_notes[0]
+      expect(note.media).toBeTruthy()
+      expect(note.media.public_url).toMatch(/^\/api\/public\/entries\/.*\/media\//)
+
+      // And the url it hands back actually serves the file.
+      const audio = await fetch(`${BASE}${note.media.public_url}`)
+      log('voice note audio fetch', audio.status)
+      expect(audio.status).toBe(200)
+    }, 40000)
 
     it('stores and returns a frequency waveform', async () => {
       const { slug, token } = await withEntryToken({
