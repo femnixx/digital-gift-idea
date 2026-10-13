@@ -9,7 +9,16 @@ import { z } from 'zod'
 const voiceNoteSchema = z.object({
   title: z.string().min(1).max(200),
   media_id: z.string().uuid().optional(),
-  duration_seconds: z.number().min(0).max(600).optional(),
+  // duration_seconds is an INTEGER column. HTMLMediaElement.duration returns a
+  // float like 12.345678, and the driver passes that through to an int4 column
+  // as invalid syntax, which surfaced as a 500. Rounding here accepts what a
+  // browser actually sends and stores what the column can hold.
+  duration_seconds: z
+    .number()
+    .min(0)
+    .max(600)
+    .transform((value) => Math.round(value))
+    .optional(),
   transcript: z.string().nullable().optional(),
   cassette_side: z.enum(['A', 'B']).default('A'),
   // Nullable, not merely optional: the recorder sends null explicitly when it

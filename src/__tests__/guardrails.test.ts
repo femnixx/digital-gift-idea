@@ -599,6 +599,45 @@ describe('Anonymous gift flow guardrails', () => {
       expect((await res.json()).voice_note?.title).toBe('Voice Note')
     }, 30000)
 
+    it('rounds a float duration, which is what a browser sends', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vnfloat-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      // audio.duration returns a float. duration_seconds is an INTEGER column, so
+      // the driver passed 12.345678 straight to an int4 and Postgres rejected it
+      // with 22P02, surfacing as a 500. The column cannot hold a fraction, so the
+      // value is rounded at the boundary instead.
+      const res = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Float', duration_seconds: 12.345678, waveform_data: null }),
+      })
+      log('voice note float duration', res.status)
+      expect(res.status).toBe(201)
+      expect((await res.json()).voice_note?.duration_seconds).toBe(12)
+    }, 30000)
+
+    it('still rejects a duration outside the range', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Voice', type: 'voice_note', slug: `vnrange-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const tooLong = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'x', duration_seconds: 601, waveform_data: null }),
+      })
+      log('voice note 601s', tooLong.status, '(expect 400)')
+      expect(tooLong.status).toBe(400)
+
+      const negative = await fetch(`${BASE}/api/entries/${slug}/voice-notes?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'x', duration_seconds: -5, waveform_data: null }),
+      })
+      expect(negative.status).toBe(400)
+    }, 30000)
+
     it('accepts a real waveform array when the recorder has one', async () => {
       const { slug, token } = await withEntryToken({
         title: 'Voice', type: 'voice_note', slug: `vn2-${Date.now().toString(36)}`, content: {}, is_published: false,

@@ -147,7 +147,9 @@ export function VoiceNoteRecorder({
           body: JSON.stringify({
             title: title || 'Voice Note',
             media_id: mediaId,
-            duration_seconds: duration || null,
+            // audio.duration is a float; the column is an INTEGER, so round before
+          // sending rather than letting the database reject it.
+          duration_seconds: duration ? Math.round(duration) : null,
             waveform_data: null,
             cassette_side: 'A',
           }),
