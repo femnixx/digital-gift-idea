@@ -3,6 +3,21 @@ import { unstable_noStore as noStore } from 'next/cache'
 import { getEntryBySlug } from '@/lib/neon/db'
 import { sql } from '@/lib/neon/auth'
 
+/**
+ * Postgres returns DECIMAL columns as strings ("-6.00"). Without this the
+ * creator's API returned a number while the recipient's returned a string for
+ * the same field, so a client reading both saw two different types.
+ */
+function normaliseCard(row: Record<string, any>) {
+  return {
+    ...row,
+    tilt_degrees:
+      row.tilt_degrees === null || row.tilt_degrees === undefined ? 0 : Number(row.tilt_degrees),
+    sort_order: Number(row.sort_order ?? 0),
+    stickers: Array.isArray(row.stickers) ? row.stickers : [],
+  }
+}
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -71,7 +86,7 @@ export async function GET(
           ...entry,
           media: publicMedia,
           bouquet_flowers: bouquetFlowers,
-          polaroid_cards: polaroidCards,
+          polaroid_cards: (polaroidCards as any[]).map(normaliseCard),
           scratch_cards: scratchCards,
           open_when_letters: unlockedLetters,
           coffee_dates: coffeeDates,

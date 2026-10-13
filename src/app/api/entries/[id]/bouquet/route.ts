@@ -112,13 +112,16 @@ export async function PUT(
 
     await sql.transaction(statements)
 
-    // touch the entry so its updated_at reflects the change
-    await sql`update entries set updated_at = now() where id = ${entry.id}`
-
+    // Re-read rather than reshape transaction()'s result: the same pattern
+    // returned an empty list on the polaroid and scratch routes even though the
+    // rows had been written, so the response is always taken from a fresh read.
     const saved = await sql`
       select id, flower_type, color, position_x, position_y, rotation, scale, sort_order
       from bouquet_flowers where entry_id = ${entry.id} order by sort_order asc
     `
+
+    // touch the entry so its updated_at reflects the change
+    await sql`update entries set updated_at = now() where id = ${entry.id}`
 
     return NextResponse.json({ flowers: saved })
   } catch (error) {

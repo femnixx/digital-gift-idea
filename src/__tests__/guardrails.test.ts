@@ -433,6 +433,147 @@ describe('Anonymous gift flow guardrails', () => {
     }, 30000)
   })
 
+  describe('Polaroid persistence', () => {
+    const card = (over: Record<string, unknown> = {}) => ({
+      image_url: 'gifts/placeholder/a.jpg',
+      caption: 'Us',
+      tilt_degrees: -6,
+      template: 'classic_white',
+      orientation: 'portrait',
+      font_family: 'serif',
+      font_size: '18px',
+      font_color: '#000000',
+      text_alignment: 'center',
+      stickers: ['heart', 'star'],
+      ...over,
+    })
+
+    it('saves a deck and returns the stored cards, not an empty list', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po1-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const put = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card(), card({ caption: 'Again', tilt_degrees: 8, template: 'vintage_sepia', orientation: 'landscape', stickers: [] })] }),
+      })
+      log('polaroid save', put.status)
+      expect(put.status).toBe(200)
+
+      const saved = await put.json()
+      // The response must list what was written. Returning an empty array while
+      // the rows landed is exactly the bug this guards against.
+      expect(saved.cards).toHaveLength(2)
+      expect(saved.cards.map((c: any) => c.caption).sort()).toEqual(['Again', 'Us'])
+      expect(saved.cards[0].stickers.length).toBeGreaterThan(0)
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`)
+      expect(get.status).toBe(200)
+      expect((await get.json()).cards).toHaveLength(2)
+    }, 40000)
+
+    it('persists the styling columns and the sticker array', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po2-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card()] }),
+      })
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`)
+      const saved = (await get.json()).cards[0]
+      expect(saved.tilt_degrees).toBe(-6)
+      expect(saved.template).toBe('classic_white')
+      expect(saved.orientation).toBe('portrait')
+      expect(saved.font_family).toBe('serif')
+      expect(saved.font_size).toBe('18px')
+      expect(saved.text_alignment).toBe('center')
+      expect(saved.stickers).toEqual(['heart', 'star'])
+    }, 40000)
+
+    it('replaces rather than appends', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po3-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const put = async (n: number) =>
+        fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+          ...FETCH_OPTS, method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cards: Array.from({ length: n }, () => card()) }),
+        })
+
+      await put(3)
+      const after = await put(1)
+      expect((await after.json()).cards).toHaveLength(1)
+    }, 40000)
+
+    it('refuses to read or write without the edit token', async () => {
+      const { slug } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po4-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      expect((await fetch(`${BASE}/api/entries/${slug}/polaroid-cards`)).status).toBe(404)
+      const write = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card()] }),
+      })
+      log('polaroid write no token', write.status, '(expect 404)')
+      expect(write.status).toBe(404)
+    }, 30000)
+
+    it('rejects an out-of-range font size', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po5-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const res = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card({ font_size: 'huge' })] }),
+      })
+      log('polaroid bad font size', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('rejects an unknown template and a non-hex colour', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po6-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+      const badTemplate = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card({ template: 'nope' })] }),
+      })
+      expect(badTemplate.status).toBe(400)
+
+      const badColor = await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card({ font_color: 'red' })] }),
+      })
+      expect(badColor.status).toBe(400)
+    }, 30000)
+
+    it('exposes the deck to the recipient through the public API', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Polaroids', type: 'polaroid', slug: `po7-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+      await fetch(`${BASE}/api/entries/${slug}/polaroid-cards?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: [card()] }),
+      })
+
+      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
+      const entry = (await pub.json()).entry
+      expect(entry.polaroid_cards).toHaveLength(1)
+      expect(entry.polaroid_cards[0].caption).toBe('Us')
+    }, 40000)
+  })
+
   describe('Scratch card persistence', () => {
     const payload = {
       cover_color: '#0284c7',

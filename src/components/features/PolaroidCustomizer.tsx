@@ -6,6 +6,7 @@ import Cropper from 'react-easy-crop'
 import { Area } from 'react-easy-crop'
 import { Heart, Type, Palette, Sticker, Eye, Edit3, X, Sparkles, Upload, Image, Shuffle, Trash2, Check, ChevronUp, ChevronDown, Plus } from 'lucide-react'
 import type { PolaroidCard as PolaroidCardType, Media } from '@/types'
+import { polaroidApi, uploadPolaroidImage, type PolaroidCardPayload } from '@/lib/api/polaroidApi'
 
 const PRESET_EMOJIS = [
   { emoji: '❤️', bg: '#fef2f2', name: 'Heart' },
@@ -67,13 +68,35 @@ const STICKERS = [
 interface PolaroidCustomizerProps {
   entryId: string
   card?: PolaroidCardType | null
+  /** Edit token, required for the card to reach the database. */
+  token?: string
   onSave: (card: PolaroidCardType) => void
   onCancel?: () => void
+}
+
+/** Maps a card, stored or freshly built, onto the API payload shape. */
+function toPayload(card: PolaroidCardType): PolaroidCardPayload {
+  return {
+    image_url: card.image_url,
+    caption: card.caption ?? null,
+    date_tag: card.date_tag ?? null,
+    back_note: card.back_note ?? null,
+    hidden_message: card.hidden_message ?? null,
+    tilt_degrees: card.tilt_degrees,
+    template: card.template,
+    orientation: card.orientation,
+    font_family: card.font_family,
+    font_size: card.font_size,
+    font_color: card.font_color,
+    text_alignment: card.text_alignment,
+    stickers: card.stickers,
+  }
 }
 
 export function PolaroidCustomizer({
   entryId,
   card,
+  token,
   onSave,
   onCancel,
 }: PolaroidCustomizerProps) {
@@ -103,6 +126,7 @@ export function PolaroidCustomizer({
 
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const getCroppedImg = useCallback(async (imageSrc: string, pixelCrop: Area): Promise<string> => {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -192,7 +216,28 @@ export function PolaroidCustomizer({
         created_at: card?.created_at || new Date().toISOString(),
       }
 
-      onSave(savedCard)
+      // Without a token there is no way to prove authorship, so this cannot be
+      // written. Say so rather than reporting a success that did not happen.
+      if (!token) {
+        setSaveError('Missing edit token, so this polaroid cannot be saved.')
+        return
+      }
+
+      // A cropped image is a data URL. Upload it so the row holds a reference
+      // rather than the whole photograph.
+      let imageUrl = savedCard.image_url
+      if (imageUrl.startsWith('data:')) {
+        imageUrl = await uploadPolaroidImage(entryId, token, imageUrl)
+      }
+
+      const existing = await polaroidApi.list(entryId, token)
+      const deck = card
+        ? existing.map((c: PolaroidCardType) => (c.id === savedCard.id ? toPayload({ ...savedCard, image_url: imageUrl }) : toPayload(c)))
+        : [...existing.map(toPayload), toPayload({ ...savedCard, image_url: imageUrl })]
+
+      await polaroidApi.replace(entryId, token, deck)
+      setSaveError('')
+      onSave({ ...savedCard, image_url: imageUrl })
     } finally {
       setIsSaving(false)
     }

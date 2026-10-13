@@ -162,6 +162,7 @@ export default function CreateEntryPage() {
           <PolaroidCustomizer
             entryId={slug}
             card={null}
+            token={token}
             onSave={() => setNotice('Polaroid saved')}
           />
         )

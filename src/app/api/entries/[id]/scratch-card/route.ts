@@ -89,19 +89,23 @@ export async function PUT(
     const { card } = validation.data
     const threshold = card.scratch_threshold ?? 0.6
 
-    // transaction() resolves to one result array per statement, in order: the
-    // delete's (empty) and then the insert's RETURNING row. Indexing [0] would
-    // read the delete and silently return nothing.
-    const results = (await sql.transaction([
+    await sql.transaction([
       sql`delete from scratch_cards where entry_id = ${entry.id}`,
       sql`
         insert into scratch_cards (entry_id, cover_color, cover_image_url, reveal_content, scratch_threshold)
         values (${entry.id}, ${card.cover_color}, ${card.cover_image_url ?? null}, ${JSON.stringify(card.reveal_content)}::jsonb, ${threshold})
-        returning *
       `,
-    ])) as unknown as Array<Array<Record<string, unknown>>>
+    ])
 
-    const saved = results[results.length - 1]?.[0] ?? null
+    // Re-read rather than reshape transaction()'s result, whose shape varies with
+    // statement count. Reading the wrong element once returned `{"card":[]}` for
+    // a card that had in fact been written.
+    const rows = await sql`
+      select id, entry_id, cover_color, cover_image_url, reveal_content, scratch_threshold, created_at
+      from scratch_cards where entry_id = ${entry.id} limit 1
+    `
+
+    const saved = rows[0] ?? null
 
     await sql`update entries set updated_at = now() where id = ${entry.id}`
 
