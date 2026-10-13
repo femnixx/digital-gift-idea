@@ -61,7 +61,7 @@ function clampPercent(value: number, min = 2, max = 98): number {
 function arrangeCircular(flowers: BouquetFlower[], rng: () => number): BouquetFlower[] {
   const cx = 50
   const cy = 40
-  const baseRadius = 30
+  const baseRadius = 38
   const goldenAngle = 137.508 * (Math.PI / 180)
 
   return flowers.map((f, i) => {
@@ -399,12 +399,12 @@ export function DigitalBouquet({
               {displayFlowers.map((flower, index) => {
                 const seed = flower.generation_seed || parseInt(flower.id.slice(-6), 36)
                 const stemRng = createRng(seed)
-                const stemHeight = 80 + Math.floor(stemRng() * 50)
+                const stemHeight = 10 + Math.floor(stemRng() * 18)
 
                 return (
                   <motion.div
                     key={flower.id}
-                    className="absolute flex flex-col items-center select-none"
+                    className="absolute flex flex-col-reverse items-center select-none"
                     style={{
                       left: `${flower.position_x}%`,
                       bottom: `${flower.position_y}%`,
