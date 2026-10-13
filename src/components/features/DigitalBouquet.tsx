@@ -20,6 +20,16 @@ function createRng(seed: number) {
   return mulberry32(seed)
 }
 
+/**
+ * Arrangement maths, in one coordinate space.
+ *
+ * Positions are percentages of the canvas: the render applies them directly as
+ * `left: ${x}%` and `bottom: ${100 - y}%`. Every function below therefore works
+ * in 0..100 and takes no width or height, which is what keeps this honest — the
+ * previous versions were handed `containerSize` in pixels and mixed the two, so
+ * Random produced values up to 388% (rendered off-canvas) and the Bouquet
+ * spiral collapsed onto a single point because its clamps were fed pixels.
+ */
 function arrangeInVase(flowers: BouquetFlower[], vaseWidthPercent: number, vaseCenterX: number, vaseTopY: number, rng: () => number): BouquetFlower[] {
   const count = flowers.length
   const radiusX = vaseWidthPercent * 0.8
@@ -32,42 +42,54 @@ function arrangeInVase(flowers: BouquetFlower[], vaseWidthPercent: number, vaseC
     const y = vaseTopY - Math.abs(Math.sin(angle)) * radiusY * r - rng() * 12
     return {
       ...f,
-      position_x: Math.max(5, Math.min(95, x)),
-      position_y: Math.max(5, Math.min(95, y)),
+      position_x: clampPercent(x),
+      position_y: clampPercent(y),
     }
   })
 }
 
-function arrangeCircular(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
-  const cx = width / 2
-  const cy = height * 0.38
-  const baseRadius = Math.min(width, height) * 0.28
+/** Keeps a percentage inside the canvas, with a little deliberate bleed. */
+function clampPercent(value: number, min = 2, max = 98): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+/**
+ * A hand-tied dome, using the golden angle so the heads pack without leaving
+ * gaps the way evenly-spaced rings do. The middle sits highest, which is what
+ * makes a bouquet read as round rather than as a flat grid.
+ */
+function arrangeCircular(flowers: BouquetFlower[], rng: () => number): BouquetFlower[] {
+  const cx = 50
+  const cy = 40
+  const baseRadius = 30
   const goldenAngle = 137.508 * (Math.PI / 180)
 
   return flowers.map((f, i) => {
     const angle = i * goldenAngle + (rng() - 0.5) * 0.4
-    const radius = baseRadius * (0.65 + rng() * 0.35)
+    const radius = baseRadius * (0.6 + rng() * 0.4)
     return {
       ...f,
-      position_x: Math.max(8, Math.min(92, cx + Math.cos(angle) * radius)),
-      position_y: Math.max(8, Math.min(92, cy + Math.sin(angle) * radius * 0.85)),
+      position_x: clampPercent(cx + Math.cos(angle) * radius),
+      position_y: clampPercent(cy + Math.sin(angle) * radius * 0.9),
     }
   })
 }
 
-function arrangeRandom(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
+/** Scattered, but kept inside the frame. */
+function arrangeRandom(flowers: BouquetFlower[], rng: () => number): BouquetFlower[] {
   const margin = 12
-  return flowers.map(f => ({
+  return flowers.map((f) => ({
     ...f,
-    position_x: margin + rng() * (width - margin * 2),
-    position_y: margin + rng() * (height - margin * 2),
+    position_x: margin + rng() * (100 - margin * 2),
+    position_y: margin + rng() * (100 - margin * 2),
   }))
 }
 
-function arrangeHeart(flowers: BouquetFlower[], width: number, height: number, rng: () => number): BouquetFlower[] {
-  const cx = width / 2
-  const cy = height * 0.36
-  const scale = Math.min(width, height) * 0.016
+/** The classic heart curve, scaled to percent so it fills the canvas. */
+function arrangeHeart(flowers: BouquetFlower[], rng: () => number): BouquetFlower[] {
+  const cx = 50
+  const cy = 58
+  const spread = 2.4
 
   return flowers.map((f, i) => {
     const t = (i / Math.max(flowers.length, 1)) * Math.PI * 2
@@ -75,8 +97,8 @@ function arrangeHeart(flowers: BouquetFlower[], width: number, height: number, r
     const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
     return {
       ...f,
-      position_x: Math.max(8, Math.min(92, cx + hx * scale + (rng() - 0.5) * 4)),
-      position_y: Math.max(8, Math.min(88, cy + hy * scale + (rng() - 0.5) * 4)),
+      position_x: clampPercent(cx + hx * spread + (rng() - 0.5) * 4),
+      position_y: clampPercent(cy + hy * spread + (rng() - 0.5) * 4),
     }
   })
 }
@@ -84,8 +106,6 @@ function arrangeHeart(flowers: BouquetFlower[], width: number, height: number, r
 function applyArrangement(
   flowers: BouquetFlower[],
   type: ArrangementType,
-  width: number,
-  height: number,
   rng: () => number
 ): BouquetFlower[] {
   const vaseCenterX = 50
@@ -96,13 +116,12 @@ function applyArrangement(
     case 'vase':
       return arrangeInVase(flowers, vaseWidth, vaseCenterX, vaseTopY, rng)
     case 'circular':
-      return arrangeCircular(flowers, width, height, rng)
-    case 'random':
-      return arrangeRandom(flowers, width, height, rng)
+      return arrangeCircular(flowers, rng)
     case 'heart':
-      return arrangeHeart(flowers, width, height, rng)
+      return arrangeHeart(flowers, rng)
+    case 'random':
     default:
-      return arrangeRandom(flowers, width, height, rng)
+      return arrangeRandom(flowers, rng)
   }
 }
 
@@ -262,7 +281,7 @@ export function DigitalBouquet({
     const newSeed = Date.now()
     const newFlowers = generateBouquet(flowerCount, newSeed, entryId || '')
     const rng = createRng(newSeed)
-    const arranged = applyArrangement(newFlowers, arrangement, containerSize.width, containerSize.height, rng)
+    const arranged = applyArrangement(newFlowers, arrangement, rng)
     setLocalFlowers(arranged)
     setGenerationSeed(newSeed)
     onReplaceFlowers?.(arranged)
@@ -276,7 +295,7 @@ export function DigitalBouquet({
   const handleArrangementChange = (type: ArrangementType) => {
     setArrangement(type)
     const rng = createRng(generationSeed)
-    const arranged = applyArrangement(localFlowers, type, containerSize.width, containerSize.height, rng)
+    const arranged = applyArrangement(localFlowers, type, rng)
     setLocalFlowers(arranged)
   }
 

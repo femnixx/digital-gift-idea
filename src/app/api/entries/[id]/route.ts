@@ -3,6 +3,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 import { z } from 'zod'
 import { resolveEntryByIdOrSlug, updateEntry, deleteEntry, slugExists } from '@/lib/repositories/entryRepository'
 import { authorisedByEditToken } from '@/lib/api/editToken'
+import { validateTtl } from '@/lib/api/ttl'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -11,11 +12,22 @@ const updateEntrySchema = z.object({
   title: z.string().min(1).max(200).optional(),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
   content: z.record(z.unknown()).optional(),
-  publish_at: z.string().datetime().optional(),
-  unlock_at: z.string().datetime().optional().nullable(),
+  publish_at: z.string().datetime({ offset: true }).optional(),
+  unlock_at: z.string().datetime({ offset: true }).optional().nullable(),
   unlock_condition: z.enum(['date', 'manual', 'location', 'mood']).optional().nullable(),
-  // Set to null to make the gift permanent again.
-  expires_at: z.string().datetime().optional().nullable(),
+  // Set to null to make the gift permanent again. An out-of-range or past value
+  // is rejected here too, so the cap holds when the lifetime is changed later.
+  expires_at: z
+    .string()
+    .datetime()
+    .optional()
+    .nullable()
+    .superRefine((value, ctx) => {
+      const result = validateTtl(value)
+      if (!result.ok) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: result.error })
+      }
+    }),
   is_published: z.boolean().optional(),
 })
 

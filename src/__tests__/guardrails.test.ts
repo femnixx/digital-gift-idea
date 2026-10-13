@@ -433,6 +433,131 @@ describe('Anonymous gift flow guardrails', () => {
     }, 30000)
   })
 
+  describe('Gift lifetime', () => {
+    it('defaults to permanent when no expiry is given', async () => {
+      const res = await createGift({ title: 't', type: 'letter', slug: `ttl1-${Date.now().toString(36)}`, content: {}, is_published: false })
+      expect(res.status).toBe(201)
+      expect(res.data.entry.expires_at).toBeNull()
+    })
+
+    it('accepts an expiry inside the 30-day cap', async () => {
+      const slug = `ttl2-${Date.now().toString(36)}`
+      const res = await createGift({
+        title: 't', type: 'letter', slug, content: {}, is_published: true,
+        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+      })
+      expect(res.status).toBe(201)
+      expect(res.data.entry.expires_at).toBeTruthy()
+    }, 20000)
+
+    it('rejects an expiry beyond the 30-day cap', async () => {
+      const slug = `ttl3-${Date.now().toString(36)}`
+      const res = await createGift({
+        title: 't', type: 'letter', slug, content: {}, is_published: false,
+        expires_at: new Date(Date.now() + 31 * 86400000).toISOString(),
+      })
+      log('create 31-day ttl', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 20000)
+
+    it('rejects an expiry in the past', async () => {
+      const slug = `ttl4-${Date.now().toString(36)}`
+      const res = await createGift({
+        title: 't', type: 'letter', slug, content: {}, is_published: false,
+        expires_at: new Date(Date.now() - 86400000).toISOString(),
+      })
+      log('create past ttl', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 20000)
+
+    it('rejects a malformed expiry', async () => {
+      const slug = `ttl5-${Date.now().toString(36)}`
+      const res = await createGift({
+        title: 't', type: 'letter', slug, content: {}, is_published: false,
+        expires_at: 'someday',
+      })
+      log('create garbage ttl', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 20000)
+
+    it('lets the owner set and then clear a lifetime', async () => {
+      const slug = `ttl6-${Date.now().toString(36)}`
+      const created = await createGift({ title: 't', type: 'letter', slug, content: {}, is_published: false })
+      expect(created.token).toBeTruthy()
+
+      const set = await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_at: new Date(Date.now() + 3 * 86400000).toISOString() }),
+      })
+      log('set ttl', set.status)
+      expect(set.status).toBe(200)
+
+      const clear = await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_at: null }),
+      })
+      log('clear ttl', clear.status)
+      expect(clear.status).toBe(200)
+      expect((await clear.json()).entry?.expires_at ?? null).toBeNull()
+
+      await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, { ...FETCH_OPTS, method: 'DELETE' })
+    }, 40000)
+
+    it('still refuses an out-of-range lifetime when set later', async () => {
+      const slug = `ttl7-${Date.now().toString(36)}`
+      const created = await createGift({ title: 't', type: 'letter', slug, content: {}, is_published: false })
+      const res = await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_at: new Date(Date.now() + 90 * 86400000).toISOString() }),
+      })
+      log('set 90-day ttl', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+      await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, { ...FETCH_OPTS, method: 'DELETE' })
+    }, 30000)
+  })
+
+  describe('Share link stays read-only', () => {
+    it('the public page exposes no edit affordance', async () => {
+      const created = await createGift({
+        title: 'Read only', type: 'letter', slug: `ro1-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+      const page = await fetch(`${BASE}/daily/${created.data.entry.slug}`, FETCH_OPTS)
+      const html = await page.text()
+      // The opening ceremony is expected; an edit control is not.
+      expect(page.status).toBe(200)
+      expect(html).not.toContain('Start Editing')
+      expect(html).not.toContain('Auto-arrange')
+    }, 30000)
+
+    it('no write endpoint is reachable without the edit token', async () => {
+      const created = await createGift({
+        title: 'Read only', type: 'letter', slug: `ro2-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+      const slug = created.data.entry.slug
+
+      // A recipient knows the slug from the shared link, and that must not be
+      // enough to change anything.
+      const attempts = [
+        fetch(`${BASE}/api/entries/${slug}`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Hijacked' }) }),
+        fetch(`${BASE}/api/entries/${slug}`, { ...FETCH_OPTS, method: 'DELETE' }),
+        fetch(`${BASE}/api/entries/${slug}/bouquet`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flowers: [] }) }),
+      ]
+      for (const attempt of attempts) {
+        const res = await attempt
+        expect(res.status).toBe(404)
+      }
+
+      // And the creator, holding the token, still can.
+      const owner = await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Renamed' }) })
+      expect(owner.status).toBe(200)
+
+      await fetch(`${BASE}/api/entries/${slug}?token=${created.token}`, { ...FETCH_OPTS, method: 'DELETE' })
+    }, 40000)
+  })
+
   describe('Admin isolation', () => {
     it('an anonymous visitor cannot reach admin metrics, health or entry listing', async () => {
       for (const path of ['/api/admin/stats', '/api/admin/health', '/api/entries']) {

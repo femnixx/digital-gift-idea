@@ -3,6 +3,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 import { z } from 'zod'
 import { listEntries, countEntries, createEntry, slugExists } from '@/lib/repositories/entryRepository'
 import { requireAdmin } from '@/lib/api/authGuard'
+import { validateTtl } from '@/lib/api/ttl'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -12,12 +13,15 @@ const createEntrySchema = z.object({
   type: z.enum(['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
   content: z.record(z.unknown()).default({}),
-  publish_at: z.string().datetime().optional(),
-  unlock_at: z.string().datetime().optional().nullable(),
+  publish_at: z.string().datetime({ offset: true }).optional(),
+  unlock_at: z.string().datetime({ offset: true }).optional().nullable(),
   unlock_condition: z.enum(['date', 'manual', 'location', 'mood']).optional().nullable(),
   is_published: z.boolean().default(false),
   // Optional lifetime. Omitted or null means the gift is permanent.
-  expires_at: z.string().datetime().optional().nullable(),
+  expires_at: z.string().datetime({ offset: true }).optional().nullable().superRefine((value, ctx) => {
+    const result = validateTtl(value)
+    if (!result.ok) ctx.addIssue({ code: z.ZodIssueCode.custom, message: result.error })
+  }),
 })
 
 // Valid `type` values for list filtering. The column is a Postgres enum, so an

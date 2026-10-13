@@ -11,6 +11,8 @@ import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomiz
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder'
 import dynamic from 'next/dynamic'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
+import { TtlPicker } from '@/components/share/TtlPicker'
+import { MAX_TTL_DAYS, maxExpiryIso } from '@/lib/api/ttl'
 
 /**
  * The coffee date editor renders WebGL, which has no server equivalent, so it
@@ -44,6 +46,7 @@ export default function CreateEntryPage() {
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [notice, setNotice] = useState('')
+  const [expiresAt, setExpiresAt] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -103,14 +106,14 @@ export default function CreateEntryPage() {
       const res = await fetch(entryUrl(), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_published: true }),
+        body: JSON.stringify({ is_published: true, expires_at: expiresAt }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error || 'Could not publish')
       }
-      setEntry((prev) => (prev ? { ...prev, is_published: true } : prev))
-      setNotice('Published. Your link is live.')
+      setEntry((prev) => (prev ? { ...prev, is_published: true, expires_at: expiresAt } : prev))
+      setNotice(expiresAt ? 'Published. It will expire automatically.' : 'Published. Your link is live.')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -199,6 +202,15 @@ export default function CreateEntryPage() {
         {error ? <p role="alert" className="text-sm text-red-600">{error}</p> : null}
         {notice ? <p className="text-sm text-green-600">{notice}</p> : null}
         {saving ? <p className="text-sm muted-foreground">Saving...</p> : null}
+
+        {!loading ? (
+          <TtlPicker
+            value={expiresAt}
+            onChange={setExpiresAt}
+            maxDays={MAX_TTL_DAYS}
+            max={maxExpiryIso()}
+          />
+        ) : null}
 
         {!loading && entry?.is_published ? <SharePanel slug={slug} token={token} /> : null}
 
