@@ -256,25 +256,49 @@ export function DigitalBouquet({
     onFlowerClick?.(flower)
   }
 
-  const handleDrag = (flower: BouquetFlower, e: any) => {
+  /**
+   * Position dragging, driven by pointer events.
+   *
+   * The previous version used HTML5 draggable, which fires no move events for a
+   * mouse until the browser picks up its own drag ghost, and measured against
+   * the vase box rather than the flower field, so coordinates were wrong even
+   * when it did fire. Pointer events cover mouse and touch alike, and the field
+   * rect is the space the percentages are actually relative to.
+   */
+  const fieldRef = useRef<HTMLDivElement>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+
+  const handlePointerDown = (flower: BouquetFlower, e: React.PointerEvent) => {
     if (!isEditing) return
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
+    e.preventDefault()
+    ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+    setDraggingId(flower.id)
+  }
+
+  const handlePointerMove = (flower: BouquetFlower, e: React.PointerEvent) => {
+    if (!isEditing || draggingId !== flower.id) return
+    const rect = fieldRef.current?.getBoundingClientRect()
+    if (!rect || rect.width === 0 || rect.height === 0) return
 
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
 
+    // Measured from the field's bottom, since positions are a height above the
+    // vase mouth, not a distance from the top of the canvas.
+    const fromBottom = 100 - y
+
     onUpdateFlower?.(flower.id, {
-      position_x: Math.max(10, Math.min(90, x)),
-      position_y: Math.max(10, Math.min(90, y)),
+      position_x: Math.max(2, Math.min(98, x)),
+      position_y: Math.max(2, Math.min(98, fromBottom)),
     })
   }
 
-  const handleDragEnd = (flower: BouquetFlower) => {
-    if (!isEditing) return
-    onUpdateFlower?.(flower.id, {
-      rotation: Math.random() * 10 - 5,
-    })
+  const handlePointerUp = (flower: BouquetFlower) => {
+    if (draggingId !== flower.id) return
+    setDraggingId(null)
+    // A small random tilt on release keeps a hand-placed bouquet from looking
+    // stamped out.
+    onUpdateFlower?.(flower.id, { rotation: Math.random() * 10 - 5 })
   }
 
   const handleRegenerate = () => {
@@ -406,13 +430,14 @@ export function DigitalBouquet({
             <ellipse cx="80" cy="140" rx="28" ry="8" fill="none" stroke="currentColor" strokeWidth="2.5" />
           </svg>
 
-          {/* Flower area - above vase opening */}
-          <div className="absolute inset-x-0" style={{ bottom: '18%', top: 0 }}>
+          {/* Flower area - above vase opening. The drag measures against this
+              box, because positions are percentages of it. */}
+          <div ref={fieldRef} className="absolute inset-x-0" style={{ bottom: '18%', top: 0 }}>
             <AnimatePresence mode="popLayout">
               {displayFlowers.map((flower, index) => {
                 const seed = flower.generation_seed || parseInt(flower.id.slice(-6), 36)
                 const stemRng = createRng(seed)
-                const stemHeight = 10 + Math.floor(stemRng() * 18)
+                const stemHeight = 70 + Math.floor(stemRng() * 70)
 
                 return (
                   <motion.div
@@ -434,10 +459,10 @@ export function DigitalBouquet({
                       stiffness: 120,
                       damping: 15,
                     }}
-                    onClick={(e) => handleFlowerClick(flower, e)}
-                    draggable={isEditing}
-                    onDrag={(e) => handleDrag(flower, e)}
-                    onDragEnd={() => handleDragEnd(flower)}
+                    onClick={(e) => { if (!draggingId) handleFlowerClick(flower, e) }}
+                    onPointerDown={(e) => handlePointerDown(flower, e)}
+                    onPointerMove={(e) => handlePointerMove(flower, e)}
+                    onPointerUp={() => handlePointerUp(flower)}
                     whileHover={isEditing ? {} : { scale: (flower.scale || 1) * 1.08 }}
                     whileTap={isEditing ? {} : { scale: (flower.scale || 1) * 0.95 }}
                   >
