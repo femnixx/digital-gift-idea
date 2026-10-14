@@ -28,12 +28,35 @@ const flowerSchema = z.object({
   rotation: z.number().min(-360).max(360),
   scale: z.number().min(0.1).max(5),
   note: z.string().max(500).nullable().optional(),
-  generation_seed: z.number().int().min(0).max(2147483647).optional(),
+  // Nullable: the column allows null, and a flower added through the UI has no
+  // seed, so it round-trips back as null and must be accepted as such.
+  generation_seed: z.number().int().min(0).max(2147483647).nullable().optional(),
 })
 
 const replaceSchema = z.object({
   flowers: z.array(flowerSchema).max(200),
 })
+
+/**
+ * Postgres returns DECIMAL columns as strings ("58.00"). The route accepts
+ * numbers on save, so returning the raw strings made a load-then-save round
+ * trip fail validation: the editor loaded what it had stored, handed it
+ * straight back, and every position was rejected with a 400.
+ */
+function normaliseFlower(row: Record<string, any>) {
+  const num = (v: unknown, fallback = 0) => {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : fallback
+  }
+  return {
+    ...row,
+    position_x: num(row.position_x),
+    position_y: num(row.position_y),
+    rotation: num(row.rotation),
+    scale: num(row.scale),
+    sort_order: num(row.sort_order),
+  }
+}
 
 /**
  * Bouquet persistence.
@@ -65,7 +88,9 @@ export async function GET(
       order by sort_order asc, created_at asc
     `
 
-    return NextResponse.json({ flowers })
+    // Normalised, so a load-then-save round trip does not fail on a string where
+    // the schema wants a number.
+    return NextResponse.json({ flowers: flowers.map(normaliseFlower) })
   } catch (error) {
     console.error('Error fetching bouquet flowers:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

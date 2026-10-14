@@ -522,6 +522,49 @@ describe('Anonymous gift flow guardrails', () => {
       expect(saved.stickers).toEqual(['heart', 'star'])
     }, 40000)
 
+    it('round-trips: a saved bouquet can be loaded and saved again unchanged', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Bouquet', type: 'bouquet', slug: `bqrt-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      // No generation_seed, exactly as the UI adds a flower. This was the last
+      // piece of the round-trip failure: it stored null and the schema wanted a
+      // number.
+      const flowers = [
+        { flower_type: 'rose', color: '#FF69B4', position_x: 58.5, position_y: 38.25, rotation: -5.5, scale: 1.25 },
+        { flower_type: 'sunflower', color: '#f59e0b', position_x: 40, position_y: 23, rotation: 0, scale: 1.1 },
+      ]
+
+      const put = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flowers }),
+      })
+      expect(put.status).toBe(200)
+
+      // Take exactly what the API handed back and send it straight back. The
+      // editor does this on every save, and it used to fail with 400 because
+      // DECIMAL columns arrived as strings and generation_seed arrived as null.
+      const loaded = await (await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)).json()
+
+      for (const [field, min, max] of [['position_x', 0, 100], ['position_y', 0, 100], ['rotation', -45, 45], ['scale', 0.1, 5]] as const) {
+        for (const flower of loaded.flowers) {
+          expect(typeof flower[field], `${field} must be a number, not a string`).toBe('number')
+          expect(Number.isFinite(flower[field])).toBe(true)
+        }
+        void min; void max
+      }
+
+      const resave = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loaded),
+      })
+      log('bouquet round-trip re-save', resave.status, '(expect 200)')
+      expect(resave.status).toBe(200)
+      expect((await resave.json()).flowers).toHaveLength(2)
+    }, 40000)
+
     it('replaces rather than appends', async () => {
       const { slug, token } = await withEntryToken({
         title: 'Polaroids', type: 'polaroid', slug: `po3-${Date.now().toString(36)}`, content: {}, is_published: false,

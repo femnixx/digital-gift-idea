@@ -23,14 +23,27 @@ function url(entryId: string, token: string): string {
   return `/api/entries/${encodeURIComponent(entryId)}/bouquet?token=${encodeURIComponent(token)}`
 }
 
+/**
+ * Reads a failure into something a person can act on.
+ *
+ * The API returns a Zod issue object as `error` on a validation failure, not a
+ * string, so checking only for a string fell through to the generic fallback
+ * and a 400 became "Could not save bouquet" with no reason attached.
+ */
 async function readError(res: Response, fallback: string): Promise<string> {
   try {
     const body = await res.json()
     if (typeof body?.error === 'string') return body.error
+    if (body?.error && typeof body.error === 'object') {
+      const fields = body.error.fieldErrors || {}
+      const messages = Object.entries(fields)
+        .flatMap(([field, issues]) => (issues as string[]).map((issue) => `${field}: ${issue}`))
+      if (messages.length > 0) return messages.join(', ')
+    }
   } catch {
     // Non-JSON error body; fall through to the generic message.
   }
-  return fallback
+  return `${fallback} (${res.status})`
 }
 
 export const bouquetApi = {
