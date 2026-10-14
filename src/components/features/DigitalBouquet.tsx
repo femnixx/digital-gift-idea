@@ -274,7 +274,7 @@ export function DigitalBouquet({
   const handlePointerDown = (flower: BouquetFlower, e: React.PointerEvent) => {
     if (!isEditing) return
     e.preventDefault()
-    ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+    ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
     draggingIdRef.current = flower.id
   }
 

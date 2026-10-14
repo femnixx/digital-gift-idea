@@ -61,20 +61,24 @@ export function BouquetEditor({
   }, [entryId, token])
 
   const handleAddFlower = () => {
+    // Was a fixed 50,50, so every flower landed on the same point and ten of them
+    // rendered as one. Now each one deviates from the pot's centre, alternating
+    // side to side with Math.sin and growing slowly in amplitude, so a partially
+    // built bouquet stays balanced around the pot instead of drifting.
+    const count = flowers.length
+    const deviation = Math.sin(count * 1.7) * (6 + Math.min(count, 8))
+
     const newFlower: BouquetFlower = {
       id: `flower-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       entry_id: entryId,
       flower_type: selectedType,
       color: selectedColor,
       note: null,
-      // Was a fixed 50,50, so every flower landed on the same point and ten of
-      // them rendered as one. Place each by the golden angle instead, so the
-      // bouquet fans out as it is built rather than stacking in the centre.
-      position_x: Math.max(8, Math.min(92, 50 + Math.cos(flowers.length * 2.399963) * (8 + (flowers.length % 5) * 6))),
-      position_y: Math.max(8, Math.min(92, 38 + Math.sin(flowers.length * 2.399963) * 30)),
+      position_x: Math.max(20, Math.min(80, 50 + deviation)),
+      position_y: Math.max(10, Math.min(85, 40 + Math.cos(count * 1.7) * 26)),
       rotation: Math.random() * 20 - 10,
       scale: 0.8 + Math.random() * 0.4,
-      sort_order: flowers.length,
+      sort_order: count,
       created_at: new Date().toISOString(),
       generation_seed: Math.floor(Math.random() * 1000000),
     }
