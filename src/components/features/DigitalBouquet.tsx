@@ -266,17 +266,20 @@ export function DigitalBouquet({
    * rect is the space the percentages are actually relative to.
    */
   const fieldRef = useRef<HTMLDivElement>(null)
-  const [draggingId, setDraggingId] = useState<string | null>(null)
+  /** Id of the flower being dragged, or null. A ref so pointermove reads it live. */
+  const draggingIdRef = useRef<string | null>(null)
+  /** Id of the flower to highlight, for hover and selection. */
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   const handlePointerDown = (flower: BouquetFlower, e: React.PointerEvent) => {
     if (!isEditing) return
     e.preventDefault()
     ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
-    setDraggingId(flower.id)
+    draggingIdRef.current = flower.id
   }
 
   const handlePointerMove = (flower: BouquetFlower, e: React.PointerEvent) => {
-    if (!isEditing || draggingId !== flower.id) return
+    if (!isEditing || draggingIdRef.current !== flower.id) return
     const rect = fieldRef.current?.getBoundingClientRect()
     if (!rect || rect.width === 0 || rect.height === 0) return
 
@@ -294,8 +297,8 @@ export function DigitalBouquet({
   }
 
   const handlePointerUp = (flower: BouquetFlower) => {
-    if (draggingId !== flower.id) return
-    setDraggingId(null)
+    if (draggingIdRef.current !== flower.id) return
+    draggingIdRef.current = null
     // A small random tilt on release keeps a hand-placed bouquet from looking
     // stamped out.
     onUpdateFlower?.(flower.id, { rotation: Math.random() * 10 - 5 })
@@ -459,12 +462,14 @@ export function DigitalBouquet({
                       stiffness: 120,
                       damping: 15,
                     }}
-                    onClick={(e) => { if (!draggingId) handleFlowerClick(flower, e) }}
+                    onClick={(e) => { if (!draggingIdRef.current) handleFlowerClick(flower, e) }}
+                    onHoverStart={() => setActiveId(flower.id)}
+                    onHoverEnd={() => setActiveId((prev) => (prev === flower.id ? null : prev))}
                     onPointerDown={(e) => handlePointerDown(flower, e)}
                     onPointerMove={(e) => handlePointerMove(flower, e)}
                     onPointerUp={() => handlePointerUp(flower)}
-                    whileHover={isEditing ? {} : { scale: (flower.scale || 1) * 1.08 }}
-                    whileTap={isEditing ? {} : { scale: (flower.scale || 1) * 0.95 }}
+                    whileHover={{ scale: (flower.scale || 1) * 1.25 }}
+                    whileTap={{ scale: (flower.scale || 1) * 1.15 }}
                   >
                     <motion.div
                       className="w-1 rounded-t origin-bottom"
@@ -490,7 +495,9 @@ export function DigitalBouquet({
                       }}
                     >
                       <span
-                        className="leading-none select-none"
+                        className={`leading-none select-none ${
+                          activeId === flower.id ? 'rounded-full ring-2 ring-brand ring-offset-2 ring-offset-transparent' : ''
+                        }`}
                         style={{
                           fontSize: `${flower.scale * (isMobile ? 44 : 64)}px`,
                           filter: `hue-rotate(${(seed % 40) - 20}deg) drop-shadow(0 2px 3px rgba(0,0,0,0.15))`,
