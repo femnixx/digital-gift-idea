@@ -27,7 +27,9 @@ import type { Entry, EntryType } from '@/types'
 
 const ENTRY_TYPES: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { type: 'letter', label: 'Love Letter', icon: MessageSquare },
+  { type: 'memory', label: 'Memory Lane', icon: Camera },
   { type: 'bouquet', label: 'Digital Bouquet', icon: Flower2 },
+  { type: 'open_when', label: 'Open When', icon: Heart },
   { type: 'coffee_date', label: 'Coffee Date', icon: Coffee },
   { type: 'voice_note', label: 'Voice Note', icon: Music },
   { type: 'polaroid', label: 'Polaroid', icon: Camera },
@@ -105,7 +107,9 @@ export default function NewEntryPage() {
 
   const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     letter: MessageSquare,
+    memory: Camera,
     bouquet: Flower2,
+    open_when: Heart,
     coffee_date: Coffee,
     voice_note: Music,
     polaroid: Camera,

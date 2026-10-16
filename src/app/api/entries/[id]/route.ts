@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { resolveEntryByIdOrSlug, updateEntry, deleteEntry, slugExists } from '@/lib/repositories/entryRepository'
 import { authorisedByEditToken } from '@/lib/api/editToken'
 import { validateTtl } from '@/lib/api/ttl'
+import { getUserIdFromRequest } from '@/lib/api/authGuard'
+import { ADMIN_USER_ID } from '@/lib/constants'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -109,7 +111,11 @@ export async function DELETE(
     const { id } = await params
     const entry = await resolveEntryByIdOrSlug(id)
 
-    if (!entry || !authorisedByEditToken(entry, readToken(request))) {
+    const token = new URL(request.url).searchParams.get('token')
+    const userId = await getUserIdFromRequest(request)
+    const isAdmin = userId === ADMIN_USER_ID
+
+    if (!entry || (!authorisedByEditToken(entry, token) && !isAdmin)) {
       return NextResponse.json(NOT_FOUND, { status: 404 })
     }
 
