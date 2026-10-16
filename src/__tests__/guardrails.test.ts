@@ -237,11 +237,12 @@ describe('Anonymous gift flow guardrails', () => {
         'Edit Letter', 'Edit Polaroids', 'Edit Scratch Cards',
         'Edit Open When Letters', 'Edit Coffee Date',
         'Add Scratch Card', 'Add Your First Scratch Card', 'Auto-arrange', 'Regenerate',
-        'Add Memory', 'Add Your First Memory', 'Edit Memory',
+        'Add Bucket List Item', 'Add Your First Goal',
+        'Edit Goal',
       ]
 
       // Every service the public view can render.
-      for (const type of ['letter', 'memory', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']) {
+      for (const type of ['letter', 'bucket_list', 'scrapbook', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']) {
         const slug = `ro3-${type.replace('_', '-')}-${Date.now().toString(36)}`
         const created = await createGift({
           title: 'Read only', type, slug, content: { message: 'hi' }, is_published: true,
@@ -261,7 +262,7 @@ describe('Anonymous gift flow guardrails', () => {
 
   describe('Opening ceremony', () => {
     it('plays for every service type', async () => {
-      const types = ['letter', 'memory', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
+      const types = ['letter', 'bucket_list', 'scrapbook', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
       for (const t of types) {
         const slug = `cov-${t.replace('_', '-')}-${Date.now().toString(36)}`
         const created = await createGift({ title: `${t}`, type: t, slug, content: {}, is_published: true })
@@ -851,7 +852,7 @@ describe('Anonymous gift flow guardrails', () => {
       const attempts = [
         fetch(`${BASE}/api/entries/${slug}`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Hijacked' }) }),
         fetch(`${BASE}/api/entries/${slug}`, { ...FETCH_OPTS, method: 'DELETE' }),
-        fetch(`${BASE}/api/entries/${slug}/bouquet`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flowers: [] }) }),
+        fetch(`${BASE}/api/entries/${slug}/scrapbook`, { ...FETCH_OPTS, method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pages: [] }) }),
       ]
       for (const attempt of attempts) {
         const res = await attempt
@@ -866,155 +867,155 @@ describe('Anonymous gift flow guardrails', () => {
     }, 40000)
   })
 
-  describe('Memory Lane persistence', () => {
-    const memoryPayload = {
-      title: 'First Date',
-      description: 'We met at the bookstore',
-      memory_date: '2024-03-15',
-      location: 'Downtown Books',
-      tags: ['first', 'special'],
-      is_milestone: true,
+  describe('Bucket List persistence', () => {
+    const bucketListPayload = {
+      title: 'Visit Tokyo',
+      description: 'See the cherry blossoms in spring',
+      dream_date: '2024-03-15',
+      location: 'Tokyo, Japan',
+      tags: ['travel', 'dream'],
+      is_achieved: false,
     }
 
-    it('saves memories and reads them back', async () => {
+    it('saves items and reads them back', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml1-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl1-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      const post = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      const post = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memoryPayload),
+        body: JSON.stringify(bucketListPayload),
       })
-      log('memory save', post.status)
+      log('item save', post.status)
       expect(post.status).toBe(201)
-      expect((await post.json()).memory?.title).toBe('First Date')
+      expect((await post.json()).item?.title).toBe('Visit Tokyo')
 
-      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
+      const get = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`)
       const saved = await get.json()
-      log('memory load', get.status)
+      log('item load', get.status)
       expect(get.status).toBe(200)
-      expect(saved.memories).toHaveLength(1)
-      expect(saved.memories[0].title).toBe('First Date')
-      expect(saved.memories[0].is_milestone).toBe(true)
+      expect(saved.items).toHaveLength(1)
+      expect(saved.items[0].title).toBe('Visit Tokyo')
+      expect(saved.items[0].is_achieved).toBe(false)
     }, 40000)
 
     it('replaces rather than appends via PUT', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml2-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl2-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memoryPayload),
+        body: JSON.stringify(bucketListPayload),
       })
 
-      const put = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      const put = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memories: [{ ...memoryPayload, title: 'Changed' }] }),
+        body: JSON.stringify({ items: [{ ...bucketListPayload, title: 'Changed' }] }),
       })
-      log('memory replace', put.status)
+      log('item replace', put.status)
       expect(put.status).toBe(200)
       const putData = await put.json()
-      expect(putData.memories).toHaveLength(1)
-      expect(putData.memories[0].title).toBe('Changed')
+      expect(putData.items).toHaveLength(1)
+      expect(putData.items[0].title).toBe('Changed')
     }, 40000)
 
     it('refuses to read or write without the edit token', async () => {
       const { slug } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml3-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl3-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      const read = await fetch(`${BASE}/api/entries/${slug}/memories`, FETCH_OPTS)
-      log('memory read no token', read.status, '(expect 404)')
+      const read = await fetch(`${BASE}/api/entries/${slug}/bucket-list`, FETCH_OPTS)
+      log('item read no token', read.status, '(expect 404)')
       expect(read.status).toBe(404)
 
-      const write = await fetch(`${BASE}/api/entries/${slug}/memories`, {
+      const write = await fetch(`${BASE}/api/entries/${slug}/bucket-list`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memoryPayload),
+        body: JSON.stringify(bucketListPayload),
       })
-      log('memory write no token', write.status, '(expect 404)')
+      log('item write no token', write.status, '(expect 404)')
       expect(write.status).toBe(404)
     }, 30000)
 
     it('rejects an invalid date', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml4-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl4-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      const res = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      const res = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...memoryPayload, memory_date: 'not-a-date' }),
+        body: JSON.stringify({ ...bucketListPayload, dream_date: 'not-a-date' }),
       })
-      log('memory bad date', res.status, '(expect 400)')
+      log('item bad date', res.status, '(expect 400)')
       expect(res.status).toBe(400)
     }, 30000)
 
-    it('deletes a memory by id', async () => {
+    it('deletes an item by id', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml5-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl5-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      const created = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      const created = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memoryPayload),
+        body: JSON.stringify(bucketListPayload),
       })
-      const memoryId = (await created.json()).memory.id
+      const itemId = (await created.json()).item.id
 
-      const del = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}&memory_id=${memoryId}`, {
+      const del = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}&item_id=${itemId}`, {
         ...FETCH_OPTS, method: 'DELETE',
       })
-      log('memory delete', del.status)
+      log('item delete', del.status)
       expect(del.status).toBe(200)
 
-      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
-      expect((await get.json()).memories).toHaveLength(0)
+      const get = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`)
+      expect((await get.json()).items).toHaveLength(0)
     }, 40000)
 
-    it('exposes memories to the recipient through the public API', async () => {
+    it('exposes items to the recipient through the public API', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml6-${Date.now().toString(36)}`, content: {}, is_published: true,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl6-${Date.now().toString(36)}`, content: {}, is_published: true,
       })
 
-      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memoryPayload),
+        body: JSON.stringify(bucketListPayload),
       })
 
       const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
       const entry = (await pub.json()).entry
       expect(pub.status).toBe(200)
-      expect(entry.memories).toHaveLength(1)
-      expect(entry.memories[0].title).toBe('First Date')
+      expect(entry.bucket_list).toHaveLength(1)
+      expect(entry.bucket_list[0].title).toBe('Visit Tokyo')
     }, 40000)
 
-    it('sorts memories chronologically on load', async () => {
+    it('sorts items chronologically on load', async () => {
       const { slug, token } = await withEntryToken({
-        title: 'Memories', type: 'memory', slug: `ml7-${Date.now().toString(36)}`, content: {}, is_published: false,
+        title: 'Bucket List', type: 'bucket_list', slug: `bl7-${Date.now().toString(36)}`, content: {}, is_published: false,
       })
 
-      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Later', memory_date: '2024-06-01', is_milestone: false }),
+        body: JSON.stringify({ title: 'Later', dream_date: '2024-06-01', is_achieved: false }),
       })
-      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+      await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`, {
         ...FETCH_OPTS, method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Earlier', memory_date: '2024-01-15', is_milestone: false }),
+        body: JSON.stringify({ title: 'Earlier', dream_date: '2024-01-15', is_achieved: false }),
       })
 
-      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
+      const get = await fetch(`${BASE}/api/entries/${slug}/bucket-list?token=${token}`)
       const saved = await get.json()
-      expect(saved.memories).toHaveLength(2)
-      expect(saved.memories[0].title).toBe('Earlier')
-      expect(saved.memories[1].title).toBe('Later')
+      expect(saved.items).toHaveLength(2)
+      expect(saved.items[0].title).toBe('Earlier')
+      expect(saved.items[1].title).toBe('Later')
     }, 40000)
   })
 
@@ -1058,7 +1059,7 @@ describe('Anonymous gift flow guardrails', () => {
 
       expect(res.status).toBe(200)
       const ids = (data.services || []).map((s: any) => s.id)
-      for (const required of ['database', 'storage', 'auth', 'gift-letter', 'gift-memory', 'gift-bouquet', 'gift-voice_note']) {
+      for (const required of ['database', 'storage', 'auth', 'gift-letter', 'gift-bucket_list', 'gift-scrapbook', 'gift-voice_note']) {
         expect(ids).toContain(required)
       }
       for (const service of data.services) {

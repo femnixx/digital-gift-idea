@@ -101,7 +101,7 @@ export default function HomePage() {
 
   const features = [
     { title: 'Love Letters', desc: 'Write heartfelt messages with beautiful typography and animations.', href: '/create?type=letter' },
-    { title: 'Digital Bouquets', desc: 'Send flowers that never wilt, crafted with color and motion.', href: '/create?type=bouquet' },
+    { title: 'Memory Scrapbook', desc: 'Arrange photos, notes, and keepsakes on a beautiful canvas.', href: '/create?type=scrapbook' },
     { title: 'Voice Notes', desc: 'Record audio memories with waveform visuals and cassette styling.', href: '/create?type=voice_note' },
     { title: 'Polaroids', desc: 'Share photo memories with tilt, stickers, and hidden notes.', href: '/create?type=polaroid' },
     { title: 'Scratch Cards', desc: 'Reveal surprises underneath interactive scratch-off covers.', href: '/create?type=scratch_card' },

@@ -12,52 +12,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      bouquet_flowers: {
+      scrapbook_items: {
         Row: {
-          color: string
-          created_at: string | null
-          entry_id: string | null
-          flower_type: Database["public"]["Enums"]["flower_type"]
-          generation_seed: number | null
           id: string
-          note: string | null
+          page_id: string | null
+          media_id: string | null
+          image_url: string | null
+          caption: string | null
           position_x: number | null
           position_y: number | null
+          width: number | null
+          height: number | null
           rotation: number | null
           scale: number | null
-          sort_order: number | null
+          z_index: number | null
+          date_tag: string | null
+          font_family: string | null
+          font_size: string | null
+          font_color: string | null
+          text_alignment: string | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          color: string
-          created_at?: string | null
-          entry_id?: string | null
-          flower_type: Database["public"]["Enums"]["flower_type"]
-          generation_seed?: number | null
           id?: string
-          note?: string | null
+          page_id?: string | null
+          media_id?: string | null
+          image_url?: string | null
+          caption?: string | null
           position_x?: number | null
           position_y?: number | null
+          width?: number | null
+          height?: number | null
           rotation?: number | null
           scale?: number | null
-          sort_order?: number | null
+          z_index?: number | null
+          date_tag?: string | null
+          font_family?: string | null
+          font_size?: string | null
+          font_color?: string | null
+          text_alignment?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
-          color?: string
-          created_at?: string | null
-          entry_id?: string | null
-          flower_type?: Database["public"]["Enums"]["flower_type"]
-          generation_seed?: number | null
           id?: string
-          note?: string | null
+          page_id?: string | null
+          media_id?: string | null
+          image_url?: string | null
+          caption?: string | null
           position_x?: number | null
           position_y?: number | null
+          width?: number | null
+          height?: number | null
           rotation?: number | null
           scale?: number | null
-          sort_order?: number | null
+          z_index?: number | null
+          date_tag?: string | null
+          font_family?: string | null
+          font_size?: string | null
+          font_color?: string | null
+          text_alignment?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "bouquet_flowers_entry_id_fkey"
+            foreignKeyName: "scrapbook_items_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "scrapbook_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrapbook_pages: {
+        Row: {
+          id: string
+          entry_id: string | null
+          layout_type: string | null
+          background_color: string | null
+          background_image: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          entry_id?: string | null
+          layout_type?: string | null
+          background_color?: string | null
+          background_image?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          entry_id?: string | null
+          layout_type?: string | null
+          background_color?: string | null
+          background_image?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrapbook_pages_entry_id_fkey"
             columns: ["entry_id"]
             isOneToOne: false
             referencedRelation: "entries"
@@ -591,21 +650,14 @@ export type Database = {
         | "cold_brew"
       entry_type:
         | "letter"
-        | "bouquet"
+        | "bucket_list"
+        | "scrapbook"
         | "polaroid"
         | "scratch_card"
         | "open_when"
         | "coffee_date"
         | "voice_note"
-      flower_type:
-        | "rose"
-        | "sunflower"
-        | "tulip"
-        | "lily"
-        | "orchid"
-        | "peony"
-        | "daisy"
-        | "lavender"
+        | "memory"
       media_type: "image" | "audio" | "video"
     }
     CompositeTypes: {
@@ -745,22 +797,14 @@ export const Constants = {
       ],
       entry_type: [
         "letter",
-        "bouquet",
+        "bucket_list",
+        "scrapbook",
         "polaroid",
         "scratch_card",
         "open_when",
         "coffee_date",
         "voice_note",
-      ],
-      flower_type: [
-        "rose",
-        "sunflower",
-        "tulip",
-        "lily",
-        "orchid",
-        "peony",
-        "daisy",
-        "lavender",
+        "memory",
       ],
       media_type: ["image", "audio", "video"],
     },

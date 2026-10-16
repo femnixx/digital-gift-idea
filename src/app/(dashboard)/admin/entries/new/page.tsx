@@ -9,12 +9,13 @@ import {
   Trash2,
   Heart,
   Mail,
-  Flower2,
+  Image,
   Coffee,
   Music,
   Camera,
   Gamepad2,
-  MessageSquare,
+   MessageSquare,
+  Calendar,
   Loader2,
   Sparkles,
   CheckCircle2,
@@ -27,8 +28,8 @@ import type { Entry, EntryType } from '@/types'
 
 const ENTRY_TYPES: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { type: 'letter', label: 'Love Letter', icon: MessageSquare },
-  { type: 'memory', label: 'Memory Lane', icon: Camera },
-  { type: 'bouquet', label: 'Digital Bouquet', icon: Flower2 },
+  { type: 'bucket_list', label: 'Bucket List', icon: Calendar },
+  { type: 'scrapbook', label: 'Scrapbook', icon: Image },
   { type: 'open_when', label: 'Open When', icon: Heart },
   { type: 'coffee_date', label: 'Coffee Date', icon: Coffee },
   { type: 'voice_note', label: 'Voice Note', icon: Music },
@@ -107,8 +108,8 @@ export default function NewEntryPage() {
 
   const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     letter: MessageSquare,
-    memory: Camera,
-    bouquet: Flower2,
+    bucket_list: Calendar,
+    scrapbook: Image,
     open_when: Heart,
     coffee_date: Coffee,
     voice_note: Music,

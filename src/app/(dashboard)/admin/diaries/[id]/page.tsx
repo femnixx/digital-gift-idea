@@ -92,7 +92,8 @@ export default function AdminDiaryDetailPage() {
 
   const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     letter: MessageSquare,
-    bouquet: ImageIcon,
+    bucket_list: Calendar,
+    scrapbook: ImageIcon,
     polaroid: ImageIcon,
     scratch_card: Sparkles,
     open_when: MessageSquare,

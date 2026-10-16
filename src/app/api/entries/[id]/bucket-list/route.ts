@@ -8,33 +8,32 @@ import { authorisedByEditToken } from '@/lib/api/editToken'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const memorySchema = z.object({
+const itemSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).nullable().optional(),
-  memory_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  dream_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
   location: z.string().max(200).nullable().optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
   media_urls: z.array(z.string().max(2000)).max(50).optional(),
-  media_types: z.array(z.string().max(20)).max(50).nullable().optional(),
   tags: z.array(z.string().max(50)).max(20).nullable().optional(),
-  is_milestone: z.boolean().optional(),
+  is_achieved: z.boolean().optional(),
+  achieved_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   sort_order: z.number().int().min(0).optional(),
 })
 
 const replaceSchema = z.object({
-  memories: z.array(memorySchema).max(200)
+  items: z.array(itemSchema).max(200)
 })
 
-function normaliseMemory(row: Record<string, unknown>) {
+function normaliseItem(row: Record<string, unknown>) {
   return {
     ...row,
     latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
     longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
     sort_order: Number(row.sort_order ?? 0),
-    is_milestone: Boolean(row.is_milestone),
+    is_achieved: Boolean(row.is_achieved),
     media_urls: Array.isArray(row.media_urls) ? row.media_urls : [],
-    media_types: Array.isArray(row.media_types) ? row.media_types : [],
     tags: Array.isArray(row.tags) ? row.tags : [],
   }
 }
@@ -54,16 +53,16 @@ export async function GET(
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    const memories = await sql`
-      select id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
-      from memories
+    const items = await sql`
+      select id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at
+      from bucket_list
       where entry_id = ${entry.id}
-      order by memory_date asc, sort_order asc, created_at asc
+      order by dream_date asc, sort_order asc, created_at asc
     `
 
-    return NextResponse.json({ memories: memories.map(normaliseMemory) })
+    return NextResponse.json({ items: items.map(normaliseItem) })
   } catch (error) {
-    console.error('Error fetching memories:', error)
+    console.error('Error fetching bucket list items:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -90,27 +89,27 @@ export async function PUT(
     }
 
     const statements: Array<ReturnType<typeof sql>> = [
-      sql`delete from memories where entry_id = ${entry.id}`,
+      sql`delete from bucket_list where entry_id = ${entry.id}`,
     ]
 
-    validation.data.memories.forEach((memory, index) => {
+    validation.data.items.forEach((item, index) => {
       statements.push(sql`
-        insert into memories
-          (entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at)
+        insert into bucket_list
+          (entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at)
         values
           (
             ${entry.id},
-            ${memory.title},
-            ${memory.description ?? null},
-            ${memory.memory_date},
-            ${memory.location ?? null},
-            ${memory.latitude ?? null},
-            ${memory.longitude ?? null},
-            ${memory.media_urls ?? []}::text[],
-            ${memory.media_types ?? null},
-            ${memory.tags ?? null},
-            ${memory.is_milestone ?? false},
-            ${memory.sort_order ?? index},
+            ${item.title},
+            ${item.description ?? null},
+            ${item.dream_date},
+            ${item.location ?? null},
+            ${item.latitude ?? null},
+            ${item.longitude ?? null},
+            ${item.media_urls ?? []}::text[],
+            ${item.tags ?? null},
+            ${item.is_achieved ?? false},
+            ${item.achieved_date ?? null},
+            ${item.sort_order ?? index},
             now(),
             now()
           )
@@ -120,17 +119,17 @@ export async function PUT(
     await sql.transaction(statements)
 
     const rows = await sql`
-      select id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
-      from memories
+      select id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at
+      from bucket_list
       where entry_id = ${entry.id}
-      order by memory_date asc, sort_order asc, created_at asc
+      order by dream_date asc, sort_order asc, created_at asc
     `
 
     await sql`update entries set updated_at = now() where id = ${entry.id}`
 
-    return NextResponse.json({ memories: rows.map(normaliseMemory) })
+    return NextResponse.json({ items: rows.map(normaliseItem) })
   } catch (error) {
-    console.error('Error saving memories:', error)
+    console.error('Error saving bucket list items:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -151,40 +150,40 @@ export async function POST(
     }
 
     const body = await request.json().catch(() => null)
-    const validation = memorySchema.safeParse(body)
+    const validation = itemSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
     const data = validation.data
     const result = await sql`
-      insert into memories
-        (entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at)
+      insert into bucket_list
+        (entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at)
       values
         (
           ${entry.id},
           ${data.title},
           ${data.description ?? null},
-          ${data.memory_date},
+          ${data.dream_date},
           ${data.location ?? null},
           ${data.latitude ?? null},
           ${data.longitude ?? null},
           ${data.media_urls ?? []}::text[],
-          ${data.media_types ?? null},
           ${data.tags ?? null},
-          ${data.is_milestone ?? false},
+          ${data.is_achieved ?? false},
+          ${data.achieved_date ?? null},
           ${data.sort_order ?? 0},
           now(),
           now()
         )
-      returning id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
+      returning id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at
     `
 
     await sql`update entries set updated_at = now() where id = ${entry.id}`
 
-    return NextResponse.json({ memory: normaliseMemory(result[0]) }, { status: 201 })
+    return NextResponse.json({ item: normaliseItem(result[0]) }, { status: 201 })
   } catch (error) {
-    console.error('Error creating memory:', error)
+    console.error('Error creating bucket list item:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -204,18 +203,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
     }
 
-    const memoryId = new URL(request.url).searchParams.get('memory_id')
-    if (!memoryId) {
-      return NextResponse.json({ error: 'memory_id parameter required' }, { status: 400 })
+    const itemId = new URL(request.url).searchParams.get('item_id')
+    if (!itemId) {
+      return NextResponse.json({ error: 'item_id parameter required' }, { status: 400 })
     }
 
-    await sql`delete from memories where id = ${memoryId} and entry_id = ${entry.id}`
+    await sql`delete from bucket_list where id = ${itemId} and entry_id = ${entry.id}`
 
     await sql`update entries set updated_at = now() where id = ${entry.id}`
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting memory:', error)
+    console.error('Error deleting bucket list item:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

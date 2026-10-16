@@ -31,8 +31,8 @@ export interface Stat {
 
 const TYPE_COLORS: Record<EntryType, string> = {
   letter: '#0284c7',
-  memory: '#f59e0b',
-  bouquet: '#7dd3fc',
+  bucket_list: '#f59e0b',
+  scrapbook: '#fb7185',
   polaroid: '#38bdf8',
   scratch_card: '#7c3aed',
   open_when: '#ec4899',
@@ -52,8 +52,8 @@ const statColors: Record<string, { bg: string; text: string }> = {
 export function typeLabel(type: EntryType): string {
   const labels: Record<EntryType, string> = {
     letter: 'Love Letter',
-    memory: 'Memory Lane',
-    bouquet: 'Bouquet',
+    bucket_list: 'Bucket List',
+    scrapbook: 'Scrapbook',
     polaroid: 'Polaroid',
     scratch_card: 'Scratch Card',
     open_when: 'Open When',
@@ -309,8 +309,8 @@ export function PublishedStatusChart({ entries }: ProgressChartProps) {
 export function EntryTypeIcon({ type }: { type: EntryType }) {
   const icons: Record<EntryType, string> = {
     letter: '💌',
-    memory: '📅',
-    bouquet: '💐',
+    bucket_list: '💭',
+    scrapbook: '📚',
     polaroid: '📸',
     scratch_card: '🎫',
     open_when: '💌',

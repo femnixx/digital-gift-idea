@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar } from 'lucide-react'
+import { Mail, Image, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar } from 'lucide-react'
 import type { EntryType } from '@/types'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
 
@@ -11,7 +11,7 @@ import { GIFT_LABELS } from '@/lib/gifts/catalog'
  *
  * Every service gets the same interaction — a sealed cover the visitor opens —
  * but a distinct animation that matches what is inside, so a love letter
- * arrives as an envelope opening, a bouquet as flowers blooming, and so on.
+ * arrives as an envelope opening, a scrapbook as pages fanning out, and so on.
  * Keeping the interaction identical and only the visuals per-service is what
  * makes the set feel like one product rather than seven unrelated pages.
  *
@@ -37,8 +37,8 @@ export interface GiftOpeningProps {
 
 const ICONS: Record<EntryType, typeof Mail> = {
   letter: Mail,
-  memory: Calendar,
-  bouquet: Flower2,
+  bucket_list: Calendar,
+  scrapbook: Image,
   polaroid: Camera,
   scratch_card: ScanFace,
   open_when: Clock,
@@ -174,12 +174,12 @@ function TimelineCover({ opened }: { opened: boolean }) {
     >
       {type === 'letter' && <EnvelopeCover opened={opened} />}
       {type === 'open_when' && <WaxSealCover opened={opened} />}
-      {type === 'bouquet' && <BouquetCover opened={opened} />}
+      {type === 'scrapbook' && <ScrapbookCover opened={opened} />}
       {type === 'polaroid' && <PolaroidCover opened={opened} />}
       {type === 'scratch_card' && <FoilCover opened={opened} />}
       {type === 'coffee_date' && <SteamCover opened={opened} />}
       {type === 'voice_note' && <CassetteCover opened={opened} />}
-      {type === 'memory' && <TimelineCover opened={opened} />}
+      {type === 'bucket_list' && <TimelineCover opened={opened} />}
     </motion.div>
   )
 }
@@ -238,19 +238,19 @@ function WaxSealCover({ opened }: { opened: boolean }) {
   )
 }
 
-function BouquetCover({ opened }: { opened: boolean }) {
-  const petals = useMemo(() => Array.from({ length: 9 }, (_, i) => i), [])
+function ScrapbookCover({ opened }: { opened: boolean }) {
+  const pages = useMemo(() => Array.from({ length: 5 }, (_, i) => i), [])
 
   return (
-    <div className="absolute inset-0 flex items-end justify-center gap-1.5 pb-4">
-      {petals.map((i) => (
+    <div className="absolute inset-0 flex items-center justify-center gap-2">
+      {pages.map((i) => (
         <motion.div
           key={i}
-          className="w-5 rounded-full bg-brand"
-          style={{ height: 26 + (i % 4) * 12 }}
-          initial={{ scaleY: 0.15, opacity: 0.4 }}
-          animate={{ scaleY: opened ? 1 : 0.15, opacity: opened ? 1 : 0.4 }}
-          transition={{ duration: 0.6, delay: opened ? i * 0.07 : 0, ease: 'backOut' }}
+          className="w-8 h-10 rounded-sm bg-brand/20 border border-brand/40 shadow-lg"
+          style={{ transformOrigin: 'center bottom' }}
+          initial={{ rotate: opened ? 0 : -10, y: opened ? 0 : 20, opacity: opened ? 1 : 0.3 }}
+          animate={{ rotate: opened ? 0 : -10, y: opened ? 0 : 20, opacity: opened ? 1 : 0.3 }}
+          transition={{ duration: 0.5, delay: opened ? i * 0.1 : 0, ease: 'backOut' }}
         />
       ))}
     </div>

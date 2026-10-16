@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 import { neon } from '@neondatabase/serverless';
+import { resolveConnectionString } from '../src/lib/neon/connection.ts';
 import { readFileSync } from 'fs';
 
-const schemaText = readFileSync('/tmp/schema.sql', 'utf8');
+const schemaText = readFileSync('/tmp/bucket_list_schema.sql', 'utf8');
 
 const conn = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 if (!conn) {

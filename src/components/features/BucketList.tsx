@@ -4,18 +4,18 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { Calendar, MapPin, Tag, Edit3, Trash2, Plus, X } from 'lucide-react'
 import { format } from 'date-fns'
-import type { Memory } from '@/types'
+import type { BucketListItem } from '@/types'
 
-interface MemoryLaneProps {
-  memories: Memory[]
+interface BucketListProps {
+  items: BucketListItem[]
   entryId: string
   isEditing?: boolean
-  onSave?: (memories: Memory[]) => void
+  onSave?: (items: BucketListItem[]) => void
 }
 
-export function MemoryLane({ memories: initialMemories, entryId, isEditing = false, onSave }: MemoryLaneProps) {
-  const [memories, setMemories] = useState<Memory[]>(initialMemories)
-  const [editingMemory, setEditingMemory] = useState<Memory | null>(null)
+export function BucketList({ items: initialItems, entryId, isEditing = false, onSave }: BucketListProps) {
+  const [items, setItems] = useState<BucketListItem[]>(initialItems)
+  const [editingItem, setEditingItem] = useState<BucketListItem | null>(null)
   const [showEditor, setShowEditor] = useState(false)
   const [loading, setLoading] = useState(false)
   const [token, setToken] = useState('')
@@ -25,93 +25,93 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
     setToken(params.get('token') || '')
   }, [])
 
-  const handleSaveMemory = async (memory: Partial<Memory>) => {
+  const handleSaveItem = async (itemData: Partial<BucketListItem>) => {
     setLoading(true)
     try {
-      const method = editingMemory ? 'PUT' : 'POST'
-      const url = new URL(`/api/entries/${entryId}/memories`, window.location.origin)
+      const method = editingItem ? 'PUT' : 'POST'
+      const url = new URL(`/api/entries/${entryId}/bucket-list`, window.location.origin)
       if (token) url.searchParams.set('token', token)
-      if (editingMemory) url.searchParams.set('memory_id', editingMemory.id)
+      if (editingItem) url.searchParams.set('item_id', editingItem.id)
 
       const res = await fetch(url.toString(), {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memory),
+        body: JSON.stringify(itemData),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to save memory')
+      if (!res.ok) throw new Error(data.error || 'Failed to save item')
 
-      const saved = data.memory || data.memories
-      if (editingMemory) {
-        setMemories(prev => prev.map(m => m.id === editingMemory.id ? saved : m))
+      const saved = data.item || data.items
+      if (editingItem) {
+        setItems(prev => prev.map(i => i.id === editingItem.id ? saved : i))
       } else {
-        setMemories(prev => [...prev, saved].sort((a, b) =>
-          new Date(a.memory_date).getTime() - new Date(b.memory_date).getTime()
+        setItems(prev => [...prev, saved].sort((a, b) =>
+          new Date(a.dream_date).getTime() - new Date(b.dream_date).getTime()
         ))
       }
-      setEditingMemory(null)
+      setEditingItem(null)
       setShowEditor(false)
-      onSave?.(memories)
+      onSave?.(items)
     } catch (err) {
-      console.error('Save memory error:', err)
+      console.error('Save item error:', err)
     } finally {
       setLoading(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Remove this memory?')) return
+    if (!confirm('Remove this item from the bucket list?')) return
     setLoading(true)
     try {
-      const url = new URL(`/api/entries/${entryId}/memories`, window.location.origin)
+      const url = new URL(`/api/entries/${entryId}/bucket-list`, window.location.origin)
       if (token) url.searchParams.set('token', token)
-      url.searchParams.set('memory_id', id)
+      url.searchParams.set('item_id', id)
 
       const res = await fetch(url.toString(), { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
-      setMemories(prev => prev.filter(m => m.id !== id))
-      onSave?.(memories.filter(m => m.id !== id))
+      setItems(prev => prev.filter(i => i.id !== id))
+      onSave?.(items.filter(i => i.id !== id))
     } catch (err) {
-      console.error('Delete memory error:', err)
+      console.error('Delete item error:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  const sortedMemories = [...memories].sort((a, b) =>
-    new Date(a.memory_date).getTime() - new Date(b.memory_date).getTime()
+  const sortedItems = [...items].sort((a, b) =>
+    new Date(a.dream_date).getTime() - new Date(b.dream_date).getTime()
   )
 
   if (showEditor) {
     return (
-      <MemoryEditor
+      <BucketListEditor
         entryId={entryId}
-        memory={editingMemory}
-        onSave={handleSaveMemory}
+        item={editingItem}
+        onSave={handleSaveItem}
         onCancel={() => {
           setShowEditor(false)
-          setEditingMemory(null)
+          setEditingItem(null)
         }}
         loading={loading}
       />
     )
   }
 
-  if (!sortedMemories.length) {
+  if (!sortedItems.length) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted font-handwriting text-lg mb-4">No memories yet</p>
+        <p className="text-muted font-handwriting text-lg mb-4">Your bucket list is empty</p>
         {isEditing && (
           <button
             type="button"
             onClick={() => {
-              setEditingMemory(null)
+              setEditingItem(null)
               setShowEditor(true)
             }}
             className="btn-primary inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Add Your First Memory
+            Add Your First Goal
           </button>
         )}
       </div>
@@ -125,13 +125,13 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
           <button
             type="button"
             onClick={() => {
-              setEditingMemory(null)
+              setEditingItem(null)
               setShowEditor(true)
             }}
             className="btn-primary flex items-center gap-2 text-sm"
           >
             <Plus className="w-4 h-4" />
-            Add Memory
+            Add Goal
           </button>
         </div>
       )}
@@ -139,9 +139,9 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
       <div className="relative">
         <div className="absolute left-1/2 -ml-px h-full w-0.5 bg-line" />
         <div className="space-y-8">
-          {sortedMemories.map((memory, i) => (
+          {sortedItems.map((item, i) => (
             <motion.div
-              key={memory.id}
+              key={item.id}
               className="relative"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -155,21 +155,21 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
                 <div className="bg-surface rounded-2xl border border-line p-6 shadow-sm">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <h3 className="font-handwriting text-xl text-accent mb-1">{memory.title}</h3>
+                      <h3 className="font-handwriting text-xl text-accent mb-1">{item.title}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted mb-3">
                         <Calendar className="w-4 h-4" />
-                        <span>{format(new Date(memory.memory_date), 'MMMM d, yyyy')}</span>
-                        {memory.location && (
+                        <span>{format(new Date(item.dream_date), 'MMMM d, yyyy')}</span>
+                        {item.location && (
                           <>
                             <span>·</span>
                             <MapPin className="w-4 h-4" />
-                            <span>{memory.location}</span>
+                            <span>{item.location}</span>
                           </>
                         )}
                       </div>
-                      {memory.tags && memory.tags.length > 0 && (
+                      {item.tags && item.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          {memory.tags.map(tag => (
+                          {item.tags.map(tag => (
                             <span
                               key={tag}
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-base-2 text-muted"
@@ -187,7 +187,7 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
                         <button
                           type="button"
                           onClick={() => {
-                            setEditingMemory(memory)
+                            setEditingItem(item)
                             setShowEditor(true)
                           }}
                           className="p-1.5 rounded-lg bg-base-2 border-card-border text-text hover:text-accent transition-colors"
@@ -197,7 +197,7 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(memory.id)}
+                          onClick={() => handleDelete(item.id)}
                           className="p-1.5 rounded-lg bg-base-2 border-card-border text-text hover:text-red-600 transition-colors"
                           title="Delete"
                         >
@@ -207,25 +207,25 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
                     )}
                   </div>
 
-                  {memory.description && (
+                  {item.description && (
                     <p className="text-sm text-body leading-relaxed whitespace-pre-wrap mt-3">
-                      {memory.description}
+                      {item.description}
                     </p>
                   )}
 
-                  {memory.is_milestone && (
-                    <span className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                      Milestone
+                  {item.is_achieved && (
+                    <span className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Achieved
                     </span>
                   )}
 
-                  {memory.media_urls && memory.media_urls.length > 0 && (
+                  {item.media_urls && item.media_urls.length > 0 && (
                     <div className="mt-4 grid grid-cols-3 gap-2">
-                      {memory.media_urls.slice(0, 6).map((url, i) => (
+                      {item.media_urls.slice(0, 6).map((url, i) => (
                         <img
                           key={i}
                           src={url}
-                          alt={`Memory photo ${i + 1}`}
+                          alt={`Goal photo ${i + 1}`}
                           className="w-full h-20 object-cover rounded-lg border border-card-border"
                         />
                       ))}
@@ -241,31 +241,31 @@ export function MemoryLane({ memories: initialMemories, entryId, isEditing = fal
   )
 }
 
-interface MemoryEditorProps {
+interface BucketListEditorProps {
   entryId: string
-  memory: Partial<Memory> | null
-  onSave: (memory: Partial<Memory>) => void
+  item: Partial<BucketListItem> | null
+  onSave: (item: Partial<BucketListItem>) => void
   onCancel: () => void
   loading?: boolean
 }
 
-function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEditorProps) {
-  const [title, setTitle] = useState(memory?.title || '')
-  const [description, setDescription] = useState(memory?.description || '')
-  const [date, setDate] = useState(memory?.memory_date ? memory.memory_date.split('T')[0] : new Date().toISOString().split('T')[0])
-  const [location, setLocation] = useState(memory?.location || '')
-  const [tags, setTags] = useState(memory?.tags?.join(', ') || '')
-  const [isMilestone, setIsMilestone] = useState(memory?.is_milestone || false)
+function BucketListEditor({ entryId, item, onSave, onCancel, loading }: BucketListEditorProps) {
+  const [title, setTitle] = useState(item?.title || '')
+  const [description, setDescription] = useState(item?.description || '')
+  const [date, setDate] = useState(item?.dream_date ? item.dream_date.split('T')[0] : new Date().toISOString().split('T')[0])
+  const [location, setLocation] = useState(item?.location || '')
+  const [tags, setTags] = useState(item?.tags?.join(', ') || '')
+  const [isAchieved, setIsAchieved] = useState(item?.is_achieved || false)
 
   const handleSubmit = () => {
     if (!title.trim()) return
     onSave({
       title: title.trim(),
       description: description || null,
-      memory_date: date,
+      dream_date: date,
       location: location || null,
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      is_milestone: isMilestone,
+      is_achieved: isAchieved,
     })
   }
 
@@ -273,7 +273,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-script text-xl text-accent">
-          {memory ? 'Edit Memory' : 'Add Memory'}
+          {item ? 'Edit Goal' : 'Add Goal'}
         </h3>
         <button
           type="button"
@@ -294,7 +294,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="First date at the bookstore..."
+            placeholder="Visit Paris..."
             className="input"
             maxLength={200}
           />
@@ -303,14 +303,13 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
         <div>
           <label className="label flex items-center gap-2">
             <Calendar className="w-4 h-4 text-amber-500" />
-            Date
+            Target Date
           </label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="input"
-            max={new Date().toISOString().split('T')[0]}
           />
         </div>
 
@@ -323,7 +322,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="Where it happened"
+            placeholder="Where you want to go"
             className="input"
             maxLength={200}
           />
@@ -338,7 +337,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="adventure, birthday, first (comma separated)"
+            placeholder="travel, adventure, dream (comma separated)"
             className="input"
             maxLength={200}
           />
@@ -352,7 +351,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Tell the story of this memory..."
+            placeholder="What makes this goal special?"
             className="textarea min-h-[150px] resize-y"
             maxLength={2000}
           />
@@ -362,11 +361,11 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
-              checked={isMilestone}
-              onChange={(e) => setIsMilestone(e.target.checked)}
-              className="rounded border-card-border text-amber-600 focus:ring-amber-500"
+              checked={isAchieved}
+              onChange={(e) => setIsAchieved(e.target.checked)}
+              className="rounded border-card-border text-green-600 focus:ring-green-500"
             />
-            <span>Milestone memory</span>
+            <span>Already achieved this goal</span>
           </label>
         </div>
 
@@ -377,7 +376,7 @@ function MemoryEditor({ entryId, memory, onSave, onCancel, loading }: MemoryEdit
             disabled={loading || !title.trim() || !date}
             className="btn-primary flex items-center gap-2"
           >
-            {loading ? 'Saving...' : memory ? 'Update Memory' : 'Add Memory'}
+            {loading ? 'Saving...' : item ? 'Update Goal' : 'Add Goal'}
           </button>
           <button
             type="button"

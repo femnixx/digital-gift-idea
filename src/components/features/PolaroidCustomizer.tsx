@@ -19,7 +19,7 @@ const PRESET_EMOJIS = [
   { emoji: '🌙', bg: '#f8fafc', name: 'Moon' },
   { emoji: '☀️', bg: '#fffbeb', name: 'Sun' },
   { emoji: '🌈', bg: '#f0fdf4', name: 'Rainbow' },
-  { emoji: '💐', bg: '#fdf2f8', name: 'Bouquet' },
+  { emoji: '🌷', bg: '#fdf2f8', name: 'Tulip' },
   { emoji: '🎀', bg: '#fdf2f8', name: 'Ribbon' },
 ]
 

@@ -19,7 +19,7 @@
 
 - [ ] **Supabase Setup**
   - [ ] Supabase project created
-  - [ ] All database tables created (users, bouquets, letters, media, scratch_cards, games)
+  - [ ] All database tables created (users, scrapbook_pages, scrapbook_items, letters, media, scratch_cards, games)
   - [ ] Database schemas match specifications
   - [ ] Row-level security policies configured
   - [ ] Storage bucket created for media uploads
@@ -108,40 +108,40 @@
 
 ---
 
-### ✅ Phase 4: Digital Bouquet Builder
+### ✅ Phase 4: Memory Scrapbook Builder
 
-- [ ] **Bouquet Builder Interface**
-  - [ ] Flower type selector (roses, tulips, lilies, sunflowers, daisies, orchids, peonies, etc.)
-  - [ ] Color picker for flowers
-  - [ ] Quantity selector (5-100 flowers)
-  - [ ] Arrangement style options (cascading, centered, wildflower, formal, spiral)
-  - [ ] Background color/pattern selector
-  - [ ] Custom message/poem text area
-  - [ ] Message character counter
-  - [ ] Recipient name input (optional)
+- [ ] **Scrapbook Builder Interface**
+   - [ ] Photo upload from gallery/media library
+   - [ ] Layout selector (grid, freeform, polaroid, framed)
+   - [ ] Drag-and-drop photo placement on canvas
+   - [ ] Resize and rotate handles for each photo
+   - [ ] Background color/pattern selector
+   - [ ] Caption and date tag for each photo
+   - [ ] Font selection for captions
+   - [ ] Layer ordering (bring forward/send backward)
 
-- [ ] **Bouquet Preview**
-  - [ ] Real-time preview of bouquet
-  - [ ] Animations (flowers swaying, petals falling)
-  - [ ] Preview updates as user changes options
-  - [ ] Download or save option
-  - [ ] Full-screen preview mode
+- [ ] **Scrapbook Preview**
+   - [ ] Real-time preview of scrapbook layout
+   - [ ] Animations (page turns, photo placement)
+   - [ ] Preview updates as user changes options
+   - [ ] Download or save option
+   - [ ] Full-screen preview mode
 
-- [ ] **Bouquet Creation & Storage**
-  - [ ] Save button creates bouquet in database
-  - [ ] Unique slug generated (e.g., /bouquet/rose-hearts-2024)
-  - [ ] Configuration stored as JSON in Supabase
-  - [ ] Created timestamp recorded
-  - [ ] User ID associated with bouquet
-  - [ ] Success notification with link
+- [ ] **Scrapbook Creation & Storage**
+   - [ ] Save button creates scrapbook in database
+   - [ ] Unique slug generated (e.g., /scrapbook/summer-memories-2024)
+   - [ ] Configuration stored as JSON in database
+   - [ ] Created timestamp recorded
+   - [ ] Entry ID associated with scrapbook
+   - [ ] Success notification with link
 
-- [ ] **Bouquet Sharing**
-  - [ ] Shareable link generated
-  - [ ] Copy to clipboard button
-  - [ ] Link structure: /bouquet/:slug
-  - [ ] Public viewing page created
-  - [ ] View counter incremented on access
-  - [ ] QR code generated (optional)
+- [ ] **Scrapbook Sharing**
+   - [ ] Shareable link generated
+   - [ ] Copy to clipboard button
+   - [ ] Link structure: /scrapbook/:slug
+   - [ ] Public viewing page created
+   - [ ] View counter incremented on access
+   - [ ] QR code generated (optional)
 
 ---
 
@@ -355,7 +355,7 @@
 
 - [ ] **My Gifts Dashboard**
   - [ ] Gallery of all user's created gifts
-  - [ ] Filtering by type (bouquets, letters, media, etc.)
+  - [ ] Filtering by type (scrapbooks, letters, media, etc.)
   - [ ] Sorting options (newest, oldest, most viewed)
   - [ ] Gift thumbnails/previews
   - [ ] View count displayed
@@ -371,7 +371,8 @@
 
 - [ ] **Supabase Tables**
   - [ ] Users table with correct schema
-  - [ ] Bouquets table with correct schema
+  - [ ] Scrapbook pages table with correct schema
+  - [ ] Scrapbook items table with correct schema
   - [ ] Letters table with correct schema
   - [ ] Media table with correct schema
   - [ ] Scratch cards table with correct schema
@@ -399,7 +400,7 @@
   - [ ] / - Landing/home page
   - [ ] /auth/login - Login page
   - [ ] /auth/signup - Sign up page
-  - [ ] /bouquet/:slug - View shared bouquet
+  - [ ] /scrapbook/:slug - View shared scrapbook
   - [ ] /letter/:slug - View/open shared letter
   - [ ] /media/:slug - View shared media
   - [ ] /scratchcard/:slug - Play shared scratch card
@@ -407,7 +408,7 @@
 
 - [ ] **Protected Routes**
   - [ ] /dashboard - User dashboard
-  - [ ] /create/bouquet - Bouquet builder
+  - [ ] /create/scrapbook - Scrapbook builder
   - [ ] /create/letter - Letter builder
   - [ ] /create/media - Media uploader
   - [ ] /create/scratchcard - Scratch card builder
@@ -453,7 +454,7 @@
   - [ ] Confetti on game wins
   - [ ] Envelope opening animation
   - [ ] Letter reveal animations
-  - [ ] Flower animations in bouquet
+  - [ ] Flower animations in scrapbook
   - [ ] Smooth scroll behavior
   - [ ] Button ripple effects
   - [ ] Micro-interactions feel responsive

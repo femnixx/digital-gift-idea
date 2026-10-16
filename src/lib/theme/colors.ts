@@ -70,7 +70,7 @@ export const chartColors = {
   drafts: '#f59e0b',
   typeColors: {
     letter: '#0284c7',
-    bouquet: '#7dd3fc',
+    scrapbook: '#fb7185',
     polaroid: '#38bdf8',
     scratch_card: '#7c3aed',
     open_when: '#ec4899',

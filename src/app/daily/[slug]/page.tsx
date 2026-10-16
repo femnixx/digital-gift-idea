@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { DailyEntryPage } from './DailyEntryPage'
 import { DailyEntryPageClient } from './DailyEntryPageClient'
 import { getEntryBySlug } from '@/lib/neon/db'
-import { getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry, getMemoriesByEntry } from '@/lib/neon/db'
+import { getMediaByEntry, getScrapbookItemsByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry, getBucketListByEntry } from '@/lib/neon/db'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -40,21 +40,21 @@ export default async function DailyEntryRoute({ params }: PageProps) {
     return <DailyEntryPageClient slug={slug} />
   }
 
-  const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, memories] = await Promise.all([
+  const [media, scrapbookPages, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, bucketList] = await Promise.all([
     getMediaByEntry(entry.id),
-    getBouquetFlowersByEntry(entry.id),
+    getScrapbookItemsByEntry(entry.id),
     getPolaroidCardsByEntry(entry.id),
     getScratchCardsByEntry(entry.id),
     getOpenWhenLettersByEntry(entry.id),
     getCoffeeDatesByEntry(entry.id),
     getVoiceNotesByEntry(entry.id),
-    getMemoriesByEntry(entry.id),
+    getBucketListByEntry(entry.id),
   ])
 
   const enrichedEntry = {
     ...entry,
     media,
-    bouquet_flowers: bouquetFlowers,
+    scrapbook_pages: scrapbookPages,
     polaroid_cards: polaroidCards,
     scratch_cards: scratchCards,
     open_when_letters: openWhenLetters,
@@ -70,7 +70,7 @@ export default async function DailyEntryRoute({ params }: PageProps) {
         }
         : null,
     })),
-    memories: memories,
+    bucket_list: bucketList,
   }
 
   return <DailyEntryPage entry={enrichedEntry} />

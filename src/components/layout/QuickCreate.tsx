@@ -1,12 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { Mail, Flower2, Camera, Gamepad2, Music, Coffee, Plus } from 'lucide-react'
+import { Mail, Image, Camera, Gamepad2, Music, Coffee, Plus } from 'lucide-react'
 import { EntryType } from '@/types'
 
 const entryTypes: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { type: 'letter', label: 'Love Letter', icon: Mail },
-  { type: 'bouquet', label: 'Bouquet', icon: Flower2 },
+  { type: 'scrapbook', label: 'Scrapbook', icon: Image },
   { type: 'polaroid', label: 'Polaroid', icon: Camera },
   { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
   { type: 'open_when', label: 'Open When', icon: Mail },

@@ -35,7 +35,7 @@ const replaceSchema = z.object({ card: cardSchema })
 /**
  * Scratch cards, one per gift.
  *
- * The customizer edits a single card, so this is a replace like the bouquet
+ * The customizer edits a single card, so this is a replace like the scrapbook
  * rather than a list, and it runs in one transaction.
  */
 export async function GET(

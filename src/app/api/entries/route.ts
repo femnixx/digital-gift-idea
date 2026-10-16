@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 const createEntrySchema = z.object({
   title: z.string().min(1).max(200),
-  type: z.enum(['letter', 'memory', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']),
+  type: z.enum(['letter', 'bucket_list', 'scrapbook', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
   content: z.record(z.unknown()).default({}),
   publish_at: z.string().datetime({ offset: true }).optional(),
@@ -26,7 +26,7 @@ const createEntrySchema = z.object({
 
 // Valid `type` values for list filtering. The column is a Postgres enum, so an
 // unknown value would surface as a 500 rather than an empty result.
-const ENTRY_TYPES = ['letter', 'memory', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note'] as const
+const ENTRY_TYPES = ['letter', 'bucket_list', 'scrapbook', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note'] as const
 
 function parseEntryType(raw: string | null): string | undefined {
   if (!raw) return undefined

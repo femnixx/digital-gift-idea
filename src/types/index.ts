@@ -1,7 +1,7 @@
 export type EntryType = 
   | 'letter' 
-  | 'memory'
-  | 'bouquet'
+  | 'bucket_list'
+  | 'scrapbook'
   | 'polaroid'
   | 'scratch_card'
   | 'open_when'
@@ -9,8 +9,7 @@ export type EntryType =
   | 'voice_note'
 
 export type MediaType = 'image' | 'audio' | 'video'
-export type FlowerType = 'rose' | 'sunflower' | 'tulip' | 'lily' | 'orchid' | 'peony' | 'daisy' | 'lavender'
-export type ArrangementType = 'random' | 'circular' | 'vase' | 'heart'
+export type ScrapbookLayout = 'grid' | 'freeform' | 'polaroid' | 'frame'
 export type DrinkType = 'coffee' | 'tea' | 'hot_chocolate' | 'latte' | 'matcha' | 'chai' | 'cappuccino' | 'espresso' | 'americano' | 'mocha' | 'cold_brew'
 export type UnlockCondition = 'date' | 'manual' | 'location' | 'mood'
 
@@ -48,13 +47,13 @@ export interface Entry {
   updated_at: string
   // Relations
   media?: Media[]
-  bouquet_flowers?: BouquetFlower[]
+  scrapbook_pages?: ScrapbookPage[]
   polaroid_cards?: PolaroidCard[]
   scratch_cards?: ScratchCard[]
   open_when_letters?: OpenWhenLetter[]
   coffee_dates?: CoffeeDate[]
   voice_notes?: VoiceNote[]
-  memories?: Memory[]
+  bucket_list?: BucketListItem[]
 }
 
 export interface Media {
@@ -73,19 +72,37 @@ export interface Media {
   created_at: string
 }
 
-export interface BouquetFlower {
+export interface ScrapbookPage {
   id: string
   entry_id: string
-  flower_type: FlowerType
-  color: string
-  note: string | null
+  layout_type: ScrapbookLayout
+  background_color: string
+  background_image: string | null
+  created_at: string
+  updated_at: string
+  items?: ScrapbookItem[]
+}
+
+export interface ScrapbookItem {
+  id: string
+  page_id: string
+  media_id: string | null
+  image_url: string | null
+  caption: string | null
   position_x: number
   position_y: number
+  width: number
+  height: number
   rotation: number
   scale: number
-  sort_order: number
+  z_index: number
+  date_tag: string | null
+  font_family: string
+  font_size: string
+  font_color: string
+  text_alignment: string
   created_at: string
-  generation_seed?: number
+  updated_at: string
 }
 
 export interface PolaroidCard {
@@ -161,19 +178,19 @@ export interface VoiceNote {
   created_at: string
 }
 
-export interface Memory {
+export interface BucketListItem {
   id: string
   entry_id: string
   title: string
   description: string | null
-  memory_date: string
+  dream_date: string
   location: string | null
   latitude: number | null
   longitude: number | null
   media_urls: string[]
-  media_types: string[] | null
   tags: string[] | null
-  is_milestone: boolean
+  is_achieved: boolean
+  achieved_date: string | null
   sort_order: number
   created_at: string
   updated_at: string
@@ -245,15 +262,26 @@ export interface CreateEntryForm {
   is_published: boolean
 }
 
-export interface BouquetFormData {
-  flowers: {
-    flower_type: FlowerType
-    color: string
-    note: string
+export interface ScrapbookFormData {
+  layout_type: ScrapbookLayout
+  background_color: string
+  background_image: string | null
+  items: {
+    media_id?: string
+    image_url?: string
+    caption: string
     position_x: number
     position_y: number
+    width: number
+    height: number
     rotation: number
     scale: number
+    z_index: number
+    date_tag: string
+    font_family: string
+    font_size: string
+    font_color: string
+    text_alignment: string
   }[]
 }
 
@@ -303,21 +331,17 @@ export interface VoiceNoteFormData {
   transcript?: string
 }
 
-// Flower configurations
-export const FLOWER_CONFIG: Record<FlowerType, { 
+export const SCRAPBOOK_LAYOUT_CONFIG: Record<ScrapbookLayout, { 
   name: string
   emoji: string
-  petals: number
-  defaultColors: string[]
+  description: string
+  columns: number
+  rows: number
 }> = {
-  rose: { name: 'Rose', emoji: '🌹', petals: 32, defaultColors: ['#0284c7', '#FF69B4', '#FFFFFF', '#FFFF00', '#FFC0CB', '#8B0000'] },
-  sunflower: { name: 'Sunflower', emoji: '🌻', petals: 34, defaultColors: ['#FFD700', '#FFA500', '#FF8C00', '#DAA520'] },
-  tulip: { name: 'Tulip', emoji: '🌷', petals: 6, defaultColors: ['#FF69B4', '#0284c7', '#FFFF00', '#FFFFFF', '#800080', '#FFA500'] },
-  lily: { name: 'Lily', emoji: '🌸', petals: 6, defaultColors: ['#FFFFFF', '#FFB6C1', '#FFD700', '#FF69B4', '#E6E6FA'] },
-  orchid: { name: 'Orchid', emoji: '🌺', petals: 5, defaultColors: ['#DA70D6', '#BA55D3', '#FFFFFF', '#FF69B4', '#DDA0DD'] },
-  peony: { name: 'Peony', emoji: '💮', petals: 40, defaultColors: ['#FF69B4', '#FFB6C1', '#FFFFFF', '#FFC0CB', '#DB7093'] },
-  daisy: { name: 'Daisy', emoji: '🌼', petals: 34, defaultColors: ['#FFFFFF', '#FFFF00', '#FFF8DC', '#F5F5DC'] },
-  lavender: { name: 'Lavender', emoji: '🪻', petals: 4, defaultColors: ['#E6E6FA', '#D8BFD8', '#9370DB', '#BA55D3'] },
+  grid: { name: 'Grid', emoji: '⬜', description: 'Perfectly aligned photos in a neat grid', columns: 3, rows: 3 },
+  freeform: { name: 'Freeform', emoji: '🎨', description: 'Drag, rotate, and layer photos freely', columns: 0, rows: 0 },
+  polaroid: { name: 'Polaroid Style', emoji: '📸', description: 'Photos in classic polaroid frames with captions', columns: 2, rows: 2 },
+  frame: { name: 'Framed Collage', emoji: '🖼️', description: 'Photos in decorative frames on a styled background', columns: 3, rows: 2 },
 }
 
 export const DRINK_CONFIG: Record<DrinkType, { 

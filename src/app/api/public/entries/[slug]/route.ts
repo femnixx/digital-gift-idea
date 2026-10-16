@@ -18,19 +18,6 @@ function normaliseCard(row: Record<string, any>) {
   }
 }
 
-function normaliseMemory(row: Record<string, any>) {
-  return {
-    ...row,
-    latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
-    longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
-    sort_order: Number(row.sort_order ?? 0),
-    is_milestone: Boolean(row.is_milestone),
-    media_urls: Array.isArray(row.media_urls) ? row.media_urls : [],
-    media_types: Array.isArray(row.media_types) ? row.media_types : [],
-    tags: Array.isArray(row.tags) ? row.tags : [],
-  }
-}
-
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -63,9 +50,9 @@ export async function GET(
       )
     }
 
-    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, memories] = await Promise.all([
+    const [media, scrapbookPages, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, bucketList] = await Promise.all([
       sql`SELECT * FROM media WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
-      sql`SELECT * FROM bouquet_flowers WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
+      sql`SELECT sp.id, sp.entry_id, sp.layout_type, sp.background_color, sp.background_image, sp.created_at, sp.updated_at FROM scrapbook_pages sp WHERE sp.entry_id = ${entry.id} ORDER BY sp.created_at ASC`,
       sql`SELECT * FROM polaroid_cards WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT * FROM scratch_cards WHERE entry_id = ${entry.id} ORDER BY created_at ASC`,
       sql`SELECT * FROM open_when_letters WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
@@ -74,7 +61,7 @@ export async function GET(
          FROM voice_notes v
          LEFT JOIN media m ON m.id = v.media_id
          WHERE v.entry_id = ${entry.id} ORDER BY v.created_at ASC`,
-      sql`SELECT id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at FROM memories WHERE entry_id = ${entry.id} ORDER BY memory_date ASC, sort_order ASC, created_at ASC`,
+      sql`SELECT id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at FROM bucket_list WHERE entry_id = ${entry.id} ORDER BY dream_date ASC, sort_order ASC, created_at ASC`,
     ])
 
     const now = new Date()
@@ -102,7 +89,7 @@ export async function GET(
         entry: {
           ...entry,
           media: publicMedia,
-          bouquet_flowers: bouquetFlowers,
+           scrapbook_pages: (scrapbookPages as any[] || []).map(page => ({ ...page, items: [] })),
           polaroid_cards: (polaroidCards as any[]).map(normaliseCard),
           scratch_cards: scratchCards,
           open_when_letters: unlockedLetters,
@@ -119,7 +106,7 @@ export async function GET(
                 }
               : null,
           })),
-          memories: (memories as any[]).map(normaliseMemory),
+           bucket_list: bucketList,
         },
       },
       { headers: NO_STORE_HEADERS }

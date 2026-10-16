@@ -5,24 +5,24 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, MapPin, Tag, Heart, Share2, Copy, Check, Edit3, Plus, Trash2 } from 'lucide-react'
 import { useNav } from '@/hooks/useNav'
 import { format } from 'date-fns'
-import { MemoryLane } from '@/components/features/MemoryLane'
+import { BucketList } from '@/components/features/BucketList'
 import { GiftOpening } from '@/components/gift/GiftOpening'
 import { PublicShell } from '@/components/layout/PublicShell'
-import type { Entry, Memory } from '@/types'
+import type { Entry, BucketListItem } from '@/types'
 import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
 
-interface MemoryPageProps {
+interface BucketListPageProps {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ token?: string }>
 }
 
-export default function MemoryEditorPage({ params, searchParams }: MemoryPageProps) {
+export default function BucketListEditorPage({ params, searchParams }: BucketListPageProps) {
   const { slug } = use(params)
   const { token } = use(searchParams)
   const [entry, setEntry] = useState<Entry | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [memories, setMemories] = useState<Memory[]>([])
+  const [bucketListItems, setBucketListItems] = useState<BucketListItem[]>([])
 
   useEffect(() => {
     async function load() {
@@ -33,7 +33,7 @@ export default function MemoryEditorPage({ params, searchParams }: MemoryPagePro
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Failed to load')
         setEntry(data.entry)
-        setMemories(data.entry.memories || [])
+        setBucketListItems(data.entry.bucket_list || [])
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -82,21 +82,21 @@ export default function MemoryEditorPage({ params, searchParams }: MemoryPagePro
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="heading">{entry.title || 'Memory Lane'}</h1>
+            <h1 className="heading">{entry.title || 'Bucket List'}</h1>
             <p className="muted-foreground mt-1">
-              Add and arrange your memories in a timeline
+              Dream, plan, and track your goals together
             </p>
           </motion.header>
 
           <div className="card card-lg">
             <div className="p-4 sm:p-6">
-              <MemoryLane
-                memories={memories}
+              <BucketList
+                items={bucketListItems}
                 entryId={entry.id}
                 isEditing={!!token}
                 onSave={(updated) => {
-                  setMemories(updated)
-                  setEntry({ ...entry, memories: updated })
+                  setBucketListItems(updated)
+                  setEntry({ ...entry, bucket_list: updated })
                 }}
               />
             </div>

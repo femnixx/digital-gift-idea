@@ -106,18 +106,260 @@ export async function deleteMedia(id: string) {
   await sql`delete from media where id = ${id}`
 }
 
-export async function getBouquetFlowersByEntry(entryId: string) {
-  const result = await sql`select * from bouquet_flowers where entry_id = ${entryId} order by sort_order`
+export async function getScrapbookItemsByEntry(entryId: string) {
+  const pages = await sql`
+    select * from scrapbook_pages where entry_id = ${entryId} order by created_at asc
+  `
+  const pagesResult = pages as any[]
+
+  if (!pagesResult.length) return []
+
+  const allItems = [] as any[]
+  for (const page of pagesResult) {
+    const items = await sql`
+      select * from scrapbook_items where page_id = ${page.id} order by z_index asc, created_at asc
+    `
+    allItems.push({ ...page, items: items as any[] })
+  }
+  return allItems
+}
+
+export async function createScrapbookPage(page: {
+  entry_id: string
+  layout_type?: string
+  background_color?: string
+  background_image?: string | null
+}) {
+  const result = await sql`
+    insert into scrapbook_pages (entry_id, layout_type, background_color, background_image)
+    values (
+      ${page.entry_id},
+      ${page.layout_type || 'freeform'},
+      ${page.background_color || '#fdf6f0'},
+      ${page.background_image || null}
+    )
+    returning *
+  `
+  return result[0] as any
+}
+
+export async function createScrapbookItem(item: {
+  page_id: string
+  media_id?: string | null
+  image_url?: string | null
+  caption?: string | null
+  position_x?: number
+  position_y?: number
+  width?: number
+  height?: number
+  rotation?: number
+  scale?: number
+  z_index?: number
+  date_tag?: string | null
+  font_family?: string
+  font_size?: string
+  font_color?: string
+  text_alignment?: string
+}) {
+  const result = await sql`
+    insert into scrapbook_items
+      (page_id, media_id, image_url, caption, position_x, position_y, width, height, rotation, scale, z_index, date_tag, font_family, font_size, font_color, text_alignment)
+    values
+      (
+        ${item.page_id},
+        ${item.media_id || null},
+        ${item.image_url || null},
+        ${item.caption || null},
+        ${item.position_x ?? 0},
+        ${item.position_y ?? 0},
+        ${item.width ?? 120},
+        ${item.height ?? 120},
+        ${item.rotation ?? 0},
+        ${item.scale ?? 1},
+        ${item.z_index ?? 0},
+        ${item.date_tag || null},
+        ${item.font_family || 'serif'},
+        ${item.font_size || '14px'},
+        ${item.font_color || '#374151'},
+        ${item.text_alignment || 'center'}
+      )
+    returning *
+  `
+  return result[0] as any
+}
+
+export async function updateScrapbookItem(id: string, entryId: string, patch: Partial<{
+  media_id: string | null
+  image_url: string | null
+  caption: string | null
+  position_x: number
+  position_y: number
+  width: number
+  height: number
+  rotation: number
+  scale: number
+  z_index: number
+  date_tag: string | null
+  font_family: string
+  font_size: string
+  font_color: string
+  text_alignment: string
+}>) {
+  const sets: string[] = []
+  const values: any[] = []
+  let idx = 0
+
+  const allowedFields = ['media_id', 'image_url', 'caption', 'position_x', 'position_y', 'width', 'height', 'rotation', 'scale', 'z_index', 'date_tag', 'font_family', 'font_size', 'font_color', 'text_alignment']
+
+  for (const key of allowedFields) {
+    if (key in patch) {
+      sets.push(`${key} = $${++idx}`)
+      values.push((patch as any)[key])
+    }
+  }
+  if (!sets.length) return null
+
+  sets.push(`updated_at = now()`)
+  values.push(id, entryId)
+
+  const query = `update scrapbook_items set ${sets.join(', ')} where id = $${++idx} and page_id in (select id from scrapbook_pages where entry_id = $${++idx}) returning *`
+  const result = await sql.query(query, values)
+  return result[0] || null
+}
+
+export async function upsertScrapbookItem(entryId: string, item: any) {
+  const pageResult = await sql`select id from scrapbook_pages where entry_id = ${entryId} limit 1`
+  let pageId: string
+
+  if (pageResult.length === 0) {
+    const page = await createScrapbookPage({ entry_id: entryId })
+    pageId = page.id
+  } else {
+    pageId = pageResult[0].id
+  }
+
+  if (item.id) {
+    const existing = await sql`select id from scrapbook_items where id = ${item.id} and page_id = ${pageId}`
+    if (existing.length) {
+      return await updateScrapbookItem(item.id, entryId, item)
+    }
+  }
+
+  return await createScrapbookItem({
+    page_id: pageId,
+    media_id: item.media_id || null,
+    image_url: item.image_url || null,
+    caption: item.caption || null,
+    position_x: item.position_x,
+    position_y: item.position_y,
+    width: item.width,
+    height: item.height,
+    rotation: item.rotation,
+    scale: item.scale,
+    z_index: item.z_index,
+    date_tag: item.date_tag || null,
+    font_family: item.font_family,
+    font_size: item.font_size,
+    font_color: item.font_color,
+    text_alignment: item.text_alignment,
+  })
+}
+
+export async function updateScrapbookPage(entryId: string, pagePatch: Partial<{
+  layout_type: string
+  background_color: string
+  background_image: string | null
+}>, items: any[] | null) {
+  const pageResult = await sql`select id from scrapbook_pages where entry_id = ${entryId} limit 1`
+  let pageId: string | null = null
+
+  if (pageResult.length) {
+    pageId = pageResult[0].id
+  } else if (Object.keys(pagePatch).length > 0 || items !== null) {
+    const page = await createScrapbookPage({ entry_id: entryId })
+    pageId = page.id
+  }
+
+  if (pageId && Object.keys(pagePatch).length > 0) {
+    const sets: string[] = []
+    const values: any[] = []
+    let idx = 0
+    const allowedFields = ['layout_type', 'background_color', 'background_image']
+    for (const key of allowedFields) {
+      if (key in pagePatch) {
+        sets.push(`${key} = $${++idx}`)
+        values.push((pagePatch as any)[key])
+      }
+    }
+    sets.push(`updated_at = now()`)
+    values.push(pageId)
+    const query = `update scrapbook_pages set ${sets.join(', ')} where id = $${++idx} returning *`
+    await sql.query(query, values)
+  }
+
+  if (pageId && items !== null) {
+    await sql`delete from scrapbook_items where page_id = ${pageId}`
+    for (const item of items) {
+      await sql`
+        insert into scrapbook_items
+          (page_id, media_id, image_url, caption, position_x, position_y, width, height, rotation, scale, z_index, date_tag, font_family, font_size, font_color, text_alignment)
+        values
+          (
+            ${pageId},
+            ${item.media_id || null},
+            ${item.image_url || null},
+            ${item.caption || null},
+            ${item.position_x ?? 0},
+            ${item.position_y ?? 0},
+            ${item.width ?? 120},
+            ${item.height ?? 120},
+            ${item.rotation ?? 0},
+            ${item.scale ?? 1},
+            ${item.z_index ?? 0},
+            ${item.date_tag || null},
+            ${item.font_family || 'serif'},
+            ${item.font_size || '14px'},
+            ${item.font_color || '#374151'},
+            ${item.text_alignment || 'center'}
+          )
+      `
+    }
+  }
+
+  const result = await sql`
+    select sp.*, sitems.items as items
+    from scrapbook_pages sp
+    left join (
+      select page_id, json_agg(si.*) as items
+      from scrapbook_items si
+      group by page_id
+    ) sitems on sitems.page_id = sp.id
+    where sp.entry_id = ${entryId}
+  `
+  return result[0] as any
+}
+
+export async function deleteScrapbookItem(itemId: string, entryId: string) {
+  await sql`
+    delete from scrapbook_items
+    where id = ${itemId}
+    and page_id in (select id from scrapbook_pages where entry_id = ${entryId})
+  `
+}
+
+export async function getScrapbookPagesByEntry(entryId: string) {
+  const result = await sql`
+    select id, entry_id, layout_type, background_color, background_image, created_at, updated_at
+    from scrapbook_pages where entry_id = ${entryId} order by created_at asc
+  `
   return result as any[]
 }
 
-export async function createBouquetFlower(flower: any) {
+export async function getScrapbookItemsByPage(pageId: string) {
   const result = await sql`
-    insert into bouquet_flowers (entry_id, flower_type, color, note, position_x, position_y, rotation, scale, sort_order, generation_seed)
-    values (${flower.entry_id}, ${flower.flower_type}, ${flower.color}, ${flower.note || null}, ${flower.position_x || 50}, ${flower.position_y || 50}, ${flower.rotation || 0}, ${flower.scale || 1.0}, ${flower.sort_order || 0}, ${flower.generation_seed || null})
-    returning *
+    select * from scrapbook_items where page_id = ${pageId} order by z_index asc, created_at asc
   `
-  return result[0]
+  return result as any[]
 }
 
 export async function getPolaroidCardsByEntry(entryId: string) {
@@ -225,72 +467,72 @@ export async function deleteVoiceNote(id: string, entryId: string) {
   await sql`delete from voice_notes where id = ${id} and entry_id = ${entryId}`
 }
 
-export async function getMemoriesByEntry(entryId: string) {
+export async function getBucketListByEntry(entryId: string) {
   const result = await sql`
-    select id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
-    from memories
+    select id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at
+    from bucket_list
     where entry_id = ${entryId}
-    order by memory_date asc, sort_order asc
+    order by dream_date asc, sort_order asc
   `
   return result as any[]
 }
 
-export async function createMemory(memory: {
+export async function createBucketListItem(item: {
   entry_id: string
   title: string
   description?: string | null
-  memory_date: string
+  dream_date: string
   location?: string | null
   latitude?: number | null
   longitude?: number | null
   media_urls?: string[]
-  media_types?: string[] | null
   tags?: string[] | null
-  is_milestone?: boolean
+  is_achieved?: boolean
+  achieved_date?: string | null
   sort_order?: number
 }) {
   const now = new Date().toISOString()
   const result = await sql`
-    insert into memories (entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at)
+    insert into bucket_list (entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at)
     values (
-      ${memory.entry_id},
-      ${memory.title},
-      ${memory.description ?? null},
-      ${memory.memory_date},
-      ${memory.location ?? null},
-      ${memory.latitude ?? null},
-      ${memory.longitude ?? null},
-      ${memory.media_urls ?? []},
-      ${memory.media_types ?? null},
-      ${memory.tags ?? null},
-      ${memory.is_milestone ?? false},
-      ${memory.sort_order ?? 0},
+      ${item.entry_id},
+      ${item.title},
+      ${item.description ?? null},
+      ${item.dream_date},
+      ${item.location ?? null},
+      ${item.latitude ?? null},
+      ${item.longitude ?? null},
+      ${item.media_urls ?? []},
+      ${item.tags ?? null},
+      ${item.is_achieved ?? false},
+      ${item.achieved_date ?? null},
+      ${item.sort_order ?? 0},
       ${now},
       ${now}
     )
-    returning id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
+    returning id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at
   `
   return result[0] as any
 }
 
-export async function updateMemory(id: string, entryId: string, patch: Partial<{
+export async function updateBucketListItem(id: string, entryId: string, patch: Partial<{
   title: string
   description: string | null
-  memory_date: string
+  dream_date: string
   location: string | null
   latitude: number | null
   longitude: number | null
   media_urls: string[]
-  media_types: string[] | null
   tags: string[] | null
-  is_milestone: boolean
+  is_achieved: boolean
+  achieved_date: string | null
   sort_order: number
 }>) {
   const sets: string[] = []
   const values: any[] = []
   let idx = 0
 
-  const allowedFields = ['title', 'description', 'memory_date', 'location', 'latitude', 'longitude', 'media_urls', 'media_types', 'tags', 'is_milestone', 'sort_order']
+  const allowedFields = ['title', 'description', 'dream_date', 'location', 'latitude', 'longitude', 'media_urls', 'tags', 'is_achieved', 'achieved_date', 'sort_order']
 
   for (const key of allowedFields) {
     if (key in patch) {
@@ -301,13 +543,13 @@ export async function updateMemory(id: string, entryId: string, patch: Partial<{
   if (!sets.length) return null
 
   values.push(entryId, id)
-  const query = `update memories set ${sets.join(', ')}, updated_at = now() where id = $${++idx} and entry_id = $${++idx} returning id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at`
+  const query = `update bucket_list set ${sets.join(', ')}, updated_at = now() where id = $${++idx} and entry_id = $${++idx} returning id, entry_id, title, description, dream_date, location, latitude, longitude, media_urls, tags, is_achieved, achieved_date, sort_order, created_at, updated_at`
   const result = await sql.query(query, values)
   return result[0] || null
 }
 
-export async function deleteMemory(id: string, entryId: string) {
-  await sql`delete from memories where id = ${id} and entry_id = ${entryId}`
+export async function deleteBucketListItem(id: string, entryId: string) {
+  await sql`delete from bucket_list where id = ${id} and entry_id = ${entryId}`
 }
 
 export async function getDiaries(userId: string) {

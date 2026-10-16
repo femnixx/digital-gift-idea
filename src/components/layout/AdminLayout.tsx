@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Heart, Plus, Calendar, Music, Gamepad2, Mail, Coffee, Flower2, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
+import { Heart, Plus, Calendar, Music, Gamepad2, Mail, Coffee, Image, Camera, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { EntryType } from '@/types'
 
@@ -83,7 +83,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const entryTypes: { type: EntryType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { type: 'letter', label: 'Love Letter', icon: Mail },
-    { type: 'bouquet', label: 'Digital Bouquet', icon: Flower2 },
+    { type: 'scrapbook', label: 'Scrapbook', icon: Image },
     { type: 'polaroid', label: 'Polaroid Deck', icon: Camera },
     { type: 'scratch_card', label: 'Scratch Card', icon: Gamepad2 },
     { type: 'open_when', label: 'Open When', icon: Mail },

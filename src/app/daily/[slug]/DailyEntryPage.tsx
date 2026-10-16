@@ -15,9 +15,10 @@ import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDa
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
 import { LetterEditor } from '@/components/features/LetterEditor'
-import { MemoryLane } from '@/components/features/MemoryLane'
+import { BucketList } from '@/components/features/BucketList'
+import { Scrapbook } from '@/components/features/Scrapbook'
 import { GiftOpening } from '@/components/gift/GiftOpening'
-import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, Memory } from '@/types'
+import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, BucketListItem, ScrapbookPage, Media } from '@/types'
 
 interface DailyEntryPageProps {
   entry: Entry
@@ -78,21 +79,36 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
 
   const renderContent = () => {
     switch (entry.type) {
-      case 'memory':
+      case 'bucket_list':
         return (
           <div>
             {isEditing ? (
-              <MemoryLane
-                memories={entry.memories || []}
+              <BucketList
+                items={entry.bucket_list || []}
                 entryId={entry.id}
                 isEditing={isEditing}
                 onSave={(updated) => {
-                  Object.assign(entry, { memories: updated, updated_at: new Date().toISOString() })
+                  Object.assign(entry, { bucket_list: updated, updated_at: new Date().toISOString() })
                 }}
               />
             ) : (
-              <MemoryLane memories={entry.memories || []} entryId={entry.id} />
+              <BucketList items={entry.bucket_list || []} entryId={entry.id} />
             )}
+          </div>
+        )
+
+      case 'scrapbook':
+        return (
+          <div>
+            <Scrapbook
+              pages={entry.scrapbook_pages || []}
+              media={entry.media || []}
+              entryId={entry.id}
+              isEditing={isEditing}
+              onSave={(updated) => {
+                Object.assign(entry, { scrapbook_pages: updated, updated_at: new Date().toISOString() })
+              }}
+            />
           </div>
         )
 
@@ -301,21 +317,36 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
           </div>
         )
 
-      case 'memory':
+      case 'bucket_list':
         return (
           <div>
             {isEditing ? (
-              <MemoryLane
-                memories={entry.memories || []}
+              <BucketList
+                items={entry.bucket_list || []}
                 entryId={entry.id}
                 isEditing={isEditing}
                 onSave={(updated) => {
-                  Object.assign(entry, { memories: updated, updated_at: new Date().toISOString() })
+                  Object.assign(entry, { bucket_list: updated, updated_at: new Date().toISOString() })
                 }}
               />
             ) : (
-              <MemoryLane memories={entry.memories || []} entryId={entry.id} />
+              <BucketList items={entry.bucket_list || []} entryId={entry.id} />
             )}
+          </div>
+        )
+
+      case 'scrapbook':
+        return (
+          <div>
+            <Scrapbook
+              pages={entry.scrapbook_pages || []}
+              media={entry.media || []}
+              entryId={entry.id}
+              isEditing={isEditing}
+              onSave={(updated) => {
+                Object.assign(entry, { scrapbook_pages: updated, updated_at: new Date().toISOString() })
+              }}
+            />
           </div>
         )
 

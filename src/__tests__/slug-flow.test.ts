@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const createEntrySchema = {
   title: (value: string) => value.length >= 1 && value.length <= 200,
-  type: (value: string) => ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note'].includes(value),
+  type: (value: string) => ['letter', 'bucket_list', 'scrapbook', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note'].includes(value),
   slug: (value: string) => value.length >= 1 && value.length <= 100 && /^[a-z0-9-]+$/.test(value),
   is_published: (value: boolean) => typeof value === 'boolean',
 }

@@ -24,7 +24,7 @@ function url(entryId: string, token: string): string {
  *
  * The API returns a Zod issue object as `error` on a validation failure, not a
  * string, so checking only for a string fell through to the generic fallback
- * and a 400 became "Could not save bouquet" with no reason attached.
+ * and a 400 became "Could not save scratch card" with no reason attached.
  */
 async function readError(res: Response, fallback: string): Promise<string> {
   try {

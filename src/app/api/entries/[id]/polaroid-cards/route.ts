@@ -52,7 +52,7 @@ function normaliseCard(row: Record<string, unknown>) {
  * Polaroid decks.
  *
  * The customizer edits a whole deck, so this replaces the set in one
- * transaction, as with the bouquet. Styling columns are persisted alongside the
+ * transaction, as with the scrapbook. Styling columns are persisted alongside the
  * image because the customizer edits them and the public view renders them.
  */
 export async function GET(
