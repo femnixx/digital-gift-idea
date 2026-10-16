@@ -225,6 +225,91 @@ export async function deleteVoiceNote(id: string, entryId: string) {
   await sql`delete from voice_notes where id = ${id} and entry_id = ${entryId}`
 }
 
+export async function getMemoriesByEntry(entryId: string) {
+  const result = await sql`
+    select id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
+    from memories
+    where entry_id = ${entryId}
+    order by memory_date asc, sort_order asc
+  `
+  return result as any[]
+}
+
+export async function createMemory(memory: {
+  entry_id: string
+  title: string
+  description?: string | null
+  memory_date: string
+  location?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  media_urls?: string[]
+  media_types?: string[] | null
+  tags?: string[] | null
+  is_milestone?: boolean
+  sort_order?: number
+}) {
+  const now = new Date().toISOString()
+  const result = await sql`
+    insert into memories (entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at)
+    values (
+      ${memory.entry_id},
+      ${memory.title},
+      ${memory.description ?? null},
+      ${memory.memory_date},
+      ${memory.location ?? null},
+      ${memory.latitude ?? null},
+      ${memory.longitude ?? null},
+      ${memory.media_urls ?? []},
+      ${memory.media_types ?? null},
+      ${memory.tags ?? null},
+      ${memory.is_milestone ?? false},
+      ${memory.sort_order ?? 0},
+      ${now},
+      ${now}
+    )
+    returning id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at
+  `
+  return result[0] as any
+}
+
+export async function updateMemory(id: string, entryId: string, patch: Partial<{
+  title: string
+  description: string | null
+  memory_date: string
+  location: string | null
+  latitude: number | null
+  longitude: number | null
+  media_urls: string[]
+  media_types: string[] | null
+  tags: string[] | null
+  is_milestone: boolean
+  sort_order: number
+}>) {
+  const sets: string[] = []
+  const values: any[] = []
+  let idx = 0
+
+  const allowedFields = ['title', 'description', 'memory_date', 'location', 'latitude', 'longitude', 'media_urls', 'media_types', 'tags', 'is_milestone', 'sort_order']
+
+  for (const key of allowedFields) {
+    if (key in patch) {
+      sets.push(`${key} = $${++idx}`)
+      values.push((patch as any)[key])
+    }
+  }
+  if (!sets.length) return null
+
+  values.push(entryId, id)
+  const query = `update memories set ${sets.join(', ')}, updated_at = now() where id = $${++idx} and entry_id = $${++idx} returning id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at`
+  const result = await sql.query(query, values)
+  return result[0] || null
+}
+
+export async function deleteMemory(id: string, entryId: string) {
+  await sql`delete from memories where id = ${id} and entry_id = ${entryId}`
+}
+
 export async function getDiaries(userId: string) {
   const result = await sql`select * from love_diaries where user_id = ${userId} order by created_at desc`
   return result as any[]

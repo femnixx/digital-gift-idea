@@ -18,6 +18,19 @@ function normaliseCard(row: Record<string, any>) {
   }
 }
 
+function normaliseMemory(row: Record<string, any>) {
+  return {
+    ...row,
+    latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
+    longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
+    sort_order: Number(row.sort_order ?? 0),
+    is_milestone: Boolean(row.is_milestone),
+    media_urls: Array.isArray(row.media_urls) ? row.media_urls : [],
+    media_types: Array.isArray(row.media_types) ? row.media_types : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+  }
+}
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -50,7 +63,7 @@ export async function GET(
       )
     }
 
-    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
+    const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, memories] = await Promise.all([
       sql`SELECT * FROM media WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT * FROM bouquet_flowers WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT * FROM polaroid_cards WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
@@ -61,6 +74,7 @@ export async function GET(
          FROM voice_notes v
          LEFT JOIN media m ON m.id = v.media_id
          WHERE v.entry_id = ${entry.id} ORDER BY v.created_at ASC`,
+      sql`SELECT id, entry_id, title, description, memory_date, location, latitude, longitude, media_urls, media_types, tags, is_milestone, sort_order, created_at, updated_at FROM memories WHERE entry_id = ${entry.id} ORDER BY memory_date ASC, sort_order ASC, created_at ASC`,
     ])
 
     const now = new Date()
@@ -105,6 +119,7 @@ export async function GET(
                 }
               : null,
           })),
+          memories: (memories as any[]).map(normaliseMemory),
         },
       },
       { headers: NO_STORE_HEADERS }

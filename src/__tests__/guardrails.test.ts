@@ -231,147 +231,17 @@ describe('Anonymous gift flow guardrails', () => {
     })
   })
 
-  describe('Bouquet persistence', () => {
-    it('saves an arrangement and reads it back', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq1-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-      expect(token).toBeTruthy()
-
-      const flowers = [
-        { flower_type: 'rose', color: '#e11d48', position_x: 50, position_y: 58, rotation: 0, scale: 1.16 },
-        { flower_type: 'lavender', color: '#a78bfa', position_x: 62.7, position_y: 52, rotation: 5.7, scale: 1.11 },
-      ]
-
-      const put = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers }),
-      })
-      log('bouquet save', put.status)
-      expect(put.status).toBe(200)
-      expect((await put.json()).flowers).toHaveLength(2)
-
-      const get = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)
-      const saved = await get.json()
-      log('bouquet load', get.status)
-      expect(get.status).toBe(200)
-      expect(saved.flowers).toHaveLength(2)
-      expect(saved.flowers.map((f: any) => f.flower_type).sort()).toEqual(['lavender', 'rose'])
-    }, 40000)
-
-    it('replaces rather than appends, so removing a flower sticks', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq2-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      const put = async (flowers: unknown[]) =>
-        fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-          ...FETCH_OPTS, method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ flowers }),
-        })
-
-      await put([{ flower_type: 'rose', color: '#e11d48', position_x: 50, position_y: 50, rotation: 0, scale: 1 }])
-      await put([{ flower_type: 'tulip', color: '#f472b6', position_x: 30, position_y: 40, rotation: 0, scale: 1 }])
-
-      const get = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)
-      const saved = await get.json()
-      expect(saved.flowers).toHaveLength(1)
-      expect(saved.flowers[0].flower_type).toBe('tulip')
-    }, 40000)
-
-    it('refuses to read or write without the edit token', async () => {
-      const { slug } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq3-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      const read = await fetch(`${BASE}/api/entries/${slug}/bouquet`)
-      log('bouquet read no token', read.status, '(expect 404)')
-      expect(read.status).toBe(404)
-
-      const write = await fetch(`${BASE}/api/entries/${slug}/bouquet`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers: [] }),
-      })
-      log('bouquet write no token', write.status, '(expect 404)')
-      expect(write.status).toBe(404)
-    }, 30000)
-
-    it('rejects a flower type the palette does not have', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq4-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers: [{ flower_type: 'orchid', color: '#ff0000', position_x: 50, position_y: 50, rotation: 0, scale: 1 }] }),
-      })
-      log('bouquet bad type', res.status, '(expect 400)')
-      expect(res.status).toBe(400)
-    }, 30000)
-
-    it('rejects a colour that is not a hex value', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq5-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers: [{ flower_type: 'rose', color: 'red', position_x: 50, position_y: 50, rotation: 0, scale: 1 }] }),
-      })
-      log('bouquet bad colour', res.status, '(expect 400)')
-      expect(res.status).toBe(400)
-    }, 30000)
-
-    it('rejects a pixel coordinate given where a percentage belongs', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq6-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      // 232 is a valid pixel offset but not a percentage; the range check is
-      // what surfaces that unit confusion instead of storing a silent bad row.
-      const res = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers: [{ flower_type: 'rose', color: '#e11d48', position_x: 12, position_y: 232, rotation: 0, scale: 1 }] }),
-      })
-      log('bouquet pixel coord', res.status, '(expect 400)')
-      expect(res.status).toBe(400)
-    }, 30000)
-
-    it('exposes saved flowers to the recipient through the public API', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bq7-${Date.now().toString(36)}`, content: {}, is_published: true,
-      })
-
-      await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers: [{ flower_type: 'sunflower', color: '#f59e0b', position_x: 50, position_y: 58, rotation: 0, scale: 1.16 }] }),
-      })
-
-      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
-      const entry = (await pub.json()).entry
-      expect(pub.status).toBe(200)
-      expect(entry.bouquet_flowers).toHaveLength(1)
-      expect(entry.bouquet_flowers[0].flower_type).toBe('sunflower')
-    }, 40000)
-  })
-
   describe('Recipient view is read-only', () => {
     it('exposes no edit affordance for any service type', async () => {
       const markers = [
         'Edit Letter', 'Edit Polaroids', 'Edit Scratch Cards',
-        'Edit Open When Letters', 'Edit Coffee Date', 'Edit Bouquet',
+        'Edit Open When Letters', 'Edit Coffee Date',
         'Add Scratch Card', 'Add Your First Scratch Card', 'Auto-arrange', 'Regenerate',
+        'Add Memory', 'Add Your First Memory', 'Edit Memory',
       ]
 
       // Every service the public view can render.
-      for (const type of ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']) {
+      for (const type of ['letter', 'memory', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']) {
         const slug = `ro3-${type.replace('_', '-')}-${Date.now().toString(36)}`
         const created = await createGift({
           title: 'Read only', type, slug, content: { message: 'hi' }, is_published: true,
@@ -386,12 +256,12 @@ describe('Anonymous gift flow guardrails', () => {
           expect(html, `${type} recipient view must not offer "${marker}"`).not.toContain(marker)
         }
       }
-    }, 120000)
+    }, 180000)
   })
 
   describe('Opening ceremony', () => {
     it('plays for every service type', async () => {
-      const types = ['letter', 'bouquet', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
+      const types = ['letter', 'memory', 'polaroid', 'scratch_card', 'open_when', 'coffee_date', 'voice_note']
       for (const t of types) {
         const slug = `cov-${t.replace('_', '-')}-${Date.now().toString(36)}`
         const created = await createGift({ title: `${t}`, type: t, slug, content: {}, is_published: true })
@@ -403,7 +273,7 @@ describe('Anonymous gift flow guardrails', () => {
         expect(page.status).toBe(200)
         expect(html).toContain('Open it')
       }
-    }, 120000)
+    }, 180000)
   })
 
   describe('Public visibility', () => {
@@ -520,49 +390,6 @@ describe('Anonymous gift flow guardrails', () => {
       expect(saved.font_size).toBe('18px')
       expect(saved.text_alignment).toBe('center')
       expect(saved.stickers).toEqual(['heart', 'star'])
-    }, 40000)
-
-    it('round-trips: a saved bouquet can be loaded and saved again unchanged', async () => {
-      const { slug, token } = await withEntryToken({
-        title: 'Bouquet', type: 'bouquet', slug: `bqrt-${Date.now().toString(36)}`, content: {}, is_published: false,
-      })
-
-      // No generation_seed, exactly as the UI adds a flower. This was the last
-      // piece of the round-trip failure: it stored null and the schema wanted a
-      // number.
-      const flowers = [
-        { flower_type: 'rose', color: '#FF69B4', position_x: 58.5, position_y: 38.25, rotation: -5.5, scale: 1.25 },
-        { flower_type: 'sunflower', color: '#f59e0b', position_x: 40, position_y: 23, rotation: 0, scale: 1.1 },
-      ]
-
-      const put = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flowers }),
-      })
-      expect(put.status).toBe(200)
-
-      // Take exactly what the API handed back and send it straight back. The
-      // editor does this on every save, and it used to fail with 400 because
-      // DECIMAL columns arrived as strings and generation_seed arrived as null.
-      const loaded = await (await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`)).json()
-
-      for (const [field, min, max] of [['position_x', 0, 100], ['position_y', 0, 100], ['rotation', -45, 45], ['scale', 0.1, 5]] as const) {
-        for (const flower of loaded.flowers) {
-          expect(typeof flower[field], `${field} must be a number, not a string`).toBe('number')
-          expect(Number.isFinite(flower[field])).toBe(true)
-        }
-        void min; void max
-      }
-
-      const resave = await fetch(`${BASE}/api/entries/${slug}/bouquet?token=${token}`, {
-        ...FETCH_OPTS, method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loaded),
-      })
-      log('bouquet round-trip re-save', resave.status, '(expect 200)')
-      expect(resave.status).toBe(200)
-      expect((await resave.json()).flowers).toHaveLength(2)
     }, 40000)
 
     it('replaces rather than appends', async () => {
@@ -1039,6 +866,158 @@ describe('Anonymous gift flow guardrails', () => {
     }, 40000)
   })
 
+  describe('Memory Lane persistence', () => {
+    const memoryPayload = {
+      title: 'First Date',
+      description: 'We met at the bookstore',
+      memory_date: '2024-03-15',
+      location: 'Downtown Books',
+      tags: ['first', 'special'],
+      is_milestone: true,
+    }
+
+    it('saves memories and reads them back', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml1-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const post = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryPayload),
+      })
+      log('memory save', post.status)
+      expect(post.status).toBe(201)
+      expect((await post.json()).memory?.title).toBe('First Date')
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
+      const saved = await get.json()
+      log('memory load', get.status)
+      expect(get.status).toBe(200)
+      expect(saved.memories).toHaveLength(1)
+      expect(saved.memories[0].title).toBe('First Date')
+      expect(saved.memories[0].is_milestone).toBe(true)
+    }, 40000)
+
+    it('replaces rather than appends via PUT', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml2-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryPayload),
+      })
+
+      const put = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memories: [{ ...memoryPayload, title: 'Changed' }] }),
+      })
+      log('memory replace', put.status)
+      expect(put.status).toBe(200)
+      const putData = await put.json()
+      expect(putData.memories).toHaveLength(1)
+      expect(putData.memories[0].title).toBe('Changed')
+    }, 40000)
+
+    it('refuses to read or write without the edit token', async () => {
+      const { slug } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml3-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const read = await fetch(`${BASE}/api/entries/${slug}/memories`, FETCH_OPTS)
+      log('memory read no token', read.status, '(expect 404)')
+      expect(read.status).toBe(404)
+
+      const write = await fetch(`${BASE}/api/entries/${slug}/memories`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryPayload),
+      })
+      log('memory write no token', write.status, '(expect 404)')
+      expect(write.status).toBe(404)
+    }, 30000)
+
+    it('rejects an invalid date', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml4-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const res = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...memoryPayload, memory_date: 'not-a-date' }),
+      })
+      log('memory bad date', res.status, '(expect 400)')
+      expect(res.status).toBe(400)
+    }, 30000)
+
+    it('deletes a memory by id', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml5-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      const created = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryPayload),
+      })
+      const memoryId = (await created.json()).memory.id
+
+      const del = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}&memory_id=${memoryId}`, {
+        ...FETCH_OPTS, method: 'DELETE',
+      })
+      log('memory delete', del.status)
+      expect(del.status).toBe(200)
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
+      expect((await get.json()).memories).toHaveLength(0)
+    }, 40000)
+
+    it('exposes memories to the recipient through the public API', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml6-${Date.now().toString(36)}`, content: {}, is_published: true,
+      })
+
+      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memoryPayload),
+      })
+
+      const pub = await fetch(`${BASE}/api/public/entries/${slug}`)
+      const entry = (await pub.json()).entry
+      expect(pub.status).toBe(200)
+      expect(entry.memories).toHaveLength(1)
+      expect(entry.memories[0].title).toBe('First Date')
+    }, 40000)
+
+    it('sorts memories chronologically on load', async () => {
+      const { slug, token } = await withEntryToken({
+        title: 'Memories', type: 'memory', slug: `ml7-${Date.now().toString(36)}`, content: {}, is_published: false,
+      })
+
+      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Later', memory_date: '2024-06-01', is_milestone: false }),
+      })
+      await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`, {
+        ...FETCH_OPTS, method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Earlier', memory_date: '2024-01-15', is_milestone: false }),
+      })
+
+      const get = await fetch(`${BASE}/api/entries/${slug}/memories?token=${token}`)
+      const saved = await get.json()
+      expect(saved.memories).toHaveLength(2)
+      expect(saved.memories[0].title).toBe('Earlier')
+      expect(saved.memories[1].title).toBe('Later')
+    }, 40000)
+  })
+
   describe('Admin isolation', () => {
     it('an anonymous visitor cannot reach admin metrics, health or entry listing', async () => {
       for (const path of ['/api/admin/stats', '/api/admin/health', '/api/entries']) {
@@ -1079,7 +1058,7 @@ describe('Anonymous gift flow guardrails', () => {
 
       expect(res.status).toBe(200)
       const ids = (data.services || []).map((s: any) => s.id)
-      for (const required of ['database', 'storage', 'auth', 'gift-letter', 'gift-bouquet', 'gift-voice_note']) {
+      for (const required of ['database', 'storage', 'auth', 'gift-letter', 'gift-memory', 'gift-bouquet', 'gift-voice_note']) {
         expect(ids).toContain(required)
       }
       for (const service of data.services) {

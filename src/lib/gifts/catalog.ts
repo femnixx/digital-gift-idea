@@ -8,6 +8,7 @@ import type { EntryType } from '@/types'
  */
 export const GIFT_LABELS: Record<EntryType, string> = {
   letter: 'Love Letter',
+  memory: 'Memory Lane',
   bouquet: 'Digital Bouquet',
   polaroid: 'Polaroid Deck',
   scratch_card: 'Scratch Card',
@@ -18,6 +19,7 @@ export const GIFT_LABELS: Record<EntryType, string> = {
 
 export const GIFT_TABLES: Record<EntryType, string> = {
   letter: 'entries',
+  memory: 'memories',
   bouquet: 'bouquet_flowers',
   polaroid: 'polaroid_cards',
   scratch_card: 'scratch_cards',

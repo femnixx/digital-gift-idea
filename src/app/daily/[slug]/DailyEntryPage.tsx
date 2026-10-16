@@ -6,7 +6,6 @@ import { gsap } from 'gsap'
 import { Heart, Edit3, X, EyeOff, CheckCircle2, ArrowLeft, Calendar, Share2 } from 'lucide-react'
 import { useNav } from '@/hooks/useNav'
 import { format } from 'date-fns'
-import { DigitalBouquet } from '@/components/features/DigitalBouquet'
 import { PolaroidDeck } from '@/components/features/PolaroidDeck'
 import { ScratchCard } from '@/components/features/ScratchCard'
 import { ScratchCardCustomizer } from '@/components/features/ScratchCardCustomizer'
@@ -16,9 +15,9 @@ import { CoffeeDateWidget, CoffeeDateGrid } from '@/components/features/CoffeeDa
 import { CoffeeDateSelector } from '@/components/features/CoffeeDateSelector'
 import { TimezoneClock } from '@/components/features/TimezoneClock'
 import { LetterEditor } from '@/components/features/LetterEditor'
+import { MemoryLane } from '@/components/features/MemoryLane'
 import { GiftOpening } from '@/components/gift/GiftOpening'
-import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, BouquetFlower, FlowerType } from '@/types'
-import { FLOWER_CONFIG } from '@/types'
+import type { Entry, ScratchCard as ScratchCardType, CoffeeDate as AppCoffeeDate, Memory } from '@/types'
 
 interface DailyEntryPageProps {
   entry: Entry
@@ -33,7 +32,6 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
   const [editingScratchCard, setEditingScratchCard] = useState<ScratchCardType | null>(null)
   const [editingOpenWhenLetters, setEditingOpenWhenLetters] = useState(false)
   const [editingCoffeeDates, setEditingCoffeeDates] = useState(false)
-  const [editingBouquet, setEditingBouquet] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -78,82 +76,24 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
     setEditingCoffeeDates(false)
   }
 
-  const handleBouquetSave = (flowers: any[]) => {
-    const updated = { ...entry, bouquet_flowers: flowers, updated_at: new Date().toISOString() } as Entry
-    Object.assign(entry, updated)
-    setEditingBouquet(false)
-  }
-
-  const updateBouquetFlowers = (flowers: any[]) => {
-    Object.assign(entry, {
-      bouquet_flowers: flowers,
-      updated_at: new Date().toISOString(),
-    })
-  }
-
-  const handleAddFlower = () => {
-    const current = entry.bouquet_flowers || []
-    const newFlower = {
-      id: `flower-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      entry_id: entry.id,
-      flower_type: 'rose' as const,
-      color: '#0284c7',
-      note: null,
-      position_x: 50,
-      position_y: 50,
-      rotation: Math.random() * 30 - 15,
-      scale: 0.8 + Math.random() * 0.4,
-      sort_order: current.length,
-      created_at: new Date().toISOString(),
-      generation_seed: Math.floor(Math.random() * 1000000),
-    }
-    updateBouquetFlowers([...current, newFlower])
-  }
-
-  const handleRemoveFlower = (id: string) => {
-    const updated = (entry.bouquet_flowers || []).filter(f => f.id !== id)
-    updateBouquetFlowers(updated)
-  }
-
-  const handleUpdateFlower = (id: string, updates: Partial<BouquetFlower>) => {
-    const updated = (entry.bouquet_flowers || []).map(f =>
-      f.id === id ? { ...f, ...updates } : f
-    )
-    updateBouquetFlowers(updated)
-  }
-
   const renderContent = () => {
     switch (entry.type) {
-      case 'bouquet':
-        if (editingBouquet) {
-          return (
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowScratchCustomizer(false)}
-                    className="px-4 py-2 rounded-lg bg-base-2 border-card-border text-text text-sm hover:bg-base transition-colors inline-flex items-center gap-2"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Done Editing
-                  </button>
-              </div>
-              <DigitalBouquet
-                flowers={entry.bouquet_flowers || []}
-                isEditing={true}
-                onAddFlower={handleAddFlower}
-                onRemoveFlower={handleRemoveFlower}
-                onUpdateFlower={handleUpdateFlower}
-                onReplaceFlowers={updateBouquetFlowers}
+      case 'memory':
+        return (
+          <div>
+            {isEditing ? (
+              <MemoryLane
+                memories={entry.memories || []}
                 entryId={entry.id}
+                isEditing={isEditing}
+                onSave={(updated) => {
+                  Object.assign(entry, { memories: updated, updated_at: new Date().toISOString() })
+                }}
               />
-            </div>
-          )
-        }
-        return entry.bouquet_flowers && entry.bouquet_flowers.length > 0 ? (
-          <DigitalBouquet flowers={entry.bouquet_flowers} />
-        ) : (
-          <p className="text-center text-muted py-12">No flowers in this bouquet yet</p>
+            ) : (
+              <MemoryLane memories={entry.memories || []} entryId={entry.id} />
+            )}
+          </div>
         )
 
       case 'polaroid':
@@ -357,6 +297,24 @@ export function DailyEntryPage({ entry }: DailyEntryPageProps) {
                 <Edit3 className="w-4 h-4" />
                 Add Your First Coffee Date
               </button>
+            )}
+          </div>
+        )
+
+      case 'memory':
+        return (
+          <div>
+            {isEditing ? (
+              <MemoryLane
+                memories={entry.memories || []}
+                entryId={entry.id}
+                isEditing={isEditing}
+                onSave={(updated) => {
+                  Object.assign(entry, { memories: updated, updated_at: new Date().toISOString() })
+                }}
+              />
+            ) : (
+              <MemoryLane memories={entry.memories || []} entryId={entry.id} />
             )}
           </div>
         )

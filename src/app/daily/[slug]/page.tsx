@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { DailyEntryPage } from './DailyEntryPage'
 import { DailyEntryPageClient } from './DailyEntryPageClient'
 import { getEntryBySlug } from '@/lib/neon/db'
-import { getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry } from '@/lib/neon/db'
+import { getMediaByEntry, getBouquetFlowersByEntry, getPolaroidCardsByEntry, getScratchCardsByEntry, getOpenWhenLettersByEntry, getCoffeeDatesByEntry, getVoiceNotesByEntry, getMemoriesByEntry } from '@/lib/neon/db'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -40,7 +40,7 @@ export default async function DailyEntryRoute({ params }: PageProps) {
     return <DailyEntryPageClient slug={slug} />
   }
 
-  const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes] = await Promise.all([
+  const [media, bouquetFlowers, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, memories] = await Promise.all([
     getMediaByEntry(entry.id),
     getBouquetFlowersByEntry(entry.id),
     getPolaroidCardsByEntry(entry.id),
@@ -48,6 +48,7 @@ export default async function DailyEntryRoute({ params }: PageProps) {
     getOpenWhenLettersByEntry(entry.id),
     getCoffeeDatesByEntry(entry.id),
     getVoiceNotesByEntry(entry.id),
+    getMemoriesByEntry(entry.id),
   ])
 
   const enrichedEntry = {
@@ -58,19 +59,18 @@ export default async function DailyEntryRoute({ params }: PageProps) {
     scratch_cards: scratchCards,
     open_when_letters: openWhenLetters,
     coffee_dates: coffeeDates,
-    // Uploads leave public_url null, so give every note the permanent streaming
-    // path. Without this the player is handed an empty string and stays silent.
     voice_notes: (voiceNotes as any[]).map((note) => ({
       ...note,
       media: note.media
         ? {
-            ...note.media,
-            public_url:
-              note.media.public_url ||
-              `/api/public/entries/${slug}/media/${note.media.id}`,
-          }
+          ...note.media,
+          public_url:
+            note.media.public_url ||
+            `/api/public/entries/${slug}/media/${note.media.id}`,
+        }
         : null,
     })),
+    memories: memories,
   }
 
   return <DailyEntryPage entry={enrichedEntry} />

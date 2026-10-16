@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines, Check, ArrowRight, ArrowLeft
+  Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar, Check, ArrowRight, ArrowLeft
 } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
 import { Button, Field } from '@/components/ui/primitives'
@@ -19,6 +19,7 @@ interface Option {
 
 const OPTIONS: Option[] = [
   { type: 'letter', label: 'Love Letter', blurb: 'A heartfelt note with beautiful typography', icon: Mail, accent: 'sky' },
+  { type: 'memory', label: 'Memory Lane', blurb: 'A timeline of photos, dates, and stories', icon: Calendar, accent: 'amber' },
   { type: 'bouquet', label: 'Digital Bouquet', blurb: 'Flowers that never wilt, arranged by you', icon: Flower2, accent: 'green' },
   { type: 'polaroid', label: 'Polaroid Deck', blurb: 'Photo memories with tilt and hidden notes', icon: Camera, accent: 'amber' },
   { type: 'scratch_card', label: 'Scratch Card', blurb: 'A surprise hidden under a scratch-off cover', icon: ScanFace, accent: 'purple' },

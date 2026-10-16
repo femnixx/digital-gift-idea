@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines } from 'lucide-react'
+import { Mail, Flower2, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar } from 'lucide-react'
 import type { EntryType } from '@/types'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
 
@@ -37,6 +37,7 @@ export interface GiftOpeningProps {
 
 const ICONS: Record<EntryType, typeof Mail> = {
   letter: Mail,
+  memory: Calendar,
   bouquet: Flower2,
   polaroid: Camera,
   scratch_card: ScanFace,
@@ -141,9 +142,29 @@ function Cover({ type, opened }: { type: EntryType; opened: boolean }) {
     return (
       <div className="w-56 h-56 rounded-3xl bg-surface border-2 border-line flex items-center justify-center">
         <SealedGlyph type={type} />
-      </div>
-    )
-  }
+    </div>
+  )
+}
+
+function TimelineCover({ opened }: { opened: boolean }) {
+  const cards = useMemo(() => Array.from({ length: 5 }, (_, i) => i), [])
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center gap-1">
+      {cards.map((i) => (
+        <motion.div
+          key={i}
+          className="w-8 h-12 rounded-lg bg-card border-2 border-line shadow-polaroid flex items-center justify-center"
+          initial={{ rotate: -10, y: 20, opacity: 0 }}
+          animate={opened ? { rotate: 0, y: 0, opacity: 1 } : { rotate: -10, y: 20, opacity: 0 }}
+          transition={{ duration: 0.6, delay: opened ? i * 0.08 : 0, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <Calendar className="w-5 h-5 text-brand" />
+        </motion.div>
+      ))}
+    </div>
+  )
+}
 
   return (
     <motion.div
@@ -158,6 +179,7 @@ function Cover({ type, opened }: { type: EntryType; opened: boolean }) {
       {type === 'scratch_card' && <FoilCover opened={opened} />}
       {type === 'coffee_date' && <SteamCover opened={opened} />}
       {type === 'voice_note' && <CassetteCover opened={opened} />}
+      {type === 'memory' && <TimelineCover opened={opened} />}
     </motion.div>
   )
 }

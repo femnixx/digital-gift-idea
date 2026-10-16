@@ -1,10 +1,11 @@
 export type EntryType = 
   | 'letter' 
-  | 'bouquet' 
-  | 'polaroid' 
-  | 'scratch_card' 
-  | 'open_when' 
-  | 'coffee_date' 
+  | 'memory'
+  | 'bouquet'
+  | 'polaroid'
+  | 'scratch_card'
+  | 'open_when'
+  | 'coffee_date'
   | 'voice_note'
 
 export type MediaType = 'image' | 'audio' | 'video'
@@ -53,6 +54,7 @@ export interface Entry {
   open_when_letters?: OpenWhenLetter[]
   coffee_dates?: CoffeeDate[]
   voice_notes?: VoiceNote[]
+  memories?: Memory[]
 }
 
 export interface Media {
@@ -157,6 +159,24 @@ export interface VoiceNote {
   duration_seconds: number | null
   cassette_side: 'A' | 'B'
   created_at: string
+}
+
+export interface Memory {
+  id: string
+  entry_id: string
+  title: string
+  description: string | null
+  memory_date: string
+  location: string | null
+  latitude: number | null
+  longitude: number | null
+  media_urls: string[]
+  media_types: string[] | null
+  tags: string[] | null
+  is_milestone: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
 }
 
 export interface PartnerInteraction {
