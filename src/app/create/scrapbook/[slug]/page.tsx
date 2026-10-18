@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { PublicShell } from '@/components/layout/PublicShell'
 import { Scrapbook } from '@/components/features/Scrapbook'
 import type { Entry, ScrapbookPage, Media } from '@/types'
 
 interface ScrapbookPageProps {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<{ token?: string }>
+  params: { slug: string }
+  searchParams: { token?: string }
 }
 
 export default function ScrapbookEditorPage({ params, searchParams }: ScrapbookPageProps) {
-  const { slug } = use(params)
-  const { token } = use(searchParams)
+  const { slug } = params
+  const { token } = searchParams
   const [entry, setEntry] = useState<Entry | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

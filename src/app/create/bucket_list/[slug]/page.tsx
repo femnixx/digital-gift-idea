@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, MapPin, Tag, Heart, Share2, Copy, Check, Edit3, Plus, Trash2 } from 'lucide-react'
 import { useNav } from '@/hooks/useNav'
@@ -12,13 +12,13 @@ import type { Entry, BucketListItem } from '@/types'
 import { resolveEntryByIdOrSlug } from '@/lib/repositories/entryRepository'
 
 interface BucketListPageProps {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<{ token?: string }>
+  params: { slug: string }
+  searchParams: { token?: string }
 }
 
 export default function BucketListEditorPage({ params, searchParams }: BucketListPageProps) {
-  const { slug } = use(params)
-  const { token } = use(searchParams)
+  const { slug } = params
+  const { token } = searchParams
   const [entry, setEntry] = useState<Entry | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
