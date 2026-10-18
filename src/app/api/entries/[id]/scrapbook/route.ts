@@ -183,6 +183,9 @@ export async function PUT(
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 })
     }
 
+    await sql`delete from scrapbook_items where page_id in (select id from scrapbook_pages where entry_id = ${entry.id})`
+    await sql`delete from scrapbook_pages where entry_id = ${entry.id}`
+
     for (const pageData of validation.data.pages) {
       let pageRow: any
 

@@ -657,7 +657,6 @@ export type Database = {
         | "open_when"
         | "coffee_date"
         | "voice_note"
-        | "memory"
       media_type: "image" | "audio" | "video"
     }
     CompositeTypes: {
@@ -804,7 +803,6 @@ export const Constants = {
         "open_when",
         "coffee_date",
         "voice_note",
-        "memory",
       ],
       media_type: ["image", "audio", "video"],
     },

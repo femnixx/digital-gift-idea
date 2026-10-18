@@ -50,9 +50,10 @@ export async function GET(
       )
     }
 
-    const [media, scrapbookPages, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, bucketList] = await Promise.all([
+    const [media, scrapbookPages, scrapbookItems, polaroidCards, scratchCards, openWhenLetters, coffeeDates, voiceNotes, bucketList] = await Promise.all([
       sql`SELECT * FROM media WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT sp.id, sp.entry_id, sp.layout_type, sp.background_color, sp.background_image, sp.created_at, sp.updated_at FROM scrapbook_pages sp WHERE sp.entry_id = ${entry.id} ORDER BY sp.created_at ASC`,
+      sql`SELECT si.* FROM scrapbook_items si JOIN scrapbook_pages sp ON sp.id = si.page_id WHERE sp.entry_id = ${entry.id} ORDER BY sp.created_at ASC, si.z_index ASC, si.created_at ASC`,
       sql`SELECT * FROM polaroid_cards WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
       sql`SELECT * FROM scratch_cards WHERE entry_id = ${entry.id} ORDER BY created_at ASC`,
       sql`SELECT * FROM open_when_letters WHERE entry_id = ${entry.id} ORDER BY sort_order ASC, created_at ASC`,
@@ -81,7 +82,22 @@ export async function GET(
       public_url: m.public_url || `/api/public/entries/${slug}/media/${m.id}`,
     }))
 
-    // Atomic increment: a read-modify-write loses concurrent increments.
+    // Build a media lookup so scrapbook items can resolve their image URLs.
+    const mediaUrlById: Record<string, string> = {}
+    for (const m of publicMedia) {
+      mediaUrlById[m.id] = m.public_url || `/api/public/entries/${slug}/media/${m.id}`
+    }
+
+    // Attach items to their parent pages, resolving media URLs.
+    const scrapbookPagesWithItems = (scrapbookPages as any[] || []).map((page: any) => {
+      const pageItems = (scrapbookItems as any[] || [])
+        .filter((item: any) => item.page_id === page.id)
+        .map((item: any) => ({
+          ...item,
+          image_url: item.image_url || (item.media_id ? mediaUrlById[item.media_id] : null),
+        }))
+      return { ...page, items: pageItems }
+    })
     await sql`UPDATE entries SET view_count = coalesce(view_count, 0) + 1 WHERE id = ${entry.id}`
 
     return NextResponse.json(
@@ -89,7 +105,7 @@ export async function GET(
         entry: {
           ...entry,
           media: publicMedia,
-           scrapbook_pages: (scrapbookPages as any[] || []).map(page => ({ ...page, items: [] })),
+           scrapbook_pages: scrapbookPagesWithItems,
           polaroid_cards: (polaroidCards as any[]).map(normaliseCard),
           scratch_cards: scratchCards,
           open_when_letters: unlockedLetters,
