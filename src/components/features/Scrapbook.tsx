@@ -251,17 +251,17 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
           />
         ))}
 
-        {isEditing && media.length > 0 && items.length === 0 && !showAddPanel && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <button
-              onClick={() => setShowAddPanel(true)}
-              className="btn-primary flex items-center gap-2"
-            >
-              <Upload className="w-4 h-4" />
-              Add Photos
-            </button>
-          </div>
-        )}
+         {isEditing && items.length === 0 && !showAddPanel && (
+           <div className="absolute inset-0 flex items-center justify-center">
+             <button
+               onClick={() => setShowAddPanel(true)}
+               className="btn-primary flex items-center gap-2"
+             >
+               <Upload className="w-4 h-4" />
+               Add Photos
+             </button>
+           </div>
+         )}
       </div>
 
       <AnimatePresence>
