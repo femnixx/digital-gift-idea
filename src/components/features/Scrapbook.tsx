@@ -24,6 +24,7 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
   const [currentPage, setCurrentPage] = useState(0)
   const [items, setItems] = useState<ScrapbookItem[]>([])
   const [selectedItem, setSelectedItem] = useState<ScrapbookItem | null>(null)
+  const [previewItem, setPreviewItem] = useState<ScrapbookItem | null>(null)
   const [token, setToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -246,8 +247,10 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
             key={item.id}
             item={item}
             isSelected={selectedItem?.id === item.id}
+            isEditing={isEditing}
             onSelect={() => setSelectedItem(item)}
             onUpdate={updateItem}
+            onPreview={() => setPreviewItem(item)}
           />
         ))}
 
@@ -261,6 +264,16 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
                Add Photos
              </button>
            </div>
+         )}
+
+         {isEditing && !showAddPanel && (
+           <button
+             onClick={() => setShowAddPanel(true)}
+             className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-brand text-white shadow-lg hover:bg-brand/90 transition-colors flex items-center justify-center z-10"
+             title="Add photos"
+           >
+             <Upload className="w-5 h-5" />
+           </button>
          )}
       </div>
 
@@ -404,23 +417,54 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
               </button>
             </div>
           </div>
-        </motion.div>
-      )}
-    </div>
+         </motion.div>
+       )}
+
+       <AnimatePresence>
+         {previewItem && (
+           <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+             onClick={() => setPreviewItem(null)}
+           >
+             <motion.img
+               src={previewItem.image_url || ''}
+               alt={previewItem.caption || 'Scrapbook photo'}
+               initial={{ scale: 0.8, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.8, opacity: 0 }}
+               className="max-w-[90vw] max-h-[90vh] object-contain"
+               onClick={(e) => e.stopPropagation()}
+             />
+             {previewItem.caption && (
+               <div className="absolute bottom-4 left-0 right-0 text-center text-white">
+                 <p className="text-sm bg-black/40 px-4 py-2 rounded inline-block">{previewItem.caption}</p>
+               </div>
+             )}
+           </motion.div>
+         )}
+       </AnimatePresence>
+     </div>
   )
 }
 
 function DraggableItem({
-  item,
-  isSelected,
-  onSelect,
-  onUpdate,
+   item,
+   isSelected,
+   isEditing,
+   onSelect,
+   onUpdate,
+   onPreview,
 }: {
-  item: ScrapbookItem
-  isSelected: boolean
-  onSelect: () => void
-  onUpdate: (item: ScrapbookItem) => void
-}) {
+   item: ScrapbookItem
+   isSelected: boolean
+   isEditing: boolean
+   onSelect: () => void
+   onUpdate: (item: ScrapbookItem) => void
+   onPreview: () => void
+ }) {
   const [position, setPosition] = useState({ x: item.position_x, y: item.position_y })
   const [dragging, setDragging] = useState(false)
   const startPos = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
@@ -466,21 +510,29 @@ function DraggableItem({
   }, [dragging, handleMouseMove, position])
 
   return (
-    <div
-      onMouseDown={handleMouseDown}
-      style={{
-        position: 'absolute',
-        left: `${item.position_x}px`,
-        top: `${item.position_y}px`,
-        width: `${item.width}px`,
-        height: `${item.height}px`,
-        transform: `rotate(${item.rotation}deg)`,
-        transformOrigin: 'center',
-        zIndex: item.z_index,
-        cursor: 'move',
-      }}
-      onClick={() => { if (!dragging) onSelect() }}
-    >
+     <div
+       onMouseDown={isEditing ? handleMouseDown : undefined}
+       style={{
+         position: 'absolute',
+         left: `${item.position_x}px`,
+         top: `${item.position_y}px`,
+         width: `${item.width}px`,
+         height: `${item.height}px`,
+         transform: `rotate(${item.rotation}deg)`,
+         transformOrigin: 'center',
+         zIndex: item.z_index,
+         cursor: isEditing ? 'move' : 'zoom-in',
+       }}
+       onClick={() => {
+         if (!dragging) {
+           if (isEditing) {
+             onSelect()
+           } else {
+             onPreview()
+           }
+         }
+       }}
+     >
       <img
         src={item.image_url || ''}
         alt={item.caption || 'Scrapbook photo'}
