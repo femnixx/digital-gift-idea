@@ -12,19 +12,22 @@ interface ScrapbookProps {
   entryId: string
   isEditing?: boolean
   onSave?: (pages: ScrapbookPage[]) => void
+  onMediaChange?: (media: Media[]) => void
 }
 
 const BACKGROUND_COLORS = [
   '#fdf6f0', '#fdf2f8', '#eff6ff', '#f0fdf4', '#fffbeb', '#f5f5dc', '#f8fafc', '#ffffff',
 ]
 
-export function Scrapbook({ pages: initialPages, media, entryId, isEditing = false, onSave }: ScrapbookProps) {
+export function Scrapbook({ pages: initialPages, media, entryId, isEditing = false, onSave, onMediaChange }: ScrapbookProps) {
   const [pages, setPages] = useState<ScrapbookPage[]>(initialPages)
   const [currentPage, setCurrentPage] = useState(0)
   const [items, setItems] = useState<ScrapbookItem[]>([])
   const [selectedItem, setSelectedItem] = useState<ScrapbookItem | null>(null)
   const [token, setToken] = useState('')
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [showAddPanel, setShowAddPanel] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -95,8 +98,43 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
     if (newPages[currentPage]) {
       newPages[currentPage] = { ...newPages[currentPage], items: newItems }
     }
-    setPages(newPages)
-  }
+     setPages(newPages)
+   }
+
+   const handleFileUpload = async (files: File[]) => {
+     if (files.length === 0) return
+
+     setUploading(true)
+     setUploadProgress(0)
+
+     try {
+       const uploaded: Media[] = []
+       for (let i = 0; i < files.length; i++) {
+         const file = files[i]
+         const form = new FormData()
+         form.append('file', file)
+         form.append('entry_id', entryId)
+         form.append('type', 'image')
+         if (token) form.append('token', token)
+
+         const res = await fetch('/api/media', { method: 'POST', body: form })
+         if (!res.ok) {
+           const body = await res.json().catch(() => ({}))
+           throw new Error(body.error || `Upload failed for ${file.name}`)
+         }
+         const data = await res.json()
+         uploaded.push(data.media)
+         setUploadProgress(Math.round(((i + 1) / files.length) * 100))
+       }
+
+       setUploadProgress(0)
+       onMediaChange?.([...media, ...uploaded])
+     } catch (err: any) {
+       console.error('Upload error:', err)
+     } finally {
+       setUploading(false)
+     }
+   }
 
   const deleteItem = (id: string) => {
     const newItems = items.filter(i => i.id !== id)
@@ -235,14 +273,63 @@ export function Scrapbook({ pages: initialPages, media, entryId, isEditing = fal
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
           >
             <div className="bg-surface rounded-xl p-6 max-w-2xl w-full mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-script text-xl text-accent">Add Photos</h3>
-                <button onClick={() => setShowAddPanel(false)} className="text-muted hover:text-text">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto">
-                {media.filter(m => m.type === 'image').map((m) => (
+               <div className="flex justify-between items-center mb-4">
+                 <h3 className="font-script text-xl text-accent">Add Photos</h3>
+                 <button onClick={() => setShowAddPanel(false)} className="text-muted hover:text-text">
+                   <X className="w-4 h-4" />
+                 </button>
+               </div>
+
+               <div
+                 onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' }}
+                 onDrop={(e) => {
+                   e.preventDefault()
+                   const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+                   if (files.length > 0) {
+                     handleFileUpload(files)
+                   }
+                 }}
+               >
+               {uploading && (
+                 <div className="mb-4 space-y-2">
+                   <div className="flex justify-between text-xs text-body-muted">
+                     <span>Uploading…</span>
+                     <span>{uploadProgress}%</span>
+                   </div>
+                   <div className="w-full bg-base-2 rounded-full h-2 overflow-hidden">
+                     <div
+                       className="h-full bg-brand transition-all duration-300"
+                       style={{ width: `${uploadProgress}%` }}
+                     />
+                   </div>
+                 </div>
+               )}
+
+               <div className="mb-3 flex items-center gap-2 text-xs text-body-muted">
+                 <Upload className="w-4 h-4" />
+                 <span>Drag & drop images here, or</span>
+               </div>
+               </div>
+
+               <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto">
+                 <button
+                   type="button"
+                   onClick={() => fileInputRef.current?.click()}
+                   disabled={uploading}
+                   className="aspect-square bg-base-2 rounded-lg border-2 border-dashed border-line hover:border-brand transition-colors flex flex-col items-center justify-center text-body-muted disabled:opacity-50"
+                 >
+                   <Upload className="w-6 h-6 mb-1" />
+                   <span className="text-xs">Upload</span>
+                 </button>
+                 <input
+                   ref={fileInputRef}
+                   type="file"
+                   accept="image/*"
+                   multiple
+                   onChange={(e) => handleFileUpload(Array.from(e.target.files || []))}
+                   className="hidden"
+                 />
+                 {media.filter(m => m.type === 'image').map((m) => (
                   <button
                     key={m.id}
                     onClick={() => { addItem(m); setShowAddPanel(false) }}

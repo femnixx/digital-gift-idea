@@ -96,6 +96,7 @@ export default function ScrapbookEditorPage({ params, searchParams }: ScrapbookP
                   setScrapbookPages(updated)
                   setEntry({ ...entry, scrapbook_pages: updated })
                 }}
+                onMediaChange={(updated) => setMediaItems(updated)}
               />
             </div>
           </div>
