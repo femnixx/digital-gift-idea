@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Mail, Image, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar } from 'lucide-react'
+import { Mail, Image, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar, Heart } from 'lucide-react'
 import type { EntryType } from '@/types'
 import { GIFT_LABELS } from '@/lib/gifts/catalog'
 
@@ -44,6 +44,9 @@ const ICONS: Record<EntryType, typeof Mail> = {
   open_when: Clock,
   coffee_date: Coffee,
   voice_note: AudioLines,
+  coupon_booklet: Mail,
+  reasons: Heart,
+  mixtape: AudioLines,
 }
 
 /** Seconds each animation runs before the cover is dismissed. */
@@ -180,6 +183,7 @@ function TimelineCover({ opened }: { opened: boolean }) {
       {type === 'coffee_date' && <SteamCover opened={opened} />}
       {type === 'voice_note' && <CassetteCover opened={opened} />}
       {type === 'bucket_list' && <TimelineCover opened={opened} />}
+      {!['letter','open_when','scrapbook','polaroid','scratch_card','coffee_date','voice_note','bucket_list'].includes(type) && <EnvelopeCover opened={opened} />}
     </motion.div>
   )
 }

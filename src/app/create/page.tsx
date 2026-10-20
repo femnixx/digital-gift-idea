@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Mail, Image, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar, Check, ArrowRight, ArrowLeft
+  Mail, Image, Camera, ScanFace, Clock, Coffee, AudioLines, Calendar, Heart, Check, ArrowRight, ArrowLeft
 } from 'lucide-react'
 import { PublicShell } from '@/components/layout/PublicShell'
 import { Button, Field } from '@/components/ui/primitives'
@@ -26,6 +26,9 @@ const OPTIONS: Option[] = [
   { type: 'open_when', label: 'Open When', blurb: 'Sealed envelopes that open on a trigger', icon: Clock, accent: 'rose' },
   { type: 'coffee_date', label: 'Coffee Date', blurb: 'A shared drink, across any timezone', icon: Coffee, accent: 'blue' },
   { type: 'voice_note', label: 'Voice Note', blurb: 'Your voice, on a cassette', icon: AudioLines, accent: 'pink' },
+  { type: 'coupon_booklet', label: 'Coupon Booklet', blurb: 'Tear-off vouchers your partner redeems', icon: Mail, accent: 'rose' },
+  { type: 'reasons', label: 'Reasons I Love You', blurb: 'A deck of cards, flipped one by one', icon: Heart, accent: 'rose' },
+  { type: 'mixtape', label: 'Playlist Mixtape', blurb: 'A cassette with tracks and notes', icon: AudioLines, accent: 'amber' },
 ]
 
 const ACCENT_CLASSES: Record<string, { bg: string; text: string }> = {

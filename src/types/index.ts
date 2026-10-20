@@ -7,6 +7,9 @@ export type EntryType =
   | 'open_when'
   | 'coffee_date'
   | 'voice_note'
+  | 'coupon_booklet'
+  | 'reasons'
+  | 'mixtape'
 
 export type MediaType = 'image' | 'audio' | 'video'
 export type ScrapbookLayout = 'grid' | 'freeform' | 'polaroid' | 'frame'

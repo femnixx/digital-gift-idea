@@ -38,6 +38,9 @@ const TYPE_COLORS: Record<EntryType, string> = {
   open_when: '#ec4899',
   voice_note: '#6366f1',
   coffee_date: '#f97316',
+  coupon_booklet: '#f59e0b',
+  reasons: '#ec4899',
+  mixtape: '#8b5cf6',
 }
 
 const statColors: Record<string, { bg: string; text: string }> = {
@@ -59,7 +62,10 @@ export function typeLabel(type: EntryType): string {
     open_when: 'Open When',
     voice_note: 'Voice Note',
     coffee_date: 'Coffee Date',
-  }
+    coupon_booklet: 'Coupon Booklet',
+    reasons: 'Reasons I Love You',
+    mixtape: 'Playlist Mixtape',
+}
   return labels[type] ?? type
 }
 
@@ -316,7 +322,10 @@ export function EntryTypeIcon({ type }: { type: EntryType }) {
     open_when: '💌',
     voice_note: '🎵',
     coffee_date: '☕',
-  }
+    coupon_booklet: '🎫',
+    reasons: '💌',
+    mixtape: '📼',
+}
    return <span className="text-lg">{icons[type] || '📄'}</span>
 }
 

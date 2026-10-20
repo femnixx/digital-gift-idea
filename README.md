@@ -1,265 +1,106 @@
-# 💕 Digital Love Letters
+# Keepsake — Digital Gifts for Your Partner
 
-> *A romantic digital sanctuary where distance disappears. Built for two hearts beating across timezones.*
+A website where people create, personalize, and send digital gifts to their partner — gifts that are opened, kept, and revisited, not just a link to a store.
 
-![Digital Love Letters](https://img.shields.io/badge/Made%20with-💕-ff69b4?style=for-the-badge)
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
-![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38bdf8?style=for-the-badge&logo=tailwind-css)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e?style=for-the-badge&logo=supabase)
-![Framer Motion](https://img.shields.io/badge/Framer-Motion-0055ff?style=for-the-badge&logo=framer)
+## Product
 
----
+**Working name:** Keepsake
 
-## ✨ The Story
+The giver builds a gift in minutes, wraps it, and hits **Publish**. Publishing generates a **slug** that turns the gift into a live, public link (`/g/<slug>`). The partner unwraps it in a ceremonial reveal and saves it to a personal **Keepsake Drawer**.
 
-When you're in a long-distance relationship, every message counts. Every photo shared, every voice note sent, every "thinking of you" matters. But sometimes text messages feel... temporary. Fleeting. 
+## Art direction: Tactile Classic
 
-**Digital Love Letters** changes that. It's your private corner of the internet where you can create lasting, interactive, beautiful surprises for your person. A digital bouquet that blooms when they open it. A Polaroid they can flip to read your handwritten note on the back. A scratch card hiding "I love you more than coffee." An envelope sealed until their birthday. A virtual coffee date with a real gift card.
+Real paper, card, wax, brass and ribbon. Depth from physical layering under a single top-left light source — contact shadow + cast shadow, visible card edges, paper grain texture, embossed details, slight rotations, taped/pinned overlaps. No gradients, no glassmorphism, no glow, no emoji icons.
 
-Because love shouldn't have a character limit. 💌
+Palette: paper `#F3EBDD`, ink `#2B2118`, oxblood `#7A1F2B`, forest `#2F4A3A`, brass `#B08A3E`, blush `#D9A7A0`, navy-ink `#1F2A44`.
 
----
+## Build order (per spec)
 
-## 🌹 Features
+1. **Design system** — `src/app/design-system.css`, `src/app/globals.css` tokens, signature components (`WaxSeal`, `Ribbon`, `GiftTag`, `Parcel`)
+2. **Reveal / Unwrap page** — `src/app/g/[slug]/page.tsx`, `src/components/reveal/UnwrapCeremony.tsx`
+3. **Builder** — `src/components/builder/GiftBuilder.tsx` + all 5 gift types
+4. **Publish flow** — slug generation (auto + custom), `/g/<slug>` public route, PIN, scheduled unlock, unpublish
+5. **Keepsake Drawer + Reply** — `src/app/drawer/page.tsx`, `src/app/reply/[token]/page.tsx`
+6. **Dashboard** — `src/app/dashboard/page.tsx`
+7. Remaining gift viewers + Phase 2 features
 
-### 💐 Digital Bouquet Builder
-Create living bouquets stem by stem. Choose flowers (roses, sunflowers, tulips, lavender...), pick colors, attach secret notes to each bloom. When they open it, the bouquet assembles itself with spring physics. Click any flower → read its hidden message.
-
-### 📸 Virtual Polaroid Deck
-Upload photos → they become realistic Polaroids with slight tilts, white borders, captions, dates. Click to flip → your handwritten note on the back. Shake/drag → reveal a hidden message. Nostalgia in digital form.
-
-### 🎮 Scratch Cards
-Cover a photo or love note with a scratch-off surface. They scratch with mouse/finger → glitter particles reveal what's underneath. Confetti bursts when fully revealed. Pure joy.
-
-### 💌 Open When... Letters
-Create sealed envelopes: *"Open when you miss me"*, *"Open on your birthday"*, *"Open when you're sad"*, *"Open when you get the job"*. Unlock by date, manually, or by mood. Beautiful wax seals, custom colors.
-
-### 🎵 Cassette Player Voice Notes
-Record audio → it plays on a vintage cassette tape. Wheels spin, tape moves, VU meters dance. Side A / Side B. Transcripts included. Nostalgia meets modern audio.
-
-### ☕ Virtual Coffee Dates
-Pick a drink (latte, matcha, chai, hot chocolate...), name it ("Carmen's Cozy Caramel Latte"), add a message, attach a gift card link. They "redeem" it → animation plays → real coffee delivered.
-
-### 🌍 Timezone Clock & Distance Counter
-See both your local times side by side. Real-time distance in km/miles. Anniversary countdown. Day/night indicators. "3 hours apart, 8,947 km, forever connected."
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 14 (App Router) |
-| **Styling** | Tailwind CSS (custom romantic palette) |
-| **Animations** | Framer Motion |
-| **Database** | Supabase (PostgreSQL) |
-| **Auth** | Supabase Auth |
-| **Storage** | Supabase Storage (images, audio) |
-| **Forms** | React Hook Form + Zod |
-| **State** | Zustand |
-| **Icons** | Lucide React |
-| **Fonts** | Playfair Display, Dancing Script, Great Vibes, Inter |
-| **Date/Time** | date-fns + date-fns-tz |
-| **Confetti** | canvas-confetti |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Supabase account
-- pnpm (recommended) or npm
-
-### 1. Clone & Install
-```bash
-git clone https://github.com/yourusername/digital-love-letters
-cd digital-love-letters
-pnpm install
-```
-
-### 2. Set Up Supabase
-1. Create a new Supabase project
-2. Go to SQL Editor → Run the schema from `database/schema.sql`
-3. Create a Storage bucket named `media` (public)
-4. Enable RLS on all tables (schema handles this)
-5. Copy your project URL and anon key
-
-### 3. Configure Environment
-```bash
-cp .env.example .env.local
-```
-
-Fill in your `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-NEXT_PUBLIC_SUPABASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-### 4. Run Development
-```bash
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) 🎉
-
----
-
-## 📁 Project Structure
+## File structure (new Keepsake code)
 
 ```
-digital-love-letters/
-├── database/
-│   └── schema.sql              # Complete PostgreSQL schema
-├── public/
-│   ├── fonts/                  # Local font files (optional)
-│   └── images/                 # Static images, patterns
-├── src/
-│   ├── app/
-│   │   ├── (auth)/             # Login, register pages
-│   │   ├── (dashboard)/        # Admin layout + pages
-│   │   │   └── admin/
-│   │   │       ├── page.tsx    # Dashboard
-│   │   │       ├── entries/    # Entry management
-│   │   │       └── settings/   # Relationship settings
-│   │   ├── api/
-│   │   │   ├── entries/        # CRUD for entries
-│   │   │   ├── media/          # Upload/delete media
-│   │   │   └── public/         # Public read APIs
-│   │   ├── daily/[slug]/       # Date-based public pages
-│   │   ├── letter/[slug]/      # Custom slug public pages
-│   │   ├── layout.tsx          # Root layout + fonts
-│   │   ├── page.tsx            # Landing page
-│   │   └── globals.css         # Global styles + animations
-│   ├── components/
-│   │   ├── features/           # Interactive components
-│   │   │   ├── DigitalBouquet.tsx
-│   │   │   ├── PolaroidDeck.tsx
-│   │   │   ├── ScratchCard.tsx
-│   │   │   ├── OpenWhenLetters.tsx
-│   │   │   ├── CassettePlayer.tsx
-│   │   │   ├── CoffeeDate.tsx
-│   │   │   └── TimezoneClock.tsx
-│   │   ├── layout/             # Layout components
-│   │   │   └── AdminLayout.tsx
-│   │   └── ui/                 # Reusable UI components
-│   ├── hooks/                  # Custom React hooks
-│   ├── lib/
-│   │   └── supabase/           # Supabase clients
-│   ├── types/                  # TypeScript types
-│   └── utils/                  # Helper functions
-├── .env.example
-├── package.json
-├── tailwind.config.js
-├── tsconfig.json
-└── README.md
+src/
+  app/
+    globals.css                 # existing + Keepsake tokens
+    design-system.css           # NEW: Tactile Classic tokens, shadows, textures
+    layout.tsx                  # Keepsake metadata + fonts
+    page.tsx                    # NEW: Landing desk scene
+    build/page.tsx              # Gift Builder entry
+    g/[slug]/page.tsx           # Public reveal page (+ slug redirect)
+    g/[slug]/og/route.ts        # NEW: Open Graph preview image per gift
+    dashboard/page.tsx          # NEW: Gift list, statuses, actions
+    drawer/page.tsx             # NEW: Keepsake Drawer
+    reply/[token]/page.tsx      # NEW: Reply / thank-you card
+    api/
+      gifts/route.ts            # NEW: Create gift (slug gen, PIN, publish)
+      gifts/check/route.ts      # NEW: Live slug availability check
+      gifts/[id]/route.ts       # NEW: Update / unpublish gift
+      gifts/[slug]/route.ts     # NEW: Public gift fetch (PIN + lock logic)
+      gifts/[slug]/og/route.ts  # NEW: OG image generator
+      replies/route.ts          # NEW: Submit a reply
+  components/
+    parcel/
+      WaxSeal.tsx               # NEW: raised seal, cracks on open
+      Ribbon.tsx                # NEW: draggable ribbon, keyboard alt
+      GiftTag.tsx               # NEW: swaying tag
+      Parcel.tsx                # NEW: layered wrapped box
+    reveal/
+      UnwrapCeremony.tsx        # NEW: sealed → unwrapping → revealed stages
+    builder/
+      GiftBuilder.tsx           # NEW: 5-step wizard
+      types.ts                  # NEW: BuilderState
+    views/                      # per-type gift viewers (to build)
+  lib/
+    slugs.ts                    # NEW: generate/sanitize/validate slugs
+  types/
+    keepsake.ts                 # NEW: Keepsake data model types
+  types/index.ts                # extended with new EntryType values
 ```
 
----
+## Database migrations
 
-## 🎨 Customization
+`database/migrations/0004_keepsake_gifts.sql` — gifts, gift_items, reveals, replies, keepsake_drawer, coupon_redemptions, slug_history.
 
-### Colors (Tailwind)
-Edit `tailwind.config.js` → `theme.extend.colors`:
-- `rose` - Primary romantic red/pink
-- `blush` - Soft pinks
-- `lavender` - Dreamy purples
-- `sage` - Natural greens
-- `cream` - Warm neutrals
-- `gold` - Accent warmth
+## Tech stack
 
-### Fonts
-Change in `src/app/layout.tsx`:
-- `font-sans` → UI text (Inter)
-- `font-serif` → Headings (Playfair Display)
-- `font-handwriting` → Notes (Dancing Script)
-- `font-script` → Titles (Great Vibes)
+- Next.js 14 (App Router) + TypeScript + Tailwind
+- Framer Motion (unwrap timeline)
+- Postgres via `@neondatabase/serverless` (the `sql` tagged template)
+- Magic-link auth for givers; no account to view a gift
 
-### Flower Types
-Add to `src/types/index.ts` → `FLOWER_CONFIG`
+## Setup
 
-### Drink Types
-Add to `src/types/index.ts` → `DRINK_CONFIG`
+1. Copy `.env.example` to `.env.local` and fill in `NEON_DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `JWT_SECRET`.
+2. Run the Keepsake migration:
+   ```
+   psql "$DATABASE_URL" < database/migrations/0004_keepsake_gifts.sql
+   ```
+   (or via your Neon/Supabase SQL editor)
+3. Install dependencies: `npm install`
+4. Run dev: `npm run dev` (runs on port 3001)
+5. Typecheck: `npm run typecheck` | Lint: `npm run lint`
 
----
+## Environment variables
 
-## 🔐 Security
+- `NEON_DATABASE_URL` — Postgres connection string
+- `NEXT_PUBLIC_APP_URL` — public base URL (e.g. `http://localhost:3001`)
+- `JWT_SECRET` — session signing secret
 
-- **Row Level Security** on all tables
-- **Auth required** for admin routes
-- **Public entries** only accessible when `is_published=true` AND `publish_at <= now`
-- **Media access** tied to entry ownership
-- **No secrets** in client bundle
+## Notes
 
----
+- Auto-generated slugs are 12 chars with hyphens every 4 (e.g. `x7k2-m9qa-p3n8`) to resist guessing.
+- `noindex` by default; `social_opt_in` opts a gift into search/social visibility.
+- PINs are SHA-256 hashed; the hash is never sent to the client.
+- Published gifts are reachable by anyone with the link — treat the slug as the access key.
 
-## 📱 Deployment
+## Phase 2 (per spec)
 
-### Vercel (Recommended)
-```bash
-pnpm build
-vercel deploy
-```
-Add environment variables in Vercel dashboard.
-
-### Docker
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
----
-
-## 💝 For Your Person
-
-When you deploy, share the link with a note:
-
-> *"I built this for us. Every page, every animation, every feature — made thinking of you. Open it whenever you need to feel close. No matter the distance, this is our place. 💕"*
-
----
-
-## 🤝 Contributing
-
-This is a personal project, but if you want to fork it for your own love story:
-
-1. Fork the repo
-2. Customize the colors, fonts, content
-3. Deploy your own version
-4. Share with your person
-
-**Make it yours.** That's the whole point.
-
----
-
-## 📜 License
-
-MIT License — Use it for love. 💕
-
----
-
-## 💌 A Note from the Creator
-
-> *Built during late nights missing someone 8,947 km away. Every component was coded with a specific moment in mind: the bouquet for our anniversary, the Polaroids for our trips, the scratch cards for bad days, the coffee dates for Sunday mornings, the voice notes for when text isn't enough, the "open when" letters for the times I can't be there.*
->
-> *If you're in a long-distance relationship: it gets better. The distance is temporary. The love is not.*
->
-> *— Made with 💕 for my person, and now for yours.*
-
----
-
-<div align="center">
-
-**[⭐ Star this repo](https://github.com/yourusername/digital-love-letters) if it made you smile**
-
-*Built with Next.js, Supabase, Framer Motion, and a lot of love.*
-
-</div>
+Open-When Letters, Countdown Gifts, Scavenger Hunt / Treasure Map, "How well do you know me?" Quiz, Date Night Generator, Timeline of Us, Voice & Video notes, Collaborative gifts, Gift pairing.

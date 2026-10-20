@@ -1,0 +1,395 @@
+/* ============================================================================
+   KEEPSAKE — Tactile Classic design system
+   Real paper, card, wax, brass and ribbon. No gradients, no glassmorphism,
+   no glow. Depth from physical layering under a single top-left light source.
+   ============================================================================ */
+
+/* ---- Palette (CSS variables) ---- */
+:root {
+  /* Paper surfaces */
+  --ks-paper: #F3EBDD;
+  --ks-paper-deep: #E7DAC2;
+  --ks-card: #FBF6EA;
+
+  /* Ink / text */
+  --ks-ink: #2B2118;
+  --ks-ink-soft: #5A4A3B;
+
+  /* Accents */
+  --ks-oxblood: #7A1F2B;
+  --ks-forest: #2F4A3A;
+  --ks-brass: #B08A3E;
+  --ks-blush: #D9A7A0;
+  --ks-navy-ink: #1F2A44;
+
+  /* Shadow (top-left light source) */
+  --ks-shadow-contact: rgba(43, 33, 24, 0.20);
+  --ks-shadow-cast: rgba(43, 33, 24, 0.28);
+  --ks-shadow-inkset: rgba(43, 33, 24, 0.16);
+
+  /* Table surface */
+  --ks-table: #D9C8AE;
+  --ks-table-deep: #C7B49A;
+
+  /* Typography */
+  --ks-font-display: 'Playfair Display', serif;
+  --ks-font-body: 'Source Serif 4', serif;
+  --ks-font-ui: 'Instrument Sans', sans-serif;
+  --ks-font-handwriting: 'Caveat', cursive;
+
+  /* Radius — keep it small, never giant rounded everything */
+  --ks-radius-sm: 2px;
+  --ks-radius-md: 6px;
+  --ks-radius-lg: 10px;
+
+  /* Control height */
+  --ks-control-h: 2.875rem;
+  --ks-control-px: 1.125rem;
+
+  --ks-transition: 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Candlelit dark mode — deep walnut + dim brass, never pure black */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ks-paper: #3A2B22;
+    --ks-paper-deep: #2A1E18;
+    --ks-card: #423228;
+    --ks-ink: #EBDCCD;
+    --ks-ink-soft: #C9B5A3;
+    --ks-oxblood: #9A2E3E;
+    --ks-forest: #3E5B4A;
+    --ks-brass: #C9A84E;
+    --ks-blush: #B97C72;
+    --ks-navy-ink: #2E3A4E;
+    --ks-table: #2E241C;
+    --ks-table-deep: #1E1612;
+    --ks-shadow-contact: rgba(0, 0, 0, 0.45);
+    --ks-shadow-cast: rgba(0, 0, 0, 0.55);
+    --ks-shadow-inkset: rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ks-reduce-motion,
+  [data-ks-reduce-motion] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---- Texture: paper grain (SVG noise, ~5% opacity) ---- */
+.noise-paper {
+  mask-image: url("data:image/svg+xml,%3csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3e%3cfilter id='n'%3e%3cfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3e%3c/filter%3e%3crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3e%3c/svg%3e");
+  pointer-events: none;
+}
+
+/* Texture overlay pseudo-element helper */
+.texture-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mask-image: url("data:image/svg+xml,%3csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3e%3cfilter id='n'%3e%3cfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3e%3c/filter%3e%3crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3e%3c/svg%3e");
+  pointer-events: none;
+}
+
+/* ---- Shadow recipes (single consistent top-left light source) ---- */
+
+/* Raised card: contact shadow + longer soft cast shadow */
+.shadow-tactile-card {
+  box-shadow:
+    0 1px 0 rgba(43, 33, 24, 0.08),        /* thin contact edge */
+    0 2px 4px -1px rgba(43, 33, 24, 0.14), /* inner contact */
+    0 6px 12px -2px rgba(43, 33, 24, 0.18); /* cast shadow (top-left light) */
+}
+
+/* Heavier stack object (parcel, sealed box) */
+.shadow-tactile-parcel {
+  box-shadow:
+    0 1px 0 rgba(43, 33, 24, 0.10),
+    0 4px 6px -1px rgba(43, 33, 24, 0.20),
+    0 12px 24px -3px rgba(43, 33, 24, 0.24);
+}
+
+/* Inset / debossed detail (stamped text, wax pressed into paper) */
+.shadow-tactile-inset {
+  box-shadow: inset 0 1px 2px rgba(43, 33, 24, 0.25),
+              inset 0 -1px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Raised wax seal */
+.shadow-tactile-wax {
+  box-shadow:
+    0 2px 0 rgba(43, 33, 24, 0.35),
+    0 4px 8px -1px rgba(43, 33, 24, 0.30);
+}
+
+/* ---- Card edge / thickness (cardstock edge darker tone) ---- */
+.ks-card-edge {
+  position: relative;
+}
+.ks-card-edge::after {
+  content: "";
+  position: absolute;
+  inset: -1px -1px auto -1px;
+  background: var(--ks-paper-deep);
+  height: 1px;
+  pointer-events: none;
+}
+
+/* ---- Typography ---- */
+h1, h2, h3, h4, .ks-font-display {
+  font-family: var(--ks-font-display);
+  color: var(--ks-ink);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.ks-font-body {
+  font-family: var(--ks-font-body);
+  color: var(--ks-ink);
+}
+
+.ks-font-ui {
+  font-family: var(--ks-font-ui);
+  color: var(--ks-ink-soft);
+}
+
+.ks-font-handwriting {
+  font-family: var(--ks-font-handwriting);
+}
+
+/* Small-caps labels with letter-spacing */
+.ks-label {
+  font-family: var(--ks-font-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ks-ink-soft);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+/* Letterpress-style text: slightly darker than background for embossed feel */
+.text-letterpress {
+  color: var(--ks-ink-soft);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ---- Tactile buttons: pressed brass plates / leather tabs ---- */
+.btn-tactile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--ks-control-h);
+  padding: 0 var(--ks-control-px);
+  font-family: var(--ks-font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ks-ink);
+  background: var(--ks-brass);
+  border: 1px solid rgba(43, 33, 24, 0.35);
+  border-radius: var(--ks-radius-sm);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 2px 4px -1px rgba(43, 33, 24, 0.22),
+    0 6px 0 -1px rgba(43, 33, 24, 0.25); /* edge thickness */
+  transition: transform var(--ks-transition), box-shadow var(--ks-transition),
+    top var(--ks-transition);
+}
+
+.btn-tactile:hover {
+  background: #C9A84E;
+  border-color: rgba(43, 33, 24, 0.5);
+}
+
+.btn-tactile:active {
+  transform: translateY(2px);
+  top: 2px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 1px 2px -1px rgba(43, 33, 24, 0.18),
+    0 2px 0 -1px rgba(43, 33, 24, 0.25);
+}
+
+/* Oxblood (primary accent) button */
+.btn-tactile-oxblood {
+  background: var(--ks-oxblood);
+  color: #fff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 2px 4px -1px rgba(43, 33, 24, 0.22),
+    0 6px 0 -1px rgba(43, 33, 24, 0.25);
+}
+.btn-tactile-oxblood:hover {
+  background: #9A2E3E;
+}
+
+/* ---- Tactile inputs: ruled lines / typed form fields ---- */
+.input-tactile {
+  width: 100%;
+  min-height: var(--ks-control-h);
+  padding: 0 var(--ks-control-px);
+  font-family: var(--ks-font-body);
+  font-size: 1rem;
+  color: var(--ks-ink);
+  background: var(--ks-card);
+  border: none;
+  border-bottom: 1px solid var(--ks-ink-soft);
+  border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(43, 33, 24, 0.12);
+  outline: none;
+  transition: border-color var(--ks-transition);
+}
+.input-tactile::placeholder {
+  color: rgba(43, 33, 24, 0.35);
+}
+.input-tactile:focus {
+  border-bottom-color: var(--ks-ink);
+}
+.input-tactile[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Typewriter cursor */
+.cursor-typewriter {
+  display: inline-block;
+  width: 7px;
+  height: 1rem;
+  background: var(--ks-ink);
+  animation: blink 1s steps(1) infinite;
+  vertical-align: middle;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ---- Tactile card: visible edge + thickness ---- */
+.card-tactile {
+  background: var(--ks-card);
+  position: relative;
+  border-radius: var(--ks-radius-md);
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(43, 33, 24, 0.08),
+    0 2px 4px -1px rgba(43, 33, 24, 0.14),
+    0 6px 10px -2px rgba(43, 33, 24, 0.16);
+}
+.card-tactile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 0.5px solid rgba(43, 33, 24, 0.10);
+  pointer-events: none;
+}
+
+/* ---- Deckled / perforated edges ---- */
+.deckle {
+  mask-image: url("data:image/svg+xml,%3csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3e%3cfilter id='d'%3e%3cfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2'/%3e%3cfeDisplacementMap in='SourceGraphic' scale='4'/%3e%3c/filter%3e%3crect width='100%25' height='100%25' filter='url(%23d)'/%3e%3c/svg%3e");
+}
+.perforation {
+  mask-image: url("data:image/svg+xml,%3csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3e%3cpattern id='p' x='0' y='0' width='6' height='6' patternUnits='userSpaceOnUse'%3e%3ccircle cx='3' cy='3' r='1.1' fill='%23000'/%3e%3c/pattern%3e%3crect width='100%25' height='100%25' fill='url(%23p)'/%3e%3c/svg%3e");
+  -webkit-mask-image: var(--mask-image);
+}
+
+/* ---- Slight rotation helpers (handmade imperfection) ---- */
+.rotate-1 { transform: rotate(-1deg); }
+.rotate-2 { transform: rotate(2deg); }
+.rotate-neg-2 { transform: rotate(-2deg); }
+
+/* ---- Table surface background ---- */
+.table-surface {
+  background: var(--ks-table);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(43, 33, 24, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(43, 33, 24, 0.04) 0%, transparent 40%);
+}
+
+/* ---- Swaying gift tag ---- */
+@keyframes sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.gift-tag-sway {
+  animation: sway 4s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* ---- Wax seal crack (on open) ---- */
+@keyframes crack {
+  0% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.04) rotate(2deg); }
+  100% { transform: scale(0.92) rotate(-1deg); opacity: 0.75; }
+}
+.wax-crack {
+  animation: crack 0.5s ease-out forwards;
+}
+
+/* ---- Parcel ribbon untie slide ---- */
+.ribbon-untied {
+  transform: translateX(120%);
+  transition: transform 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---- Skip button (accessibility) ---- */
+.ks-skip {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 60;
+}
+
+/* ---- Reduced-motion fallback for unwrap: instant reveal ---- */
+[data-ks-reduce-motion] .unwrap-ceremony > * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ---- Screen-reader only ---- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Link styles (no glow) ---- */
+a.ks-link {
+  color: var(--ks-oxblood);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+a.ks-link:hover {
+  color: var(--ks-ink);
+}
+
+/* ---- QR code container (keep crisp) ---- */
+.qr-code {
+  image-rendering: pixelated;
+}
+
+/* ---- Misc ---- */
+.ks-absolute-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
