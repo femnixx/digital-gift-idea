@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 const BASE = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
 const FETCH_OPTS: RequestInit = { redirect: 'manual' }
 
-function buildMultipart(fields: Record<string, string>, file: { name: string; content: Uint8Array; type: string }): { body: Uint8Array; contentType: string } {
+function buildMultipart(fields: Record<string, string>, file: { name: string; content: Uint8Array; type: string }): { body: BodyInit; contentType: string } {
   const boundary = '----boundary-' + crypto.randomUUID().replace(/-/g, '')
   const CRLF = '\r\n'
   const parts: Uint8Array[] = []
@@ -27,7 +27,7 @@ function buildMultipart(fields: Record<string, string>, file: { name: string; co
     offset += part.length
   }
 
-  return { body, contentType: `multipart/form-data; boundary=${boundary}` }
+  return { body: body as unknown as BodyInit, contentType: `multipart/form-data; boundary=${boundary}` }
 }
 
 /**

@@ -59,7 +59,7 @@ export function ReplyForm({ gift, token }: ReplyFormProps) {
           name="message"
           className="w-full border border-line rounded-[4px] bg-surface px-4 py-3 text-text focus:outline-none focus:border-accent"
           rows={5}
-          placeholder="Your reply&hellip;"
+          placeholder="Your reply…"
           required
         />
       </div>
@@ -71,7 +71,7 @@ export function ReplyForm({ gift, token }: ReplyFormProps) {
         disabled={sending}
         className="btn disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {sending ? 'Sending&hellip;' : 'Send reply'}
+        {sending ? 'Sending…' : 'Send reply'}
       </button>
     </form>
   )

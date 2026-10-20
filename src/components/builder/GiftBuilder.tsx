@@ -69,7 +69,7 @@ export default function GiftBuilder() {
         slug?: string
         items: Array<{
           kind: string
-          payload_json: Record<string, unknown>
+          payload: Record<string, unknown>
           position: number
         }>
       } = {
@@ -91,7 +91,7 @@ export default function GiftBuilder() {
       if (state.type === 'letter') {
         payload.items.push({
           kind: 'letter',
-          payload_json: { body: state.letter_body, paper_stock: state.letter_paper_stock },
+          payload: { body: state.letter_body, paper_stock: state.letter_paper_stock },
           position: 0,
         })
       }
@@ -99,7 +99,7 @@ export default function GiftBuilder() {
         state.photos.forEach((p, i) => {
           payload.items.push({
             kind: 'photo',
-            payload_json: { url: p.url, caption: p.caption },
+            payload: { url: p.url, caption: p.caption },
             position: i,
           })
         })
@@ -108,21 +108,21 @@ export default function GiftBuilder() {
         state.coupons.forEach((c, i) => {
           payload.items.push({
             kind: 'coupon',
-            payload_json: { title: c.title, description: c.description },
+            payload: { title: c.title, description: c.description },
             position: i,
           })
         })
       }
       if (state.type === 'reasons') {
         state.reasons.forEach((r, i) => {
-          payload.items.push({ kind: 'card', payload_json: { text: r.text }, position: i })
+          payload.items.push({ kind: 'card', payload: { text: r.text }, position: i })
         })
       }
       if (state.type === 'mixtape') {
         state.tracks.forEach((t, i) => {
           payload.items.push({
             kind: 'track',
-            payload_json: { title: t.title, artist: t.artist, url: t.url, note: t.note },
+            payload: { title: t.title, artist: t.artist, url: t.url, note: t.note },
             position: i,
           })
         })
@@ -287,7 +287,7 @@ function LetterContent({ state, setField }: LetterContentProps) {
         className="input-tactile w-full min-h-[200px] mt-2"
         value={state.letter_body}
         onChange={(e) => setField('letter_body', e.target.value)}
-        placeholder="Write your letter here&hellip;"
+        placeholder="Write your letter here…"
       />
       <div className="mt-4">
         <label className="ks-label">Paper stock</label>
@@ -407,7 +407,7 @@ function ReasonsContent({ state, setField }: ReasonsContentProps) {
   return (
     <div className="pt-6 border-t border-[#E7DAC2]">
       <label className="ks-label">Reasons I love you</label>
-      <p className="text-xs text-[#5A4A3B] mb-4">One reason per card. Choose any count (52, 100, 365&hellip;).</p>
+      <p className="text-xs text-[#5A4A3B] mb-4">One reason per card. Choose any count (52, 100, 365…).</p>
       <div className="space-y-3">
         {state.reasons.map((r, i) => (
           <input
@@ -588,7 +588,7 @@ function NoteStep({ state, setField }: NoteStepProps) {
         className="input-tactile w-full min-h-[300px]"
         value={state.note}
         onChange={(e) => setField('note', e.target.value)}
-        placeholder="Your message to them&hellip;"
+        placeholder="Your message to them…"
       />
     </div>
   )
@@ -608,7 +608,7 @@ interface DeliveryStepProps {
 function DeliveryStep({ state, setField, canPublish, onPublish, submitting, publishError }: DeliveryStepProps) {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold mb-2">Delivery &amp; publish</h1>
+      <h1 className="text-4xl font-bold mb-2">Delivery & publish</h1>
       <p className="text-[#5A4A3B] mb-8">Choose how and when your gift arrives.</p>
 
       <div className="grid gap-4 max-w-xl">
@@ -681,7 +681,7 @@ function DeliveryStep({ state, setField, canPublish, onPublish, submitting, publ
           disabled={submitting || !canPublish}
           className="btn-tactile-oxblood text-white w-full py-4 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? 'Publishing&hellip;' : canPublish ? 'Publish gift' : 'Complete the required fields'}
+          {submitting ? 'Publishing…' : canPublish ? 'Publish gift' : 'Complete the required fields'}
         </button>
       </div>
     </div>

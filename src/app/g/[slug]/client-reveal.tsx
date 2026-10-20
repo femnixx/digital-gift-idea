@@ -82,7 +82,7 @@ export function ClientReveal({ gift }: ClientRevealProps) {
                     {i + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-ui font-medium text-text">{item.payload_json?.text || item.payload_json?.body || item.payload_json?.title || 'Item'}</div>
+                    <div className="font-ui font-medium text-text">{item.payload?.text || item.payload?.body || item.payload?.title || 'Item'}</div>
                     <div className="font-mono text-[10px] text-text-muted mt-1">{item.kind}</div>
                   </div>
                   <div className="flex gap-1">
@@ -105,7 +105,7 @@ export function ClientReveal({ gift }: ClientRevealProps) {
               <textarea
                 className="w-full border border-line rounded-[4px] bg-surface px-4 py-3 text-text focus:outline-none focus:border-accent"
                 rows={3}
-                placeholder="Your reply&hellip;"
+                placeholder="Your reply…"
               />
               <button
                 onClick={handleReply}
@@ -179,7 +179,7 @@ export function ClientPinEntry({ giftId }: { giftId: string }) {  const [pin, se
         disabled={submitting || pin.length < 4}
         className="btn w-auto disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {submitting ? 'Verifying&hellip;' : 'Unlock'}
+        {submitting ? 'Verifying…' : 'Unlock'}
       </button>
     </form>
   )

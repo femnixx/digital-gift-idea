@@ -2,10 +2,14 @@ node_modules
 .next
 out
 dist
-build
+/build
 .cache
 .env*.local
 .DS_Store
 *.log
 tsconfig.tsbuildinfo
 .neon
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

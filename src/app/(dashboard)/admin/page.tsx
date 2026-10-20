@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="gsap-section">
-          <h2 className="font-serif text-xl font-semibold text-body mb-4">Content &amp; Storage</h2>
+          <h2 className="font-serif text-xl font-semibold text-body mb-4">Content & Storage</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="card p-6">
               <div className="flex items-center gap-3 mb-2">

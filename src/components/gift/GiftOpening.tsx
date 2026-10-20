@@ -147,27 +147,7 @@ function Cover({ type, opened }: { type: EntryType; opened: boolean }) {
         <SealedGlyph type={type} />
     </div>
   )
-}
-
-function TimelineCover({ opened }: { opened: boolean }) {
-  const cards = useMemo(() => Array.from({ length: 5 }, (_, i) => i), [])
-
-  return (
-    <div className="absolute inset-0 flex items-center justify-center gap-1">
-      {cards.map((i) => (
-        <motion.div
-          key={i}
-          className="w-8 h-12 rounded-lg bg-card border-2 border-line shadow-polaroid flex items-center justify-center"
-          initial={{ rotate: -10, y: 20, opacity: 0 }}
-          animate={opened ? { rotate: 0, y: 0, opacity: 1 } : { rotate: -10, y: 20, opacity: 0 }}
-          transition={{ duration: 0.6, delay: opened ? i * 0.08 : 0, ease: [0.4, 0, 0.2, 1] }}
-        >
-          <Calendar className="w-5 h-5 text-brand" />
-        </motion.div>
-      ))}
-    </div>
-  )
-}
+  }
 
   return (
     <motion.div
@@ -185,6 +165,27 @@ function TimelineCover({ opened }: { opened: boolean }) {
       {type === 'bucket_list' && <TimelineCover opened={opened} />}
       {!['letter','open_when','scrapbook','polaroid','scratch_card','coffee_date','voice_note','bucket_list'].includes(type) && <EnvelopeCover opened={opened} />}
     </motion.div>
+  )
+}
+
+/** Timeline cover used by the bucket-list gift type. */
+function TimelineCover({ opened }: { opened: boolean }) {
+  const cards = useMemo(() => Array.from({ length: 5 }, (_, i) => i), [])
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center gap-1">
+      {cards.map((i) => (
+        <motion.div
+          key={i}
+          className="w-8 h-12 rounded-lg bg-card border-2 border-line shadow-polaroid flex items-center justify-center"
+          initial={{ rotate: -10, y: 20, opacity: 0 }}
+          animate={opened ? { rotate: 0, y: 0, opacity: 1 } : { rotate: -10, y: 20, opacity: 0 }}
+          transition={{ duration: 0.6, delay: opened ? i * 0.08 : 0, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <Calendar className="w-5 h-5 text-brand" />
+        </motion.div>
+      ))}
+    </div>
   )
 }
 

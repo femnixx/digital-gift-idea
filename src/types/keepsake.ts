@@ -45,7 +45,7 @@ export interface KeepsakeGiftItem {
   id: string
   gift_id: string
   kind: 'letter' | 'photo' | 'coupon' | 'card' | 'track' | 'voice'
-  payload_json: Record<string, any>
+  payload: Record<string, any>
   position: number
 }
 

@@ -50,15 +50,15 @@ function GiftItem({ item }: { item: KeepsakeGiftItem }) {
     case 'letter':
       return (
         <div className="ks-font-handwriting italic text-[#2B2118] text-lg p-8 bg-[#FBF6EA] border border-[#E7DAC2] shadow-tactile-card rounded-lg ks-card-edge">
-          {item.payload_json.body || item.payload_json.content || ''}
+          {item.payload.body || item.payload.content || ''}
         </div>
       )
     case 'card':
       return (
         <div className="flex items-center justify-center gap-4 px-4">
-          {item.payload_json.text && (
+          {item.payload.text && (
             <div className="w-24 h-32 bg-[#FBF6EA] border border-[#5a4a3b]/40 shadow-tactile-card rounded-lg p-4 ks-font-handwriting italic text-[#2B2118] text-sm leading-relaxed">
-              {item.payload_json.text}
+              {item.payload.text}
             </div>
           )}
         </div>
@@ -66,8 +66,8 @@ function GiftItem({ item }: { item: KeepsakeGiftItem }) {
     case 'photo':
       return (
         <div className="w-48 h-48 bg-[#E7DAC2] border border-[#c9b29a] shadow-tactile-card rounded-lg flex items-center justify-center rotate-1">
-          {item.payload_json.url ? (
-            <img src={item.payload_json.url} alt={item.payload_json.caption || 'photo'} className="w-full h-full object-cover rounded-lg" />
+          {item.payload.url ? (
+            <img src={item.payload.url} alt={item.payload.caption || 'photo'} className="w-full h-full object-cover rounded-lg" />
           ) : (
             <div className="text-xs text-[#5A4A3B]">Photo</div>
           )}
@@ -76,18 +76,18 @@ function GiftItem({ item }: { item: KeepsakeGiftItem }) {
     case 'coupon':
       return (
         <div className="w-48 h-24 bg-[#FBF6EA] border-2 border-[#5a4a3b] shadow-tactile-card rounded-none flex items-center justify-center px-4 ks-font-display text-[#7A1F2B] font-bold text-sm uppercase tracking-widest">
-          {item.payload_json.title || 'Coupon'}
+          {item.payload.title || 'Coupon'}
         </div>
       )
     case 'track':
       return (
         <div className="flex items-center justify-between px-4 py-2 bg-[#FBF6EA] border border-[#E7DAC2] shadow-tactile-card rounded-lg ks-font-body text-sm">
-          <span>{item.payload_json.title || 'Track'}</span>
-          <span className="text-[#5A4A3B]">{item.payload_json.artist || ''}</span>
+          <span>{item.payload.title || 'Track'}</span>
+          <span className="text-[#5A4A3B]">{item.payload.artist || ''}</span>
         </div>
       )
     default:
-      return <div className="text-sm text-[#5A4A3B]">{item.payload_json.body || ''}</div>
+      return <div className="text-sm text-[#5A4A3B]">{item.payload.body || ''}</div>
   }
 }
 
@@ -242,7 +242,7 @@ export default function UnwrapCeremony({ slug }: UnwrapCeremonyProps) {
 
           {!reduceMotion && !skip && (
             <p className="ks-font-ui text-sm text-[#5A4A3B] mt-4 uppercase tracking-widest">
-              Drag the ribbon to untie &nbsp;·&nbsp; or press Enter
+              Drag the ribbon to untie · or press Enter
             </p>
           )}
         </>
@@ -258,7 +258,7 @@ export default function UnwrapCeremony({ slug }: UnwrapCeremonyProps) {
             paperColor="paper"
             className="mb-8"
           />
-          <p className="ks-font-ui text-sm text-[#5A4A3B] uppercase tracking-widest">Opening&hellip;</p>
+          <p className="ks-font-ui text-sm text-[#5A4A3B] uppercase tracking-widest">Opening…</p>
         </>
       )}
 

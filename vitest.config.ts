@@ -13,6 +13,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // `server-only` throws outside a React Server Component graph. Vitest runs
+      // plain Node, so the guard is swapped for a no-op stub.
+      'server-only': path.resolve(__dirname, './src/__mocks__/server-only.ts'),
     },
   },
 })

@@ -53,7 +53,7 @@ export async function GET(
     let items: any[] = []
     if (!locked) {
       const rows = await sql`
-        select id, gift_id, kind, payload_json, position
+        select id, gift_id, kind, payload, position
         from gift_items
         where gift_id = ${gift.id}
         order by position asc, created_at asc

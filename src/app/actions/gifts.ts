@@ -1,6 +1,7 @@
 'use server'
 
-import { sql } from '@/lib/db'
+import { randomUUID } from 'crypto'
+import { sql, withRetry } from '@/lib/db'
 import { customAlphabet } from 'nanoid'
 import bcrypt from 'bcryptjs'
 
@@ -28,13 +29,46 @@ export interface CreateGiftInput {
   recipient_name?: string | null
   note?: string | null
   wrap_style?: string
-  items: Array<{ kind: string; payload_json: Record<string, unknown>; position: number }>
+  items: Array<{ kind: string; payload: Record<string, unknown>; position: number }>
   custom_slug?: string
   pin?: string | null
   unlock_at?: string | null
 }
 
-export async function createGift(input: CreateGiftInput) {
+export type CreateGiftError =
+  | 'reserved_slug'
+  | 'slug_taken'
+  | 'pin_hash_failed'
+  | 'db_error'
+
+export type CreateGiftResult =
+  | { ok: true; gift: { id: string; slug: string; status: string; unlock_at: string | null } }
+  | { ok: false; error: CreateGiftError }
+
+function isUniqueViolation(e: unknown): boolean {
+  return (e as { code?: string } | null)?.code === '23505'
+}
+
+/** Name of the index/constraint that a 23505 came from, e.g. `gifts_slug_key`. */
+function uniqueViolationConstraint(e: unknown): string | null {
+  if (!isUniqueViolation(e)) return null
+  return (e as { constraint?: string }).constraint ?? 'unknown'
+}
+
+/**
+ * Runs the statements as a single non-interactive transaction.
+ * A unique violation is never retried: it is a deterministic answer, not a
+ * transient Neon wake-up failure.
+ */
+async function runTransaction(queries: Parameters<ReturnType<typeof sql>['transaction']>[0]): Promise<SqlRow[][]> {
+  return withRetry(
+    () => sql().transaction(queries) as unknown as Promise<SqlRow[][]>,
+    3,
+    (e) => !isUniqueViolation(e)
+  )
+}
+
+export async function createGift(input: CreateGiftInput): Promise<CreateGiftResult> {
   const s = sql()
   const slug = input.custom_slug?.trim() || autoSlug()
 
@@ -44,28 +78,50 @@ export async function createGift(input: CreateGiftInput) {
 
   let pinHash: string | null = null
   if (input.pin) {
-    pinHash = await bcrypt.hash(input.pin, 10)
+    try {
+      pinHash = await bcrypt.hash(input.pin, 10)
+    } catch {
+      return { ok: false as const, error: 'pin_hash_failed' as const }
+    }
   }
 
-  const result = await s`
-    insert into gifts (type, title, recipient_name, note, wrap_style, slug, slug_is_custom, pin_hash, unlock_at, status)
-    values (
-      ${input.type}, ${input.title}, ${input.recipient_name || null}, ${input.note || null},
-      ${input.wrap_style || 'airmail'}, ${slug}, ${!!input.custom_slug},
-      ${pinHash}, ${input.unlock_at || null}, 'draft'
-    )
-    returning id, slug, status, unlock_at
-  ` as unknown as SqlRow[]
-  const gift = result[0]
+  // The gift id is generated up front so the gift row and every item row can
+  // be sent as one transaction instead of a chain of dependent round-trips.
+  const giftId = randomUUID()
 
-  for (const item of input.items) {
-    await s`
-      insert into gift_items (gift_id, kind, position, payload_json)
-      values (${gift.id}, ${item.kind}, ${item.position}, ${JSON.stringify(item.payload_json)})
-    `
+  try {
+    const results = await runTransaction([
+      s`
+        insert into gifts (id, type, title, recipient_name, note, wrap_style, slug, slug_is_custom, pin_hash, unlock_at, status)
+        values (
+          ${giftId}, ${input.type}, ${input.title}, ${input.recipient_name || null}, ${input.note || null},
+          ${input.wrap_style || 'airmail'}, ${slug}, ${!!input.custom_slug},
+          ${pinHash}, ${input.unlock_at || null}, 'draft'
+        )
+        returning id, slug, status, unlock_at
+      `,
+      ...input.items.map((item) => s`
+        insert into gift_items (gift_id, kind, position, payload)
+        values (${giftId}, ${item.kind}, ${item.position}, ${JSON.stringify(item.payload)})
+      `),
+    ])
+
+    const gift = results[0]?.[0]
+    if (!gift) {
+      return { ok: false as const, error: 'db_error' as const }
+    }
+
+    return {
+      ok: true as const,
+      gift: { id: gift.id, slug: gift.slug, status: gift.status, unlock_at: gift.unlock_at },
+    }
+  } catch (e: any) {
+    const constraint = uniqueViolationConstraint(e)
+    if (constraint && constraint.includes('slug')) {
+      return { ok: false as const, error: 'slug_taken' as const }
+    }
+    return { ok: false as const, error: 'db_error' as const }
   }
-
-  return { ok: true as const, gift: { id: gift.id, slug: gift.slug, status: gift.status, unlock_at: gift.unlock_at } }
 }
 
 export async function checkSlugAvailability(slug: string) {
@@ -82,27 +138,33 @@ export async function checkSlugAvailability(slug: string) {
 
 export async function publishGift(giftId: string, customSlug?: string) {
   const s = sql()
-  const slug = customSlug?.trim() || autoSlug()
+  const requestedSlug = customSlug?.trim()
 
-  if (RESERVED_SLUGS.has(slug)) {
+  if (requestedSlug && RESERVED_SLUGS.has(requestedSlug)) {
     return { ok: false as const, error: 'reserved_slug' as const }
   }
 
   try {
     const result = await s`
       update gifts
-      set status = 'published', slug = ${slug}, slug_is_custom = ${!!customSlug},
+      set status = 'published',
+          slug = coalesce(${requestedSlug || null}::text, slug),
+          slug_is_custom = ${!!requestedSlug},
           published_at = now(), updated_at = now()
       where id = ${giftId} and status <> 'published'
       returning id, slug
     ` as unknown as SqlRow[]
     const row = result[0]
+    if (!row) {
+      return { ok: false as const, error: 'not_found' as const }
+    }
     return { ok: true as const, slug: row.slug }
   } catch (e: any) {
-    if (e?.code === '23505') {
+    const constraint = uniqueViolationConstraint(e)
+    if (constraint && constraint.includes('slug')) {
       return { ok: false as const, error: 'slug_taken' as const }
     }
-    throw e
+    return { ok: false as const, error: 'db_error' as const }
   }
 }
 
@@ -118,7 +180,7 @@ export async function getGiftBySlug(slug: string) {
   if (!gift) return null
 
   const items = await s`
-    select id, kind, position, payload_json, unlock_at
+    select id, kind, position, payload, unlock_at
     from gift_items where gift_id = ${gift.id}
     order by position asc
   ` as unknown as SqlRow[]

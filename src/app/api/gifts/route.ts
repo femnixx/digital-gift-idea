@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
     if (Array.isArray(items) && items.length) {
       for (const item of items) {
         await sql`
-          insert into gift_items (gift_id, kind, payload_json, position)
-          values (${gift.id}, ${item.kind}, ${JSON.stringify(item.payload_json || {})}, ${item.position ?? 0})
+          insert into gift_items (gift_id, kind, payload, position)
+          values (${gift.id}, ${item.kind}, ${JSON.stringify(item.payload || {})}, ${item.position ?? 0})
         `
       }
     }

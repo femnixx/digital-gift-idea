@@ -15,13 +15,18 @@ export function sql(): Sql {
 }
 
 /** Neon computes suspend when idle; the first query can be slow or fail once. Retry briefly. */
-export async function withRetry<T>(fn: () => Promise<T>, tries = 3): Promise<T> {
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  tries = 3,
+  shouldRetry: (e: unknown) => boolean = () => true
+): Promise<T> {
   let last: unknown;
   for (let i = 0; i < tries; i++) {
     try {
       return await fn();
     } catch (e) {
       last = e;
+      if (!shouldRetry(e)) throw e;
       await new Promise((r) => setTimeout(r, 400 * (i + 1)));
     }
   }

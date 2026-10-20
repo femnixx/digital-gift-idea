@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 interface PinCellsProps {
   length: number
@@ -24,6 +24,7 @@ export function PinCells({
   alphanumeric = false,
 }: PinCellsProps) {
   const inputsRef = useRef<Array<HTMLInputElement | null>>([])
+  const baseId = useId()
   const [cells, setCells] = useState<Array<{ value: string; error: boolean }>>(
     Array.from({ length }, () => ({ value: '', error: false }))
   )
@@ -144,16 +145,15 @@ export function PinCells({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="font-ui text-sm font-medium text-text">{label}</label>
+        <label htmlFor={`${baseId}-0`} className="font-ui text-sm font-medium text-text">
+          {label}
+        </label>
       )}
-      <div
-        role="group"
-        aria-label={label || 'PIN code'}
-        className="flex gap-2"
-      >
+      <div role="group" aria-label={label ? undefined : 'PIN code'} className="flex gap-2">
         {cells.map((cell, i) => (
           <input
             key={i}
+            id={`${baseId}-${i}`}
             ref={(el) => {
               inputsRef.current[i] = el
             }}
@@ -165,11 +165,12 @@ export function PinCells({
             onKeyDown={(e) => handleKeyDown(e, i)}
             inputMode={alphanumeric ? 'text' : 'numeric'}
             autoComplete="one-time-code"
+            aria-label={`PIN digit ${i + 1}`}
             className={`w-10 h-12 flex-shrink-0 border border-line rounded-[4px] text-center font-mono text-lg font-medium text-text bg-surface transition-all ${
               cell.error
                 ? 'border-danger text-danger bg-danger/10 animate-[shake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]'
                 : ''
-            } ${i === cells.findIndex((c) => c.value === '' && i === cells.length - 1 ? -1 : 0) ? '' : ''}`}
+            }`}
           />
         ))}
       </div>
