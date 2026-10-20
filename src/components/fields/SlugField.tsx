@@ -27,7 +27,7 @@ export function SlugField({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cleanSlug = useCallback((v: string) => {
-    return v.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    return v.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
   }, [])
 
   useEffect(() => {
@@ -68,13 +68,14 @@ export function SlugField({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="font-ui text-sm font-medium text-text">{label}</label>
+        <label htmlFor="slug-field-input" className="font-ui text-sm font-medium text-text">{label}</label>
       )}
       <div className="relative group">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-text-muted">
           keepsake.love{prefix}
         </span>
         <input
+          id="slug-field-input"
           type="text"
           value={value}
           onChange={handleChange}

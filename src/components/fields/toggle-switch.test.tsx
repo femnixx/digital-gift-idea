@@ -14,7 +14,7 @@ describe('ToggleSwitch', () => {
     render(
       <ToggleSwitch checked={checked} onChange={(v) => { checked = v }} label="Test" />
     )
-    const btn = screen.getByRole('button')
+    const btn = screen.getByRole('switch')
     fireEvent.click(btn)
     expect(checked).toBe(true)
   })

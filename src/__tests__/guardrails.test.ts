@@ -4,6 +4,32 @@ import { readFileSync } from 'node:fs'
 const BASE = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
 const FETCH_OPTS: RequestInit = { redirect: 'manual' }
 
+function buildMultipart(fields: Record<string, string>, file: { name: string; content: Uint8Array; type: string }): { body: Uint8Array; contentType: string } {
+  const boundary = '----boundary-' + crypto.randomUUID().replace(/-/g, '')
+  const CRLF = '\r\n'
+  const parts: Uint8Array[] = []
+
+  for (const [key, value] of Object.entries(fields)) {
+    const header = `--${boundary}${CRLF}Content-Disposition: form-data; name="${key}"${CRLF}${CRLF}${value}${CRLF}`
+    parts.push(new TextEncoder().encode(header))
+  }
+
+  const fileHeader = `--${boundary}${CRLF}Content-Disposition: form-data; name="file"; filename="${file.name}"${CRLF}Content-Type: ${file.type}${CRLF}${CRLF}`
+  parts.push(new TextEncoder().encode(fileHeader))
+  parts.push(file.content)
+  parts.push(new TextEncoder().encode(CRLF))
+  parts.push(new TextEncoder().encode(`--${boundary}--${CRLF}`))
+
+  const body = new Uint8Array(parts.reduce((sum, p) => sum + p.length, 0))
+  let offset = 0
+  for (const part of parts) {
+    body.set(part, offset)
+    offset += part.length
+  }
+
+  return { body, contentType: `multipart/form-data; boundary=${boundary}` }
+}
+
 /**
  * Guardrails for the anonymous gift model.
  *
@@ -571,12 +597,12 @@ describe('Anonymous gift flow guardrails', () => {
       // Upload a real file so the note references an actual media row, which is
       // what the player needs. The note carnes media_id only, so the public
       // payload used to leave media undefined and hand the player an empty url.
-      const form = new FormData()
-      form.append('file', new File([new Uint8Array(1024)], 'a.webm', { type: 'audio/webm' }))
-      form.append('entry_id', slug)
-      form.append('type', 'audio')
-      form.append('token', token)
-      const upload = await fetch(`${BASE}/api/media`, { method: 'POST', body: form })
+      const { body, contentType } = buildMultipart(
+        { entry_id: slug, type: 'audio', token },
+        { name: 'a.webm', content: new Uint8Array(1024), type: 'audio/webm' }
+      )
+      const upload = await fetch(`${BASE}/api/media`, { method: 'POST', headers: { 'Content-Type': contentType }, body })
+      if (upload.status !== 201) log('media upload error', upload.status, await upload.text())
       expect(upload.status).toBe(201)
       const mediaId = (await upload.json()).media.id
 

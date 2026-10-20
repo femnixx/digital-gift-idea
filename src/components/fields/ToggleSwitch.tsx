@@ -20,16 +20,18 @@ export function ToggleSwitch({
   disabled,
 }: ToggleSwitchProps) {
   const id = useCallback(() => `ts-${Math.random().toString(36).slice(2)}`, [])
+  const generatedId = id()
 
   return (
     <div className="flex items-center gap-3">
       <label
-        htmlFor={id()}
+        htmlFor={generatedId}
         className="font-ui text-sm font-medium text-text cursor-pointer select-none"
       >
         {label}
       </label>
       <button
+        id={generatedId}
         type="button"
         role="switch"
         aria-checked={checked}

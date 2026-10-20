@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SkyBackground } from '@/components/SkyBackground'
+import { NavProvider } from '@/hooks/useNav'
 import './globals.css'
 
 import '@fontsource/instrument-serif/index.css'
@@ -60,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="/build" className="btn">Make a gift</a>
           </div>
         </header>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1"><NavProvider>{children}</NavProvider></main>
         <footer className="border-t border-line mt-auto py-8 text-center font-ui text-xs uppercase tracking-[0.18em] text-text-muted">
           Keepsake &middot; Open Sky &middot; noindex by default
         </footer>

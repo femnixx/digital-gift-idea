@@ -147,7 +147,7 @@ export function PinCells({
         <label className="font-ui text-sm font-medium text-text">{label}</label>
       )}
       <div
-        role="textbox"
+        role="group"
         aria-label={label || 'PIN code'}
         className="flex gap-2"
       >
